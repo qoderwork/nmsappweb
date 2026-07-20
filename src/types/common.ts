@@ -2,35 +2,7 @@
  * 通用业务类型定义
  */
 
-/** 设备状态 */
-export type DeviceStatus = 'online' | 'offline' | 'warning' | 'error';
 
-/** 设备基本信息 */
-export interface Device {
-  id: number;
-  neId: string;
-  name: string;
-  model?: string;
-  vendor?: string;
-  version?: string;
-  ip?: string;
-  mac?: string;
-  sn?: string;
-  status: DeviceStatus;
-  /** 所属分组 */
-  groupId?: number;
-  groupName?: string;
-  /** 经度 */
-  longitude?: number;
-  /** 纬度 */
-  latitude?: number;
-  /** 最后上报时间 */
-  lastInformTime?: string;
-  /** 创建时间 */
-  createTime: string;
-  /** 更新时间 */
-  updateTime?: string;
-}
 
 /** WebSocket 消息载体 */
 export interface WsMessage<T = unknown> {

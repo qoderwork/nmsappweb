@@ -193,6 +193,7 @@ export default {
   menu: {
     dashboard: 'Dashboard',
     device: 'Devices',
+    deviceList: 'Device List',
     network: 'Network',
     user: 'Users',
     role: 'Roles',

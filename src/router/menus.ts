@@ -43,7 +43,6 @@ export const staticMenus: MenuItem[] = [
     icon: 'Monitor',
     sort: 2,
     visible: 'visible',
-    permissionsOr: ['GNB.Monitor.ListGNB', 'DeviceGroup.ListDeviceGroup'],
     children: [
       {
         id: 21,
@@ -57,20 +56,6 @@ export const staticMenus: MenuItem[] = [
         sort: 1,
         visible: 'visible',
         keepAlive: true,
-        permissionsOr: ['GNB.Monitor.ListGNB'],
-      },
-      {
-        id: 22,
-        parentId: 2,
-        name: '设备分组',
-        code: 'device-group',
-        type: 'menu',
-        path: '/device/group',
-        component: 'device/group',
-        icon: 'Files',
-        sort: 2,
-        visible: 'visible',
-        permissionsOr: ['DeviceGroup.ListDeviceGroup'],
       },
     ],
   },

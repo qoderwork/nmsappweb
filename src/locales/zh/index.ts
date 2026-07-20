@@ -201,6 +201,7 @@ export default {
   menu: {
     dashboard: '仪表盘',
     device: '设备管理',
+    deviceList: '设备列表',
     network: '网络管理',
     user: '用户管理',
     role: '角色管理',

@@ -249,12 +249,12 @@ class HttpClient {
    */
   async getPage<T = unknown>(
     url: string,
-    query: PageQuery & Record<string, unknown> = { page: 1, pageSize: 20 },
+    query: Partial<PageQuery> & Record<string, unknown> = {},
     config?: RequestConfig
   ): Promise<{ list: T[]; total: number; page: number; pageSize: number }> {
     const params: Record<string, unknown> = {
-      page: query.page,
-      pageSize: query.pageSize,
+      page: query.page ?? 1,
+      pageSize: query.pageSize ?? 20,
     };
     // 展开其余查询参数（剔除 page/pageSize）
     Object.keys(query).forEach((k) => {

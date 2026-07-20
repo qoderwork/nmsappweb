@@ -45,6 +45,17 @@ export const staticRoutes: RouteRecordRaw[] = [
         },
       },
       {
+        path: 'device/list',
+        name: 'DeviceList',
+        component: () => import('@/views/device/list/index.vue'),
+        meta: {
+          title: 'menu.deviceList',
+          icon: 'List',
+          requiresAuth: true,
+          keepAlive: true,
+        },
+      },
+      {
         path: 'profile',
         name: 'Profile',
         component: () => import('@/views/profile/index.vue'),
