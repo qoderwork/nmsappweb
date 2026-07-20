@@ -42,9 +42,9 @@ export function getUser(id: number | string) {
   return http.get<UserDTO>(`/users/${id}`);
 }
 
-/** 新增用户 */
+/** 新增用户（返回生成的密码） */
 export function createUser(data: Partial<UserDTO>) {
-  return http.post<UserDTO, Partial<UserDTO>>('/users', data);
+  return http.post<{ userId: number; password: string }, Partial<UserDTO>>('/users', data);
 }
 
 /** 更新用户 */

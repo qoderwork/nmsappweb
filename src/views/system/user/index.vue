@@ -2,21 +2,16 @@
 /**
  * 用户管理页面
  *
- * 功能：
- * - 用户列表展示（分页）
- * - 关键字搜索
- * - 用户状态筛选
- * - 新增/编辑/删除用户
- * - 启用/禁用用户
- * - 重置密码
+ * 对齐 Java SystemUserManagementServiceImpl.listUser
+ * 字段：id, username, createUsername, enable, updateTime, createTime, tenancy, email, loginState
  */
 import { reactive, ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ElMessage, ElMessageBox, ElDialog, ElForm, ElFormItem, ElInput, ElSelect, ElOption, ElSwitch, ElButton, ElTable, ElTableColumn, ElTag, ElPagination } from 'element-plus';
-import { Search, Refresh, Plus, Edit, Delete, Lock, Unlock, Key } from '@element-plus/icons-vue';
+import { ElMessage, ElMessageBox, ElDialog, ElForm, ElFormItem, ElInput, ElSwitch, ElButton, ElTable, ElTableColumn, ElTag, ElPagination } from 'element-plus';
+import { Search, Refresh, Plus, Edit, Delete, Lock, Unlock, Key, CopyDocument } from '@element-plus/icons-vue';
 
 import { getUsers, createUser, updateUser, deleteUser, enableUser, disableUser, resetPassword } from '@/api/user';
-import type { UserDTO, UserQueryParams, UserStatus } from '@/types/user';
+import type { UserDTO } from '@/types/user';
 
 const { t } = useI18n();
 
@@ -29,13 +24,11 @@ interface QueryParams {
   page: number;
   pageSize: number;
   keyword: string;
-  status: UserStatus | null;
 }
 const queryParams = reactive<QueryParams>({
   page: 1,
   pageSize: 20,
   keyword: '',
-  status: null,
 });
 
 // 弹窗状态
@@ -43,21 +36,22 @@ const dialogVisible = ref(false);
 const dialogTitle = ref('新增用户');
 const isEdit = ref(false);
 
+// 密码显示弹窗
+const passwordDialogVisible = ref(false);
+const generatedPassword = ref('');
+const newUserId = ref(0);
+
 // 表单数据
 const formData = reactive({
   id: 0,
   username: '',
-  realName: '',
   email: '',
-  phoneNumber: '',
-  status: 1 as UserStatus,
   enable: true,
 });
 
 // 表单规则
 const formRules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }],
 };
 
 // ============ 方法 ============
@@ -66,13 +60,11 @@ const formRules = {
 async function loadData() {
   loading.value = true;
   try {
-    const params: UserQueryParams = {
+    const result = await getUsers({
       page: queryParams.page,
       pageSize: queryParams.pageSize,
       keyword: queryParams.keyword || undefined,
-      status: queryParams.status ?? undefined,
-    };
-    const result = await getUsers(params);
+    });
     tableData.value = result.list;
     total.value = result.total;
   } catch (e) {
@@ -91,7 +83,6 @@ function handleSearch() {
 /** 重置搜索 */
 function handleReset() {
   queryParams.keyword = '';
-  queryParams.status = null;
   queryParams.page = 1;
   loadData();
 }
@@ -115,10 +106,7 @@ function handleAdd() {
   isEdit.value = false;
   formData.id = 0;
   formData.username = '';
-  formData.realName = '';
   formData.email = '';
-  formData.phoneNumber = '';
-  formData.status = 1 as UserStatus;
   formData.enable = true;
   dialogVisible.value = true;
 }
@@ -129,54 +117,85 @@ function handleEdit(row: UserDTO) {
   isEdit.value = true;
   formData.id = row.id;
   formData.username = row.username ?? '';
-  formData.realName = row.realName ?? '';
   formData.email = row.email ?? '';
-  formData.phoneNumber = row.phoneNumber ?? '';
-  formData.status = (row.status ?? 1) as UserStatus;
   formData.enable = row.enable ?? true;
   dialogVisible.value = true;
 }
 
 /** 保存用户 */
 async function handleSave() {
-  if (!formData.username || !formData.realName) {
-    ElMessage.warning('请填写必填项');
+  if (!formData.username) {
+    ElMessage.warning('请输入用户名');
     return;
   }
   try {
     if (isEdit.value) {
       await updateUser(formData.id, {
         username: formData.username,
-        realName: formData.realName,
         email: formData.email,
-        phoneNumber: formData.phoneNumber,
-        status: formData.status,
         enable: formData.enable,
       });
       ElMessage.success('更新成功');
+      dialogVisible.value = false;
     } else {
-      await createUser({
+      // 创建用户成功后显示生成的密码
+      const result = await createUser({
         username: formData.username,
-        realName: formData.realName,
         email: formData.email,
-        phoneNumber: formData.phoneNumber,
-        status: formData.status,
         enable: formData.enable,
       });
-      ElMessage.success('创建成功');
+      dialogVisible.value = false;
+
+      // 显示密码弹窗
+      newUserId.value = result.userId;
+      generatedPassword.value = result.password;
+      passwordDialogVisible.value = true;
     }
-    dialogVisible.value = false;
     loadData();
   } catch (e) {
     console.error('[UserManagement] save failed:', e);
   }
 }
 
+/** 复制密码 */
+async function handleCopyPassword() {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(generatedPassword.value);
+      ElMessage.success('密码已复制到剪贴板');
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = generatedPassword.value;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      const success = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      if (success) {
+        ElMessage.success('密码已复制到剪贴板');
+      } else {
+        ElMessage.error('复制失败，请手动复制');
+      }
+    }
+  } catch (e) {
+    console.error('[UserManagement] copy failed:', e);
+    ElMessage.error('复制失败，请手动复制');
+  }
+}
+
+/** 关闭密码弹窗 */
+function handleClosePasswordDialog() {
+  passwordDialogVisible.value = false;
+  generatedPassword.value = '';
+  newUserId.value = 0;
+}
+
 /** 删除用户 */
 async function handleDelete(row: UserDTO) {
   try {
     await ElMessageBox.confirm(
-      `确定要删除用户 "${row.realName || row.username}" 吗？`,
+      `确定要删除用户 "${row.username}" 吗？`,
       '删除确认',
       { type: 'warning' }
     );
@@ -216,7 +235,7 @@ async function handleDisable(row: UserDTO) {
 async function handleResetPassword(row: UserDTO) {
   try {
     await ElMessageBox.confirm(
-      `确定要重置用户 "${row.realName || row.username}" 的密码吗？`,
+      `确定要重置用户 "${row.username}" 的密码吗？`,
       '重置密码',
       { type: 'warning' }
     );
@@ -233,20 +252,6 @@ async function handleResetPassword(row: UserDTO) {
 function formatTime(time?: string | null): string {
   if (!time) return '-';
   return new Date(time).toLocaleString('zh-CN');
-}
-
-/** 获取状态标签类型 */
-function getStatusType(status?: number | null): 'success' | 'danger' | 'info' {
-  if (status === 1) return 'success';
-  if (status === 0) return 'danger';
-  return 'info';
-}
-
-/** 获取状态文本 */
-function getStatusText(status?: number | null): string {
-  if (status === 1) return '正常';
-  if (status === 0) return '锁定';
-  return '未知';
 }
 
 /** 获取在线状态文本 */
@@ -273,17 +278,11 @@ onMounted(() => {
         <el-form-item label="关键字">
           <el-input
             v-model="queryParams.keyword"
-            placeholder="用户名/姓名"
+            placeholder="用户名"
             clearable
             style="width: 200px"
             @keyup.enter="handleSearch"
           />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="queryParams.status" placeholder="全部" style="width: 120px">
-            <el-option :value="1" label="正常" />
-            <el-option :value="0" label="锁定" />
-          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
@@ -305,13 +304,13 @@ onMounted(() => {
       >
         <el-table-column type="index" label="#" width="60" />
         <el-table-column prop="username" label="用户名" min-width="120" />
-        <el-table-column prop="realName" label="真实姓名" min-width="120" />
+        <el-table-column prop="createUsername" label="创建者" min-width="120" />
+        <el-table-column prop="tenancy" label="租户" min-width="120" />
         <el-table-column prop="email" label="邮箱" min-width="180" />
-        <el-table-column prop="phoneNumber" label="手机号" min-width="120" />
-        <el-table-column prop="status" label="状态" width="90" align="center">
+        <el-table-column prop="enable" label="启用" width="80" align="center">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small">
-              {{ getStatusText(row.status) }}
+            <el-tag :type="row.enable ? 'success' : 'danger'" size="small">
+              {{ row.enable ? '是' : '否' }}
             </el-tag>
           </template>
         </el-table-column>
@@ -327,9 +326,9 @@ onMounted(() => {
             {{ formatTime(row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column prop="lastLoginTime" label="最后登录" min-width="160">
+        <el-table-column prop="updateTime" label="更新时间" min-width="160">
           <template #default="{ row }">
-            {{ formatTime(row.lastLoginTime) }}
+            {{ formatTime(row.updateTime) }}
           </template>
         </el-table-column>
         <el-table-column label="操作" width="280" fixed="right">
@@ -379,20 +378,8 @@ onMounted(() => {
         <ElFormItem label="用户名" prop="username">
           <ElInput v-model="formData.username" :disabled="isEdit" />
         </ElFormItem>
-        <ElFormItem label="真实姓名" prop="realName">
-          <ElInput v-model="formData.realName" />
-        </ElFormItem>
         <ElFormItem label="邮箱">
           <ElInput v-model="formData.email" type="email" />
-        </ElFormItem>
-        <ElFormItem label="手机号">
-          <ElInput v-model="formData.phoneNumber" />
-        </ElFormItem>
-        <ElFormItem label="状态">
-          <ElSelect v-model="formData.status" style="width: 100%">
-            <ElOption :value="1" label="正常" />
-            <ElOption :value="0" label="锁定" />
-          </ElSelect>
         </ElFormItem>
         <ElFormItem label="启用">
           <ElSwitch v-model="formData.enable" />
@@ -401,6 +388,34 @@ onMounted(() => {
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
         <el-button type="primary" @click="handleSave">确定</el-button>
+      </template>
+    </ElDialog>
+
+    <!-- 密码显示弹窗 -->
+    <ElDialog
+      v-model="passwordDialogVisible"
+      title="用户创建成功"
+      width="500px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      @close="handleClosePasswordDialog"
+    >
+      <div style="padding: 20px 0;">
+        <p style="margin-bottom: 16px; font-size: 14px;">
+          用户创建成功！请保存以下初始密码，用户首次登录后需要修改密码：
+        </p>
+        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f5f7fa; border-radius: 4px;">
+          <span style="font-size: 18px; font-weight: bold; color: #409eff; letter-spacing: 1px;">{{ generatedPassword }}</span>
+          <el-button type="primary" :icon="CopyDocument" size="small" @click="handleCopyPassword">
+            复制密码
+          </el-button>
+        </div>
+        <p style="margin-top: 12px; color: #e6a23c; font-size: 12px;">
+          注意：此密码只会显示一次，请务必保存！
+        </p>
+      </div>
+      <template #footer>
+        <el-button type="primary" @click="handleClosePasswordDialog">我已保存</el-button>
       </template>
     </ElDialog>
   </div>

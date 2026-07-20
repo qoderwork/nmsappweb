@@ -30,9 +30,16 @@ export interface User {
   firstLogin?: boolean | null;
 }
 
-/** 用户列表响应 DTO（对齐 UserDTO） */
-export interface UserDTO extends User {
-  roles?: string[];
+/** 用户列表响应 DTO（对齐 Java ListUserVO） */
+export interface UserDTO {
+  id: number;
+  username?: string | null;
+  createUsername?: string | null;
+  enable?: boolean | null;
+  updateTime?: string | null;
+  createTime?: string | null;
+  tenancy?: string | null;
+  email?: string | null;
   loginState: boolean;
 }
 
