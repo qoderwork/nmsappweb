@@ -1,0 +1,142 @@
+/**
+ * 全局过渡动画
+ * 为路由切换、对话框、列表项等场景提供一致的动画体验
+ */
+
+/* ============ 路由切换动画 ============ */
+.fade-transform-enter-active,
+.fade-transform-leave-active {
+  transition: all var(--transition-base) var(--transition-ease);
+}
+
+.fade-transform-enter-from {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.fade-transform-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+/* ============ 淡入淡出 ============ */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--transition-base) var(--transition-ease);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* ============ 滑入滑出 ============ */
+.slide-fade-enter-active,
+.slide-fade-leave-active {
+  transition: all var(--transition-base) var(--transition-ease);
+}
+
+.slide-fade-enter-from {
+  transform: translateY(-12px);
+  opacity: 0;
+}
+
+.slide-fade-leave-to {
+  transform: translateY(-12px);
+  opacity: 0;
+}
+
+/* ============ 列表过渡 ============ */
+.list-enter-active,
+.list-leave-active {
+  transition: all var(--transition-base) var(--transition-ease);
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.list-move {
+  transition: transform var(--transition-base) var(--transition-ease);
+}
+
+/* ============ 弹性缩放 ============ */
+.zoom-enter-active,
+.zoom-leave-active {
+  transition: all var(--transition-base) var(--transition-ease);
+}
+
+.zoom-enter-from,
+.zoom-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+/* ============ 折叠展开 ============ */
+.collapse-transition {
+  transition: height var(--transition-base) var(--transition-ease);
+}
+
+/* ============ 关键帧动画 ============ */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+/* 动画工具类 */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp var(--transition-slow) var(--transition-ease) both;
+}
+
+/* 骨架屏渐变 */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-hover) 25%,
+    var(--bg-active) 50%,
+    var(--bg-hover) 75%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}

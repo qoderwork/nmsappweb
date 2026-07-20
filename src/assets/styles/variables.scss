@@ -1,0 +1,246 @@
+/**
+ * NMS 全局 CSS 变量定义
+ * 包含：色彩、间距、字号、圆角、阴影、动画时长、z-index
+ * 同时映射 Element Plus 主题变量，便于统一品牌色管理
+ */
+
+:root {
+  /* ============ 品牌主色 ============ */
+  --brand-primary: #0068b6;
+  --brand-primary-hover: #005a99;
+  --brand-primary-active: #004a7d;
+  --brand-primary-light: #e6f4fb;
+  --brand-primary-lighter: #f5fbfe;
+
+  /* ============ 功能色 ============ */
+  --color-success: #16a34a;
+  --color-warning: #f59e0b;
+  --color-danger: #dc2626;
+  --color-info: #6b7280;
+
+  /* ============ 中性色（亮色主题） ============ */
+  --bg-page: #f5f7fa;
+  --bg-card: #ffffff;
+  --bg-overlay: rgba(255, 255, 255, 0.85);
+  --bg-hover: #f0f4f8;
+  --bg-active: #e6f4fb;
+
+  --text-primary: #1f2937;
+  --text-regular: #4b5563;
+  --text-secondary: #6b7280;
+  --text-placeholder: #9ca3af;
+  --text-disabled: #d1d5db;
+  --text-inverse: #ffffff;
+
+  --border-base: #e5e7eb;
+  --border-light: #f0f0f0;
+  --border-lighter: #f5f5f5;
+  --border-dark: #d1d5db;
+
+  /* ============ 间距体系（4px 基准） ============ */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-base: 16px;
+  --spacing-lg: 20px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 48px;
+
+  /* ============ 圆角 ============ */
+  --radius-sm: 2px;
+  --radius-base: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  /* ============ 阴影 ============ */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* ============ 字号 ============ */
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+
+  /* ============ 过渡时长 ============ */
+  --transition-fast: 0.15s;
+  --transition-base: 0.25s;
+  --transition-slow: 0.35s;
+  --transition-ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ============ z-index ============ */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 2000;
+  --z-modal: 2050;
+  --z-popover: 3000;
+  --z-tooltip: 3100;
+
+  /* ============ 布局尺寸 ============ */
+  --layout-sidebar-width: 220px;
+  --layout-sidebar-collapsed-width: 64px;
+  --layout-navbar-height: 56px;
+  --layout-tagsview-height: 36px;
+  --layout-content-padding: 16px;
+
+  /* ============ Element Plus 主题覆盖 ============ */
+  --el-color-primary: #0068b6;
+  --el-color-primary-light-3: #33a7df;
+  --el-color-primary-light-5: #66bde7;
+  --el-color-primary-light-7: #99d3ef;
+  --el-color-primary-light-8: #cce9f7;
+  --el-color-primary-light-9: #e6f4fb;
+  --el-color-primary-dark-2: #005a99;
+
+  --el-color-success: #16a34a;
+  --el-color-warning: #f59e0b;
+  --el-color-danger: #dc2626;
+  --el-color-error: #dc2626;
+  --el-color-info: #6b7280;
+
+  --el-border-radius-base: 4px;
+  --el-font-size-base: 14px;
+
+  --el-text-color-primary: #1f2937;
+  --el-text-color-regular: #4b5563;
+  --el-text-color-secondary: #6b7280;
+  --el-text-color-placeholder: #9ca3af;
+
+  --el-border-color: #e5e7eb;
+  --el-border-color-light: #f0f0f0;
+  --el-border-color-lighter: #f5f5f5;
+
+  --el-bg-color: #ffffff;
+  --el-bg-color-page: #f5f7fa;
+  --el-bg-color-overlay: #ffffff;
+  --el-fill-color-blank: #ffffff;
+
+  /* ============ NMS 自定义业务变量 ============ */
+  --status-online: #16a34a;
+  --status-offline: #9ca3af;
+  --status-warning: #f59e0b;
+  --status-error: #dc2626;
+  --status-pending: #6366f1;
+
+  --sidebar-bg: #1f2937;
+  --sidebar-text: #cbd5e1;
+  --sidebar-text-active: #ffffff;
+  --sidebar-item-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-item-active: rgba(0, 104, 182, 0.3);
+  --sidebar-logo-bg: #111827;
+}
+
+html.dark {
+  /* ============ 暗色主题 - 覆盖中性色 ============ */
+  --bg-page: #0f172a;
+  --bg-card: #1e293b;
+  --bg-overlay: rgba(30, 41, 59, 0.85);
+  --bg-hover: #334155;
+  --bg-active: rgba(0, 104, 182, 0.2);
+
+  --text-primary: #f1f5f9;
+  --text-regular: #cbd5e1;
+  --text-secondary: #94a3b8;
+  --text-placeholder: #64748b;
+  --text-disabled: #475569;
+  --text-inverse: #0f172a;
+
+  --border-base: #334155;
+  --border-light: #2d3a4f;
+  --border-lighter: #243044;
+  --border-dark: #475569;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+
+  /* ============ Element Plus 暗色覆盖 ============ */
+  --el-bg-color: #1e293b;
+  --el-bg-color-page: #0f172a;
+  --el-bg-color-overlay: #1e293b;
+  --el-fill-color-blank: #1e293b;
+  --el-fill-color-light: #243044;
+  --el-fill-color: #2d3a4f;
+
+  --el-text-color-primary: #f1f5f9;
+  --el-text-color-regular: #cbd5e1;
+  --el-text-color-secondary: #94a3b8;
+  --el-text-color-placeholder: #64748b;
+
+  --el-border-color: #334155;
+  --el-border-color-light: #2d3a4f;
+  --el-border-color-lighter: #243044;
+
+  --el-mask-color: rgba(0, 0, 0, 0.6);
+
+  /* NMS 业务变量 - 暗色 */
+  --sidebar-bg: #0f172a;
+  --sidebar-text: #94a3b8;
+  --sidebar-logo-bg: #020617;
+}
+
+/* ============ 全局重置 ============ */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  background-color: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+#app {
+  width: 100%;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-dark);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* 文字选中色 */
+::selection {
+  background: var(--brand-primary);
+  color: #ffffff;
+}

@@ -1,0 +1,133 @@
+/**
+ * 全局样式入口
+ * 统一引入：CSS 变量、Element Plus 主题覆盖、过渡动画、Tailwind 基础层、业务通用类
+ */
+
+/* Tailwind 基础层（必须在最前） */
+@use 'tailwindcss/base';
+@use 'tailwindcss/components';
+@use 'tailwindcss/utilities';
+
+/* 项目变量与重置 */
+@use './variables.scss';
+
+/* Element Plus 组件主题覆盖 */
+@use './element.scss';
+
+/* 过渡动画 */
+@use './transitions.scss';
+
+/* ============ 业务通用类 ============ */
+
+/* 卡片容器 */
+.nms-card {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-lighter);
+}
+
+/* 页面容器 */
+.nms-page {
+  padding: var(--layout-content-padding);
+  min-height: calc(100vh - var(--layout-navbar-height));
+}
+
+/* 搜索表单条 */
+.nms-search-bar {
+  background-color: var(--bg-card);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-base);
+  border: 1px solid var(--border-lighter);
+}
+
+/* 表格工具条 */
+.nms-table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-base) 0;
+}
+
+/* 状态点 */
+.nms-status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  margin-right: var(--spacing-xs);
+
+  &--online {
+    background-color: var(--status-online);
+    box-shadow: 0 0 6px var(--status-online);
+  }
+
+  &--offline {
+    background-color: var(--status-offline);
+  }
+
+  &--warning {
+    background-color: var(--status-warning);
+  }
+
+  &--error {
+    background-color: var(--status-error);
+  }
+
+  &--pending {
+    background-color: var(--status-pending);
+  }
+}
+
+/* 文本溢出省略 */
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-ellipsis-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* flex 工具类补充 */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 隐藏滚动条但保留滚动功能 */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* NProgress 自定义颜色 */
+#nprogress .bar {
+  background: var(--brand-primary) !important;
+  height: 3px;
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px var(--brand-primary), 0 0 5px var(--brand-primary) !important;
+}
+
+#nprogress .spinner-icon {
+  border-top-color: var(--brand-primary) !important;
+  border-left-color: var(--brand-primary) !important;
+}
