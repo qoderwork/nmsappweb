@@ -78,8 +78,8 @@ export interface PermissionItem {
   description?: string;
 }
 
-/** 角色信息 */
-export interface Role {
+/** 角色信息（旧权限模块，nmsappsrv 请使用 types/user.ts 中的 Role） */
+export interface PermissionRole {
   id: number;
   code: string;
   name: string;

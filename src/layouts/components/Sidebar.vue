@@ -7,7 +7,7 @@
  * 移动端抽屉模式下使用 Logo + 完整菜单
  */
 import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 import { useAppStore } from '@/stores/app';
 import { usePermissionStore } from '@/stores/permission';
@@ -18,6 +18,7 @@ import SidebarItem from './SidebarItem.vue';
 const appStore = useAppStore();
 const permissionStore = usePermissionStore();
 const route = useRoute();
+const router = useRouter();
 
 /** 菜单树（按 sort 排序） */
 const menus = computed(() =>
@@ -39,6 +40,10 @@ const collapsed = computed(() => appStore.sidebarCollapsed);
 function handleSelect(index: string) {
   // 外链已在 SidebarItem 中处理 window.open，这里只处理路由跳转
   if (/^(https?:|mailto:|tel:)/i.test(index)) return;
+  // 路由跳转
+  if (index !== route.path) {
+    router.push(index);
+  }
   // 移动端点击后关闭抽屉
   if (appStore.isMobile) {
     appStore.closeMobileSidebar();

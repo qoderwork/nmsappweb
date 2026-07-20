@@ -9,7 +9,7 @@
  */
 
 import { http } from '@/utils/request';
-import type { PermissionIdsResult, PermissionItem, Role } from '@/types';
+import type { PermissionIdsResult, PermissionItem, PermissionRole } from '@/types/permission';
 import type { PageQuery } from '@/types';
 
 /**
@@ -29,19 +29,19 @@ export function getPermissionRegistry() {
 /* ============ 角色管理 ============ */
 
 export function getRoles(params: PageQuery) {
-  return http.getPage<Role>('/auth/role/list', params);
+  return http.getPage<PermissionRole>('/auth/role/list', params);
 }
 
 export function getAllRoles() {
-  return http.get<Role[]>('/auth/role/all');
+  return http.get<PermissionRole[]>('/auth/role/all');
 }
 
-export function createRole(data: Partial<Role>) {
-  return http.post<Role, Partial<Role>>('/auth/role', data);
+export function createRole(data: Partial<PermissionRole>) {
+  return http.post<PermissionRole, Partial<PermissionRole>>('/auth/role', data);
 }
 
-export function updateRole(id: number, data: Partial<Role>) {
-  return http.put<Role, Partial<Role>>(`/auth/role/${id}`, data);
+export function updateRole(id: number, data: Partial<PermissionRole>) {
+  return http.put<PermissionRole, Partial<PermissionRole>>(`/auth/role/${id}`, data);
 }
 
 export function deleteRole(id: number) {

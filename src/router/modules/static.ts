@@ -56,6 +56,42 @@ export const staticRoutes: RouteRecordRaw[] = [
         },
       },
       {
+        path: 'monitor/alarm',
+        name: 'AlarmList',
+        component: () => import('@/views/monitor/alarm/index.vue'),
+        meta: {
+          title: 'menu.alarmList',
+          icon: 'Warning',
+          requiresAuth: true,
+          keepAlive: true,
+          permissionsOr: ['Alarm.ListAlarm'],
+        },
+      },
+      {
+        path: 'system/user',
+        name: 'UserManagement',
+        component: () => import('@/views/system/user/index.vue'),
+        meta: {
+          title: 'menu.userManagement',
+          icon: 'User',
+          requiresAuth: true,
+          keepAlive: true,
+          permissionsOr: ['System.Authority.User.ListUser'],
+        },
+      },
+      {
+        path: 'system/role',
+        name: 'RoleManagement',
+        component: () => import('@/views/system/role/index.vue'),
+        meta: {
+          title: 'menu.roleManagement',
+          icon: 'UserFilled',
+          requiresAuth: true,
+          keepAlive: true,
+          permissionsOr: ['System.Authority.Role.ListRole'],
+        },
+      },
+      {
         path: 'profile',
         name: 'Profile',
         component: () => import('@/views/profile/index.vue'),
