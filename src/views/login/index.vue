@@ -23,12 +23,60 @@ import { getCaptcha } from '@/api/auth';
 import { showErrorMessage, showSuccessMessage, BusinessError } from '@/utils/error';
 import { FormRules as FormRulePresets } from '@/utils/validate';
 import type { LoginParams } from '@/types';
+import { needChangePassword, modifyPassword } from '@/api/user';
 
 const router = useRouter();
 const route = useRoute();
 const { t } = useI18n();
 const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
+
+const needChangePasswordDialog = ref(false);
+const modifyPasswordFormRef = ref<FormInstance>();
+const modifyPasswordForm = reactive({
+  newPassword: '',
+  confirmPassword: '',
+});
+
+const modifyPasswordRules = {
+  newPassword: [
+    { required: true, message: '请输入新密码', trigger: 'blur' },
+    { min: 6, message: '密码长度不能少于6位', trigger: 'blur' },
+  ],
+  confirmPassword: [
+    { required: true, message: '请确认新密码', trigger: 'blur' },
+    {
+      validator(rule: unknown, value: string, callback: (error?: Error) => void) {
+        if (value !== modifyPasswordForm.newPassword) {
+          callback(new Error('两次输入的密码不一致'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'blur',
+    },
+  ],
+};
+
+async function handleModifyPassword() {
+  if (!modifyPasswordFormRef.value) return;
+  try {
+    await modifyPasswordFormRef.value.validate();
+  } catch {
+    return;
+  }
+  try {
+    await modifyPassword({
+      oldPassword: '',
+      newPassword: modifyPasswordForm.newPassword,
+    });
+    showSuccessMessage('密码修改成功');
+    needChangePasswordDialog.value = false;
+    router.replace(redirect.value || '/dashboard');
+  } catch (e) {
+    showErrorMessage(e, '密码修改失败');
+  }
+}
 
 // ============ 表单 ============
 const loginFormRef = ref<FormInstance>();
@@ -122,8 +170,14 @@ async function handleLogin() {
 
   try {
     await authStore.login(form);
-    // 登录成功
     showSuccessMessage(t('login.loginSuccess'));
+
+    const changeRes = await needChangePassword();
+    if (changeRes.needChange) {
+      needChangePasswordDialog.value = true;
+      return;
+    }
+
     router.replace(redirect.value || '/dashboard');
   } catch (e) {
     // 后端返回验证码要求（captcha required）-> 展示验证码输入框
@@ -201,24 +255,30 @@ function handleEnter() {
 
         <div class="login-brand__features">
           <div class="login-brand__feature">
-            <el-icon class="login-brand__feature-icon"><Monitor /></el-icon>
+            <div class="login-brand__feature-icon-wrapper">
+              <el-icon class="login-brand__feature-icon"><Monitor /></el-icon>
+            </div>
             <div class="login-brand__feature-text">
-              <strong>统一设备管理</strong>
-              <span>多厂商多协议一站式接入</span>
+              <strong>Manage All Devices</strong>
+              <span>One-stop multi-vendor access</span>
             </div>
           </div>
           <div class="login-brand__feature">
-            <el-icon class="login-brand__feature-icon"><Connection /></el-icon>
+            <div class="login-brand__feature-icon-wrapper">
+              <el-icon class="login-brand__feature-icon"><Connection /></el-icon>
+            </div>
             <div class="login-brand__feature-text">
-              <strong>实时监控告警</strong>
-              <span>网络拓扑与故障实时可视化</span>
+              <strong>Monitor in Real-time</strong>
+              <span>Topology & fault visualization</span>
             </div>
           </div>
           <div class="login-brand__feature">
-            <el-icon class="login-brand__feature-icon"><DataLine /></el-icon>
+            <div class="login-brand__feature-icon-wrapper">
+              <el-icon class="login-brand__feature-icon"><DataLine /></el-icon>
+            </div>
             <div class="login-brand__feature-text">
-              <strong>智能分析报表</strong>
-              <span>关键指标与趋势一目了然</span>
+              <strong>Analyze Smartly</strong>
+              <span>Key metrics & trends</span>
             </div>
           </div>
         </div>
@@ -361,13 +421,48 @@ function handleEnter() {
           >
             {{ loading ? t('login.logging') : t('login.loginButton') }}
           </el-button>
-
-          <!-- 默认账号提示 -->
-          <div class="login-card__hint">
-            <el-icon><InfoFilled /></el-icon>
-            <span>默认账号 admin / Admin@123</span>
-          </div>
         </el-form>
+
+        <el-dialog
+          v-model="needChangePasswordDialog"
+          title="修改密码"
+          width="400px"
+          :close-on-click-modal="false"
+          :close-on-press-escape="false"
+          :show-close="false"
+        >
+          <p style="color: #f59e0b; margin-bottom: 16px;">
+            您正在使用初始密码登录，请修改密码后继续。
+          </p>
+          <el-form
+            :model="modifyPasswordForm"
+            :rules="modifyPasswordRules"
+            ref="modifyPasswordFormRef"
+            label-position="top"
+          >
+            <el-form-item label="新密码" prop="newPassword">
+              <el-input
+                v-model="modifyPasswordForm.newPassword"
+                type="password"
+                placeholder="请输入新密码"
+                show-password
+              />
+            </el-form-item>
+            <el-form-item label="确认密码" prop="confirmPassword">
+              <el-input
+                v-model="modifyPasswordForm.confirmPassword"
+                type="password"
+                placeholder="请再次输入新密码"
+                show-password
+              />
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <el-button type="primary" @click="handleModifyPassword">
+              确认修改
+            </el-button>
+          </template>
+        </el-dialog>
       </div>
     </main>
   </div>
@@ -474,20 +569,29 @@ function handleEnter() {
     display: flex;
     align-items: center;
     gap: var(--spacing-base);
-    padding: var(--spacing-base);
+    padding: var(--spacing-base) 0;
     border-radius: var(--radius-lg);
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: blur(6px);
-    transition: background var(--transition-base) var(--transition-ease);
+    transition: transform var(--transition-base) var(--transition-ease);
 
     &:hover {
+      transform: translateX(8px);
+    }
+
+    &-icon-wrapper {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-lg);
       background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(8px);
+      flex-shrink: 0;
     }
 
     &-icon {
-      font-size: 24px;
+      font-size: 22px;
       color: #ffffff;
-      flex-shrink: 0;
     }
 
     &-text {
@@ -495,13 +599,13 @@ function handleEnter() {
       flex-direction: column;
 
       strong {
-        font-size: var(--font-size-md);
+        font-size: var(--font-size-base);
         font-weight: 600;
       }
 
       span {
-        font-size: var(--font-size-sm);
-        opacity: 0.8;
+        font-size: var(--font-size-xs);
+        opacity: 0.75;
         margin-top: 2px;
       }
     }

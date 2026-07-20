@@ -240,7 +240,10 @@ async function handleResetPassword(row: UserDTO) {
       { type: 'warning' }
     );
     const result = await resetPassword(row.id);
-    ElMessage.success(`密码重置成功，重置链接: ${result.resetKey}`);
+    // 显示新密码弹窗
+    newUserId.value = result.userId;
+    generatedPassword.value = result.password;
+    passwordDialogVisible.value = true;
   } catch (e) {
     if (e !== 'cancel') {
       console.error('[UserManagement] reset password failed:', e);

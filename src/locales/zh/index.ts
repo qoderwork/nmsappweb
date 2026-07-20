@@ -123,6 +123,11 @@ export default {
     memoryUsage: '内存使用率',
     diskUsage: '磁盘使用率',
     networkTraffic: '网络流量',
+    quickActions: '快捷操作',
+    quickViewDevices: '查看设备',
+    quickViewAlarms: '查看告警',
+    quickViewLogs: '查看日志',
+    quickAddDevice: '添加设备',
   },
 
   // 设备

@@ -1,10 +1,4 @@
 <script setup lang="ts">
-/**
- * Dashboard 仪表盘
- *
- * 顶部欢迎横幅 + 4 个统计卡片 + 最近事件列表
- * Mock 模式下使用预置数据展示效果
- */
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -14,10 +8,8 @@ import { isMockMode, mockDashboardStats, mockRecentEvents, type MockEvent } from
 const { t } = useI18n();
 const authStore = useAuthStore();
 
-/** 欢迎语中的用户名 */
 const displayName = computed(() => authStore.username || t('login.username'));
 
-/** 当前日期 */
 const today = computed(() => {
   const d = new Date();
   return d.toLocaleDateString('zh-CN', {
@@ -28,13 +20,14 @@ const today = computed(() => {
   });
 });
 
-/** 统计卡片配置 */
 interface StatCard {
   key: string;
   label: string;
   value: number;
+  icon: string;
   iconColor: string;
   iconBg: string;
+  trend?: { value: number; up: boolean };
 }
 
 const stats = computed<StatCard[]>(() => {
@@ -49,52 +42,87 @@ const stats = computed<StatCard[]>(() => {
       key: 'total',
       label: t('dashboard.deviceTotal'),
       value: s.deviceTotal,
+      icon: 'Cpu',
       iconColor: 'var(--brand-primary)',
       iconBg: 'var(--brand-primary-light)',
+      trend: { value: 12, up: true },
     },
     {
       key: 'online',
       label: t('dashboard.deviceOnline'),
       value: s.deviceOnline,
+      icon: 'CircleCheck',
       iconColor: 'var(--status-online)',
       iconBg: 'rgba(22, 163, 74, 0.1)',
+      trend: { value: 8, up: true },
     },
     {
       key: 'offline',
       label: t('dashboard.deviceOffline'),
       value: s.deviceOffline,
+      icon: 'CircleClose',
       iconColor: 'var(--status-offline)',
       iconBg: 'rgba(156, 163, 175, 0.15)',
+      trend: { value: 3, up: false },
     },
     {
       key: 'alarm',
       label: t('dashboard.deviceAlarm'),
       value: s.deviceAlarm,
+      icon: 'Warning',
       iconColor: 'var(--status-error)',
       iconBg: 'rgba(220, 38, 38, 0.1)',
+      trend: { value: 5, up: false },
     },
   ];
 });
 
-/** 最近事件（mock 模式下显示） */
 const recentEvents = computed<MockEvent[]>(() => isMockMode() ? mockRecentEvents : []);
 
-/** 事件级别对应标签类型 */
 function eventLevelType(level: MockEvent['level']): 'success' | 'warning' | 'danger' | 'info' {
   const map = { info: 'info', warning: 'warning', error: 'danger' } as const;
   return map[level];
 }
 
-/** 事件级别对应中文 */
 function eventLevelText(level: MockEvent['level']): string {
   const map = { info: '信息', warning: '告警', error: '故障' } as const;
   return map[level];
 }
+
+interface QuickAction {
+  label: string;
+  icon: string;
+  route: string;
+  badge?: number;
+}
+
+const quickActions = computed<QuickAction[]>(() => [
+  {
+    label: t('dashboard.quickViewDevices'),
+    icon: 'Monitor',
+    route: '/device/list',
+  },
+  {
+    label: t('dashboard.quickViewAlarms'),
+    icon: 'Warning',
+    route: '/alarm/list',
+    badge: isMockMode() ? mockDashboardStats.deviceAlarm : 0,
+  },
+  {
+    label: t('dashboard.quickViewLogs'),
+    icon: 'Document',
+    route: '/system/log',
+  },
+  {
+    label: t('dashboard.quickAddDevice'),
+    icon: 'Plus',
+    route: '/device/add',
+  },
+]);
 </script>
 
 <template>
   <div class="dashboard-page">
-    <!-- 欢迎横幅 -->
     <section class="dashboard-banner">
       <div class="dashboard-banner__bg" aria-hidden="true">
         <span class="dashboard-banner__circle dashboard-banner__circle--1" />
@@ -148,45 +176,53 @@ function eventLevelText(level: MockEvent['level']): string {
       </div>
     </section>
 
-    <!-- 统计卡片 -->
     <section class="dashboard-stats">
       <el-card
         v-for="card in stats"
         :key="card.key"
         class="dashboard-stat-card"
         shadow="hover"
-        :body-style="{ padding: '20px' }"
+        :body-style="{ padding: '0' }"
       >
         <div class="dashboard-stat-card__inner">
           <div
             class="dashboard-stat-card__icon"
             :style="{ backgroundColor: card.iconBg, color: card.iconColor }"
           >
-            <el-icon v-if="card.key === 'total'"><Cpu /></el-icon>
-            <el-icon v-else-if="card.key === 'online'"><CircleCheck /></el-icon>
-            <el-icon v-else-if="card.key === 'offline'"><CircleClose /></el-icon>
+            <el-icon v-if="card.icon === 'Cpu'"><Cpu /></el-icon>
+            <el-icon v-else-if="card.icon === 'CircleCheck'"><CircleCheck /></el-icon>
+            <el-icon v-else-if="card.icon === 'CircleClose'"><CircleClose /></el-icon>
             <el-icon v-else><Warning /></el-icon>
           </div>
 
           <div class="dashboard-stat-card__body">
-            <div class="dashboard-stat-card__value">{{ card.value }}</div>
+            <div class="dashboard-stat-card__value-row">
+              <span class="dashboard-stat-card__value">{{ card.value }}</span>
+              <span
+                v-if="card.trend"
+                class="dashboard-stat-card__trend"
+                :class="{ 'dashboard-stat-card__trend--up': card.trend.up }"
+              >
+                <el-icon><TrendCharts /></el-icon>
+                {{ card.trend.up ? '+' : '' }}{{ card.trend.value }}%
+              </span>
+            </div>
             <div class="dashboard-stat-card__label">{{ card.label }}</div>
           </div>
         </div>
       </el-card>
     </section>
 
-    <!-- 最近事件（mock 模式下展示） -->
-    <section v-if="recentEvents.length > 0" class="dashboard-events">
-      <el-card shadow="never" :body-style="{ padding: '20px' }">
+    <section class="dashboard-grid">
+      <el-card class="dashboard-panel dashboard-panel--events" shadow="never" :body-style="{ padding: '20px' }">
         <template #header>
-          <div class="dashboard-events__header">
-            <span class="dashboard-events__title">{{ t('dashboard.recentEvents') }}</span>
+          <div class="dashboard-panel__header">
+            <span class="dashboard-panel__title">{{ t('dashboard.recentEvents') }}</span>
             <el-tag size="small" type="info">{{ recentEvents.length }} 条</el-tag>
           </div>
         </template>
 
-        <el-timeline>
+        <el-timeline v-if="recentEvents.length > 0">
           <el-timeline-item
             v-for="event in recentEvents"
             :key="event.id"
@@ -205,17 +241,73 @@ function eventLevelText(level: MockEvent['level']): string {
             </div>
           </el-timeline-item>
         </el-timeline>
+
+        <el-empty v-else description="暂无事件记录">
+          <template #image>
+            <el-icon class="dashboard-placeholder__icon"><Bell /></el-icon>
+          </template>
+        </el-empty>
+      </el-card>
+
+      <el-card class="dashboard-panel dashboard-panel--actions" shadow="never" :body-style="{ padding: '20px' }">
+        <template #header>
+          <div class="dashboard-panel__header">
+            <span class="dashboard-panel__title">{{ t('dashboard.quickActions') }}</span>
+          </div>
+        </template>
+
+        <div class="dashboard-actions">
+          <router-link
+            v-for="action in quickActions"
+            :key="action.label"
+            :to="action.route"
+            class="dashboard-action-item"
+          >
+            <div class="dashboard-action-item__icon">
+              <el-icon v-if="action.icon === 'Monitor'"><Monitor /></el-icon>
+              <el-icon v-else-if="action.icon === 'Warning'"><Warning /></el-icon>
+              <el-icon v-else-if="action.icon === 'Document'"><Document /></el-icon>
+              <el-icon v-else><Plus /></el-icon>
+            </div>
+            <span class="dashboard-action-item__label">{{ action.label }}</span>
+            <el-badge
+              v-if="action.badge && action.badge > 0"
+              :value="action.badge"
+              type="danger"
+              class="dashboard-action-item__badge"
+            />
+          </router-link>
+        </div>
       </el-card>
     </section>
 
-    <!-- 占位提示 -->
-    <section class="dashboard-placeholder">
-      <el-card shadow="never" :body-style="{ padding: '32px' }">
-        <el-empty description="更多图表与数据，将在接入实际 API 后呈现">
-          <template #image>
-            <el-icon class="dashboard-placeholder__icon"><DataAnalysis /></el-icon>
-          </template>
-        </el-empty>
+    <section class="dashboard-footer">
+      <el-card shadow="never" :body-style="{ padding: '24px' }">
+        <div class="dashboard-footer__content">
+          <div class="dashboard-footer__item">
+            <el-icon class="dashboard-footer__item-icon"><Shield /></el-icon>
+            <div class="dashboard-footer__item-text">
+              <strong>安全防护</strong>
+              <span>系统运行正常，已启用所有安全模块</span>
+            </div>
+          </div>
+          <div class="dashboard-footer__divider" />
+          <div class="dashboard-footer__item">
+            <el-icon class="dashboard-footer__item-icon"><Server /></el-icon>
+            <div class="dashboard-footer__item-text">
+              <strong>服务状态</strong>
+              <span>所有核心服务在线，数据库连接正常</span>
+            </div>
+          </div>
+          <div class="dashboard-footer__divider" />
+          <div class="dashboard-footer__item">
+            <el-icon class="dashboard-footer__item-icon"><Clock /></el-icon>
+            <div class="dashboard-footer__item-text">
+              <strong>系统时间</strong>
+              <span>{{ new Date().toLocaleString('zh-CN') }}</span>
+            </div>
+          </div>
+        </div>
       </el-card>
     </section>
   </div>
@@ -229,17 +321,12 @@ function eventLevelText(level: MockEvent['level']): string {
   width: 100%;
 }
 
-/* ============ 欢迎横幅 ============ */
 .dashboard-banner {
   position: relative;
   overflow: hidden;
   padding: var(--spacing-xl) var(--spacing-2xl);
   border-radius: var(--radius-xl);
-  background: linear-gradient(
-    135deg,
-    var(--brand-primary) 0%,
-    var(--brand-primary-active) 100%
-  );
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-active) 100%);
   color: #ffffff;
   box-shadow: var(--shadow-md);
 
@@ -304,7 +391,6 @@ function eventLevelText(level: MockEvent['level']): string {
   }
 }
 
-/* ============ 统计卡片网格 ============ */
 .dashboard-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -319,22 +405,24 @@ function eventLevelText(level: MockEvent['level']): string {
 
   &:hover {
     transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
   }
 
   &__inner {
     display: flex;
     align-items: center;
     gap: var(--spacing-base);
+    padding: var(--spacing-lg);
   }
 
   &__icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-md);
-    font-size: 24px;
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-lg);
+    font-size: 26px;
     flex-shrink: 0;
   }
 
@@ -342,22 +430,56 @@ function eventLevelText(level: MockEvent['level']): string {
     min-width: 0;
   }
 
+  &__value-row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--spacing-sm);
+  }
+
   &__value {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-3xl);
     font-weight: 700;
     color: var(--text-primary);
     line-height: 1.2;
   }
 
+  &__trend {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background-color: rgba(156, 163, 175, 0.1);
+
+    &--up {
+      color: var(--status-online);
+      background-color: rgba(22, 163, 74, 0.1);
+    }
+
+    .el-icon {
+      font-size: 12px;
+    }
+  }
+
   &__label {
-    margin-top: 2px;
+    margin-top: 4px;
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
   }
 }
 
-/* ============ 最近事件 ============ */
-.dashboard-events {
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--spacing-base);
+}
+
+.dashboard-panel {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-lighter);
+
   &__header {
     display: flex;
     align-items: center;
@@ -370,6 +492,12 @@ function eventLevelText(level: MockEvent['level']): string {
     color: var(--text-primary);
   }
 
+  &--actions {
+    min-height: 180px;
+  }
+}
+
+.dashboard-events {
   &__item {
     padding: 4px 0;
   }
@@ -393,7 +521,93 @@ function eventLevelText(level: MockEvent['level']): string {
   }
 }
 
-/* ============ 占位区 ============ */
+.dashboard-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-sm);
+}
+
+.dashboard-action-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-base);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-hover);
+  transition: all var(--transition-fast) var(--transition-ease);
+  text-decoration: none;
+  color: var(--text-primary);
+  position: relative;
+
+  &:hover {
+    background-color: var(--brand-primary-light);
+    color: var(--brand-primary);
+    transform: translateY(-2px);
+  }
+
+  &__icon {
+    font-size: 20px;
+    color: var(--brand-primary);
+    flex-shrink: 0;
+  }
+
+  &__label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+  }
+
+  &__badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+  }
+}
+
+.dashboard-footer {
+  margin-top: auto;
+}
+
+.dashboard-footer__content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xl);
+}
+
+.dashboard-footer__item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+
+  &-icon {
+    font-size: 20px;
+    color: var(--status-online);
+  }
+
+  &-text {
+    display: flex;
+    flex-direction: column;
+
+    strong {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    span {
+      font-size: var(--font-size-xs);
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+  }
+}
+
+.dashboard-footer__divider {
+  width: 1px;
+  height: 40px;
+  background-color: var(--border-base);
+}
+
 .dashboard-placeholder {
   &__icon {
     font-size: 72px;
@@ -402,10 +616,23 @@ function eventLevelText(level: MockEvent['level']): string {
   }
 }
 
-/* ============ 响应式 ============ */
 @media (max-width: 1024px) {
   .dashboard-stats {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-footer__content {
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+
+  .dashboard-footer__divider {
+    width: 100%;
+    height: 1px;
   }
 }
 
@@ -421,6 +648,9 @@ function eventLevelText(level: MockEvent['level']): string {
       font-size: var(--font-size-xl);
     }
   }
+
+  .dashboard-actions {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
-

@@ -77,9 +77,9 @@ export function disableUser(userId: number) {
   return http.post<void>('/users/disable', { userId });
 }
 
-/** 重置密码（管理员） */
+/** 重置密码（管理员） - 返回新密码 */
 export function resetPassword(userId: number) {
-  return http.post<{ resetKey: string }>('/users/reset-password', { userId });
+  return http.post<{ userId: number; password: string }>('/users/reset-password', { userId });
 }
 
 /** 修改密码 */

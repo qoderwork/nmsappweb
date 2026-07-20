@@ -119,6 +119,11 @@ export default {
     memoryUsage: 'Memory usage',
     diskUsage: 'Disk usage',
     networkTraffic: 'Network traffic',
+    quickActions: 'Quick Actions',
+    quickViewDevices: 'View Devices',
+    quickViewAlarms: 'View Alarms',
+    quickViewLogs: 'View Logs',
+    quickAddDevice: 'Add Device',
   },
 
   device: {
