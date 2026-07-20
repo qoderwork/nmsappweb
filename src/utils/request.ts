@@ -343,6 +343,39 @@ class HttpClient {
     document.body.removeChild(link);
     URL.revokeObjectURL(objectUrl);
   }
+
+  /**
+   * POST 下载文件
+   */
+  async postDownload(
+    url: string,
+    data?: unknown,
+    options?: { filename?: string }
+  ): Promise<void> {
+    const res = await this.instance.post<Blob>(url, data, {
+      responseType: 'blob',
+    });
+
+    const blob = res.data;
+    const link = document.createElement('a');
+    const objectUrl = URL.createObjectURL(blob);
+    link.href = objectUrl;
+
+    const disposition = res.headers['content-disposition'] as string | undefined;
+    if (disposition) {
+      const match = disposition.match(/filename\*?=(?:UTF-8'')?([^;]+)/i);
+      if (match?.[1]) {
+        link.download = decodeURIComponent(match[1].replace(/['"]/g, ''));
+      }
+    } else if (options?.filename) {
+      link.download = options.filename;
+    }
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(objectUrl);
+  }
 }
 
 /**

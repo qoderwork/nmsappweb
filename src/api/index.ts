@@ -10,6 +10,9 @@ export * as permissionApi from './permission';
 export * as deviceApi from './device';
 export * as userApi from './user';
 export * as alarmApi from './alarm';
+export * as parameterApi from './parameter';
+export * as paramMonitorApi from './param-monitor';
+export * as paramCompareApi from './param-compare';
 
 // 旧权限模块的角色管理 API 已废弃，请使用 userApi
 export { getPermissionIdsForUser, getPermissionRegistry, getPermissionTree, getAllPermissions } from './permission';

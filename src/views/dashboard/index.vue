@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { useAuthStore } from '@/stores/auth';
-import { isMockMode, mockDashboardStats, mockRecentEvents, type MockEvent } from '@/mock';
+import { getDeviceOnlineInfo, getProductTypeAndDeviceCount } from '@/api/dashboard';
+import type { DeviceOnlineInfo, ProductTypeAndCount } from '@/api/dashboard';
 
 const { t } = useI18n();
 const authStore = useAuthStore();
@@ -20,6 +21,32 @@ const today = computed(() => {
   });
 });
 
+// 设备在线信息
+const onlineInfo = ref<DeviceOnlineInfo | null>(null);
+const productCounts = ref<ProductTypeAndCount[]>([]);
+const loading = ref(false);
+
+// 计算汇总数据
+const deviceTotal = computed(() => {
+  if (!onlineInfo.value) return 0;
+  const info = onlineInfo.value;
+  return info.gnbOnlineCount + info.gnbOfflineCount +
+    info.enbOnlineCount + info.enbOfflineCount +
+    info.cpeOnlineCount + info.cpeOfflineCount;
+});
+
+const deviceOnline = computed(() => {
+  if (!onlineInfo.value) return 0;
+  const info = onlineInfo.value;
+  return info.gnbOnlineCount + info.enbOnlineCount + info.cpeOnlineCount;
+});
+
+const deviceOffline = computed(() => {
+  if (!onlineInfo.value) return 0;
+  const info = onlineInfo.value;
+  return info.gnbOfflineCount + info.enbOfflineCount + info.cpeOfflineCount;
+});
+
 interface StatCard {
   key: string;
   label: string;
@@ -27,67 +54,42 @@ interface StatCard {
   icon: string;
   iconColor: string;
   iconBg: string;
-  trend?: { value: number; up: boolean };
 }
 
-const stats = computed<StatCard[]>(() => {
-  const s = isMockMode() ? mockDashboardStats : {
-    deviceTotal: 0,
-    deviceOnline: 0,
-    deviceOffline: 0,
-    deviceAlarm: 0,
-  };
-  return [
-    {
-      key: 'total',
-      label: t('dashboard.deviceTotal'),
-      value: s.deviceTotal,
-      icon: 'Cpu',
-      iconColor: 'var(--brand-primary)',
-      iconBg: 'var(--brand-primary-light)',
-      trend: { value: 12, up: true },
-    },
-    {
-      key: 'online',
-      label: t('dashboard.deviceOnline'),
-      value: s.deviceOnline,
-      icon: 'CircleCheck',
-      iconColor: 'var(--status-online)',
-      iconBg: 'rgba(22, 163, 74, 0.1)',
-      trend: { value: 8, up: true },
-    },
-    {
-      key: 'offline',
-      label: t('dashboard.deviceOffline'),
-      value: s.deviceOffline,
-      icon: 'CircleClose',
-      iconColor: 'var(--status-offline)',
-      iconBg: 'rgba(156, 163, 175, 0.15)',
-      trend: { value: 3, up: false },
-    },
-    {
-      key: 'alarm',
-      label: t('dashboard.deviceAlarm'),
-      value: s.deviceAlarm,
-      icon: 'Warning',
-      iconColor: 'var(--status-error)',
-      iconBg: 'rgba(220, 38, 38, 0.1)',
-      trend: { value: 5, up: false },
-    },
-  ];
-});
-
-const recentEvents = computed<MockEvent[]>(() => isMockMode() ? mockRecentEvents : []);
-
-function eventLevelType(level: MockEvent['level']): 'success' | 'warning' | 'danger' | 'info' {
-  const map = { info: 'info', warning: 'warning', error: 'danger' } as const;
-  return map[level];
-}
-
-function eventLevelText(level: MockEvent['level']): string {
-  const map = { info: '信息', warning: '告警', error: '故障' } as const;
-  return map[level];
-}
+const stats = computed<StatCard[]>(() => [
+  {
+    key: 'total',
+    label: t('dashboard.deviceTotal'),
+    value: deviceTotal.value,
+    icon: 'Cpu',
+    iconColor: 'var(--brand-primary)',
+    iconBg: 'var(--brand-primary-light)',
+  },
+  {
+    key: 'online',
+    label: t('dashboard.deviceOnline'),
+    value: deviceOnline.value,
+    icon: 'CircleCheck',
+    iconColor: 'var(--status-online)',
+    iconBg: 'rgba(22, 163, 74, 0.1)',
+  },
+  {
+    key: 'offline',
+    label: t('dashboard.deviceOffline'),
+    value: deviceOffline.value,
+    icon: 'CircleClose',
+    iconColor: 'var(--status-offline)',
+    iconBg: 'rgba(156, 163, 175, 0.15)',
+  },
+  {
+    key: 'alarm',
+    label: t('dashboard.deviceAlarm'),
+    value: 0,
+    icon: 'Warning',
+    iconColor: 'var(--status-error)',
+    iconBg: 'rgba(220, 38, 38, 0.1)',
+  },
+]);
 
 interface QuickAction {
   label: string;
@@ -105,20 +107,39 @@ const quickActions = computed<QuickAction[]>(() => [
   {
     label: t('dashboard.quickViewAlarms'),
     icon: 'Warning',
-    route: '/alarm/list',
-    badge: isMockMode() ? mockDashboardStats.deviceAlarm : 0,
+    route: '/monitor/alarm',
   },
   {
     label: t('dashboard.quickViewLogs'),
     icon: 'Document',
-    route: '/system/log',
+    route: '/system/settings',
   },
   {
     label: t('dashboard.quickAddDevice'),
     icon: 'Plus',
-    route: '/device/add',
+    route: '/device/list',
   },
 ]);
+
+async function loadDashboardData() {
+  loading.value = true;
+  try {
+    const [info, counts] = await Promise.allSettled([
+      getDeviceOnlineInfo(),
+      getProductTypeAndDeviceCount('CPE'),
+    ]);
+    if (info.status === 'fulfilled') onlineInfo.value = info.value;
+    if (counts.status === 'fulfilled') productCounts.value = counts.value;
+  } catch (e) {
+    console.error('[Dashboard] load failed:', e);
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(() => {
+  loadDashboardData();
+});
 </script>
 
 <template>
@@ -198,14 +219,6 @@ const quickActions = computed<QuickAction[]>(() => [
           <div class="dashboard-stat-card__body">
             <div class="dashboard-stat-card__value-row">
               <span class="dashboard-stat-card__value">{{ card.value }}</span>
-              <span
-                v-if="card.trend"
-                class="dashboard-stat-card__trend"
-                :class="{ 'dashboard-stat-card__trend--up': card.trend.up }"
-              >
-                <el-icon><TrendCharts /></el-icon>
-                {{ card.trend.up ? '+' : '' }}{{ card.trend.value }}%
-              </span>
             </div>
             <div class="dashboard-stat-card__label">{{ card.label }}</div>
           </div>
@@ -217,34 +230,29 @@ const quickActions = computed<QuickAction[]>(() => [
       <el-card class="dashboard-panel dashboard-panel--events" shadow="never" :body-style="{ padding: '20px' }">
         <template #header>
           <div class="dashboard-panel__header">
-            <span class="dashboard-panel__title">{{ t('dashboard.recentEvents') }}</span>
-            <el-tag size="small" type="info">{{ recentEvents.length }} 条</el-tag>
+            <span class="dashboard-panel__title">设备分布</span>
+            <el-tag size="small" type="info">{{ productCounts.length }} 类</el-tag>
           </div>
         </template>
 
-        <el-timeline v-if="recentEvents.length > 0">
-          <el-timeline-item
-            v-for="event in recentEvents"
-            :key="event.id"
-            :timestamp="event.time"
-            placement="top"
-            :type="eventLevelType(event.level)"
-          >
-            <div class="dashboard-events__item">
-              <div class="dashboard-events__item-top">
-                <el-tag :type="eventLevelType(event.level)" size="small">
-                  {{ eventLevelText(event.level) }}
-                </el-tag>
-                <span class="dashboard-events__device">{{ event.device }}</span>
-              </div>
-              <div class="dashboard-events__message">{{ event.message }}</div>
-            </div>
-          </el-timeline-item>
-        </el-timeline>
+        <el-table v-if="productCounts.length > 0" :data="productCounts" stripe size="small" style="width: 100%">
+          <el-table-column prop="productType" label="产品类型" min-width="120" />
+          <el-table-column prop="count" label="总数" width="80" align="center" />
+          <el-table-column prop="onlineCount" label="在线" width="80" align="center">
+            <template #default="{ row }">
+              <el-tag type="success" size="small">{{ row.onlineCount }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="offlineCount" label="离线" width="80" align="center">
+            <template #default="{ row }">
+              <el-tag type="info" size="small">{{ row.offlineCount }}</el-tag>
+            </template>
+          </el-table-column>
+        </el-table>
 
-        <el-empty v-else description="暂无事件记录">
+        <el-empty v-else description="暂无设备分布数据">
           <template #image>
-            <el-icon class="dashboard-placeholder__icon"><Bell /></el-icon>
+            <el-icon class="dashboard-placeholder__icon"><Monitor /></el-icon>
           </template>
         </el-empty>
       </el-card>
@@ -270,12 +278,6 @@ const quickActions = computed<QuickAction[]>(() => [
               <el-icon v-else><Plus /></el-icon>
             </div>
             <span class="dashboard-action-item__label">{{ action.label }}</span>
-            <el-badge
-              v-if="action.badge && action.badge > 0"
-              :value="action.badge"
-              type="danger"
-              class="dashboard-action-item__badge"
-            />
           </router-link>
         </div>
       </el-card>

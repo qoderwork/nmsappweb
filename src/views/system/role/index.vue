@@ -40,6 +40,7 @@ const formData = reactive({
 });
 
 // 权限树数据
+const permissionTreeRef = ref<any>(null);
 const permissionTree = ref<any[]>([]);
 const checkedPermissions = ref<string[]>([]);
 const currentRoleId = ref('');
