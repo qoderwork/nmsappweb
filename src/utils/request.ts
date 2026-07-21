@@ -124,6 +124,11 @@ class HttpClient {
           return response;
         }
 
+        // Token 过期（业务码 401001）或未授权（业务码 401）
+        if (data.code === ApiCode.TOKEN_EXPIRED || data.code === ApiCode.UNAUTHORIZED) {
+          return handleUnauthorized(cfg, data);
+        }
+
         // 业务错误（非 200 状态码但 HTTP 200）
         if (!cfg.silent) {
           ElMessage.error(data.message || '请求失败');
@@ -156,10 +161,8 @@ class HttpClient {
 
         switch (status) {
           case 401:
-          case ApiCode.UNAUTHORIZED:
             return handleUnauthorized(cfg, data);
           case 403:
-          case ApiCode.FORBIDDEN:
             if (!cfg.silent) {
               ElMessage.error(data?.message || '您没有权限执行此操作');
             }
@@ -168,7 +171,6 @@ class HttpClient {
             if (!cfg.silent) ElMessage.error('请求的资源不存在');
             return Promise.reject(new BusinessError(404, '资源不存在'));
           case 500:
-          case ApiCode.INTERNAL_ERROR:
             if (!cfg.silent) {
               ElMessage.error(data?.message || '服务器异常，请稍后重试');
             }
@@ -320,9 +322,10 @@ class HttpClient {
     const res = await this.instance.get<Blob>(url, {
       params: options?.params,
       responseType: 'blob',
-    });
+      raw: true,
+    } as RequestConfig);
 
-    const blob = res.data;
+    const blob = res.data as Blob;
     const link = document.createElement('a');
     const objectUrl = URL.createObjectURL(blob);
     link.href = objectUrl;
@@ -354,9 +357,10 @@ class HttpClient {
   ): Promise<void> {
     const res = await this.instance.post<Blob>(url, data, {
       responseType: 'blob',
-    });
+      raw: true,
+    } as RequestConfig);
 
-    const blob = res.data;
+    const blob = res.data as Blob;
     const link = document.createElement('a');
     const objectUrl = URL.createObjectURL(blob);
     link.href = objectUrl;

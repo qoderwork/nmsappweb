@@ -34,11 +34,15 @@ const settingsStore = useSettingsStore();
 const needChangePasswordDialog = ref(false);
 const modifyPasswordFormRef = ref<FormInstance>();
 const modifyPasswordForm = reactive({
+  oldPassword: '',
   newPassword: '',
   confirmPassword: '',
 });
 
 const modifyPasswordRules = {
+  oldPassword: [
+    { required: true, message: '请输入当前密码', trigger: 'blur' },
+  ],
   newPassword: [
     { required: true, message: '请输入新密码', trigger: 'blur' },
     { min: 6, message: '密码长度不能少于6位', trigger: 'blur' },
@@ -67,7 +71,7 @@ async function handleModifyPassword() {
   }
   try {
     await modifyPassword({
-      oldPassword: '',
+      oldPassword: modifyPasswordForm.oldPassword,
       newPassword: modifyPasswordForm.newPassword,
     });
     showSuccessMessage('密码修改成功');
@@ -440,6 +444,14 @@ function handleEnter() {
             ref="modifyPasswordFormRef"
             label-position="top"
           >
+            <el-form-item label="当前密码" prop="oldPassword">
+              <el-input
+                v-model="modifyPasswordForm.oldPassword"
+                type="password"
+                placeholder="请输入当前密码"
+                show-password
+              />
+            </el-form-item>
             <el-form-item label="新密码" prop="newPassword">
               <el-input
                 v-model="modifyPasswordForm.newPassword"

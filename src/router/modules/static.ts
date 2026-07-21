@@ -360,7 +360,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'BlackList',
         component: () => import('@/views/system/blacklist/index.vue'),
         meta: {
-          title: 'menu.blackList',
+          title: 'menu.blacklistManagement',
           icon: 'UserFilled',
           requiresAuth: true,
           keepAlive: true,
@@ -371,7 +371,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'Tcpdump',
         component: () => import('@/views/system/tcpdump/index.vue'),
         meta: {
-          title: 'menu.tcpdump',
+          title: 'menu.tcpdumpManagement',
           icon: 'Monitor',
           requiresAuth: true,
           keepAlive: true,
@@ -382,7 +382,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'PMFile',
         component: () => import('@/views/system/pmfile/index.vue'),
         meta: {
-          title: 'menu.pmfile',
+          title: 'menu.pmfileManagement',
           icon: 'Document',
           requiresAuth: true,
           keepAlive: true,
@@ -393,7 +393,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'Heartbeat',
         component: () => import('@/views/system/heartbeat/index.vue'),
         meta: {
-          title: 'menu.heartbeat',
+          title: 'menu.heartbeatManagement',
           icon: 'Connection',
           requiresAuth: true,
           keepAlive: true,
@@ -417,6 +417,17 @@ export const staticRoutes: RouteRecordRaw[] = [
         meta: {
           title: 'menu.northInterfaceLog',
           icon: 'Message',
+          requiresAuth: true,
+          keepAlive: true,
+        },
+      },
+      {
+        path: 'system/ztp',
+        name: 'ZTPManagement',
+        component: () => import('@/views/system/ztp/index.vue'),
+        meta: {
+          title: 'menu.ztpManagement',
+          icon: 'MagicStick',
           requiresAuth: true,
           keepAlive: true,
         },
@@ -477,12 +488,23 @@ export const staticRoutes: RouteRecordRaw[] = [
         },
       },
       {
-        path: 'network/cbsd',
-        name: 'CbsdManagement',
-        component: () => import('@/views/network/cbsd/index.vue'),
+        path: 'system/bsbackup',
+        name: 'BSBackupManagement',
+        component: () => import('@/views/system/bsbackup/index.vue'),
         meta: {
-          title: 'menu.cbsdManagement',
-          icon: 'Connection',
+          title: 'menu.bsbackupManagement',
+          icon: 'FolderOpened',
+          requiresAuth: true,
+          keepAlive: true,
+        },
+      },
+      {
+        path: 'system/normalfile',
+        name: 'NormalFileManager',
+        component: () => import('@/views/system/normalfile/index.vue'),
+        meta: {
+          title: 'menu.normalFileManagement',
+          icon: 'Folder',
           requiresAuth: true,
           keepAlive: true,
         },

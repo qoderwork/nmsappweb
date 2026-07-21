@@ -61,9 +61,8 @@ function checkPermission(
     ok = store.hasPermission(required);
   }
 
-  if (!ok) {
-    el.parentNode?.removeChild(el);
-  }
+  // 用 display 控制可见性，而非 removeChild，以支持异步权限加载后恢复
+  el.style.display = ok ? '' : 'none';
 }
 
 function checkRole(el: HTMLElement, binding: DirectiveBinding) {
@@ -72,9 +71,9 @@ function checkRole(el: HTMLElement, binding: DirectiveBinding) {
 
   const required = Array.isArray(value) ? value : [value];
   const store = usePermissionStore();
-  if (!store.hasRole(required)) {
-    el.parentNode?.removeChild(el);
-  }
+  const ok = store.hasRole(required);
+
+  el.style.display = ok ? '' : 'none';
 }
 
 /** 全部指令 */

@@ -26,8 +26,9 @@ export const useAppStore = defineStore('app', () => {
   const sidebarCollapsed = ref<boolean>(
     localStorage.get<boolean>(StorageKeys.SIDEBAR_COLLAPSED) ?? false
   );
-  /** 是否为移动端 */
-  const isMobile = ref(useMediaQuery('(max-width: 768px)').value);
+  /** 是否为移动端（响应式，窗口缩放时自动更新） */
+  const isMobileQuery = useMediaQuery('(max-width: 768px)');
+  const isMobile = computed(() => isMobileQuery.value);
   /** 移动端侧边栏是否展开 */
   const mobileSidebarOpened = ref(false);
   /** 标签页列表 */

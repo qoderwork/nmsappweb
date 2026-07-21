@@ -251,6 +251,9 @@ export default {
     heartbeatManagement: 'Heartbeat',
     deviceAuth: 'Device Auth',
     profile: 'Profile',
+    ztpManagement: 'ZTP Provisioning',
+    bsbackupManagement: 'BS Backup & Restore',
+    normalFileManagement: 'File Management',
   },
 
   user: {
@@ -523,5 +526,337 @@ export default {
     deleteTaskConfirm: 'Delete this CA task?',
     resultSuccess: 'Success',
     resultFailed: 'Failed',
+  },
+
+  // ZTP Provisioning
+  ztp: {
+    title: 'ZTP Provisioning',
+    results: 'Results',
+    config: 'Configuration',
+    tbgManagement: 'Template Management',
+    psapId: 'PSAP ID',
+    provision: 'Provision',
+    batchReztp: 'Batch Re-ZTP',
+    setting: 'Settings',
+    retryLogs: 'Retry Logs',
+    historyFiles: 'History Files',
+    enableStatus: 'Enabled',
+    disableStatus: 'Disabled',
+  },
+
+  // BS Backup & Restore
+  bsbackup: {
+    title: 'BS Backup & Restore',
+    deviceConfig: 'Device Config',
+    backupTasks: 'Backup Tasks',
+    taskResults: 'Task Results',
+    importConfig: 'Import Config',
+    exportConfig: 'Export Config',
+    createBackupTask: 'Create Backup Task',
+    createRestoreTask: 'Create Restore Task',
+    startTask: 'Start Task',
+    cancelTask: 'Cancel Task',
+  },
+
+  // File Management
+  normalfile: {
+    title: 'File Management',
+    fileList: 'File List',
+    uploadFile: 'Upload File',
+    downloadToDevice: 'Download to Device',
+    downloadResults: 'Download Results',
+    chunkedUpload: 'Chunked Upload',
+    simpleUpload: 'Simple Upload',
+    fileName: 'File Name',
+    fileSize: 'File Size',
+    status: 'Status',
+  },
+
+  // Site Management
+  site: {
+    title: 'Site Management',
+    siteName: 'Site Name',
+    description: 'Description',
+    area: 'Area',
+    addSite: 'Add Site',
+    editSite: 'Edit Site',
+  },
+
+  // CBSD Management
+  cbsd: {
+    title: 'CBSD Management',
+    cbsdList: 'CBSD List',
+    register: 'Register',
+    deregister: 'Deregister',
+    enable: 'Enable',
+    disable: 'Disable',
+    spectrumInquiry: 'Spectrum Inquiry',
+    sasConfig: 'SAS Config',
+  },
+
+  // Core Network
+  coreNetwork: {
+    title: 'Core Network',
+    addCoreNetwork: 'Add Core Network',
+    parameters: 'Parameters',
+    alarms: 'Alarms',
+    ueList: 'UE List',
+    kpis: 'KPIs',
+    statistics: 'Statistics',
+  },
+
+  // Topology Management
+  topology: {
+    title: 'Topology Management',
+    lteTopology: 'LTE Topology',
+    nrTopology: 'NR Topology',
+    batchUpgrade: 'Batch Upgrade',
+    reloadTopology: 'Reload Topology',
+  },
+
+  // Event Log
+  eventLog: {
+    title: 'Event Log',
+    eventType: 'Event Type',
+    eventTime: 'Event Time',
+    source: 'Source',
+    severity: 'Severity',
+    message: 'Message',
+  },
+
+  // Device Log
+  deviceLog: {
+    title: 'Device Log',
+    collection: 'Collection',
+    logFiles: 'Log Files',
+    startCollection: 'Start Collection',
+    downloadLog: 'Download Log',
+    deleteLog: 'Delete Log',
+  },
+
+  // Parameter Management
+  parameter: {
+    title: 'Parameter Management',
+    modelTree: 'Model Tree',
+    parameterSet: 'Parameter Set',
+    parameterTemplate: 'Parameter Template',
+    deploy: 'Deploy',
+    tr069Parameter: 'TR069 Parameter',
+    batchConfig: 'Batch Config',
+  },
+
+  // Parameter Monitor
+  paramMonitor: {
+    title: 'Parameter Monitor',
+    monitorConfig: 'Monitor Config',
+    realtimeData: 'Realtime Data',
+    thresholdRule: 'Threshold Rule',
+    addConfig: 'Add Config',
+    toggleConfig: 'Toggle Config',
+  },
+
+  // Parameter Compare
+  paramCompare: {
+    title: 'Parameter Compare',
+    compareResult: 'Compare Result',
+    batchCompare: 'Batch Compare',
+    template: 'Template',
+  },
+
+  // MR Report
+  mr: {
+    title: 'MR Report',
+    mrLogs: 'MR Logs',
+    statisticData: 'Statistic Data',
+    generateReport: 'Generate Report',
+    downloadReport: 'Download Report',
+  },
+
+  // PM Management
+  pm: {
+    title: 'PM Management',
+    kpiList: 'KPI List',
+    kpiTemplate: 'KPI Template',
+    kpiSet: 'KPI Set',
+    kpiAlarm: 'KPI Alarm',
+    measurement: 'Measurement',
+    replenishTask: 'Replenish Task',
+    exportExcel: 'Export Excel',
+  },
+
+  // System Settings
+  systemSettings: {
+    title: 'System Settings',
+    deviceSettings: 'Device Settings',
+    acsSettings: 'ACS Settings',
+    logSettings: 'Log Settings',
+    northBound: 'Northbound Interface',
+    mailConfig: 'Mail Config',
+    ntpConfig: 'NTP Config',
+  },
+
+  // SSH Terminal
+  ssh: {
+    title: 'SSH Terminal',
+    sshLabels: 'SSH Labels',
+    sshAccessTimer: 'Access Timer',
+    websshTerminal: 'WebSSH Terminal',
+    addLabel: 'Add Label',
+    connect: 'Connect',
+    disconnect: 'Disconnect',
+  },
+
+  // Backup & Restore
+  backup: {
+    title: 'Backup & Restore',
+    nmsBackup: 'NMS Backup',
+    backupTask: 'Backup Task',
+    restoreTask: 'Restore Task',
+    backupLogs: 'Backup Logs',
+    runBackup: 'Run Backup',
+    revertBackup: 'Revert Backup',
+  },
+
+  // MML Commands
+  mml: {
+    title: 'MML Commands',
+    mmlSets: 'MML Sets',
+    mmlCommands: 'MML Commands',
+    executeMml: 'Execute MML',
+    batchProcess: 'Batch Process',
+    importMml: 'Import MML',
+    mmlVersions: 'MML Versions',
+  },
+
+  // Security
+  security: {
+    title: 'Security',
+    securityRules: 'Security Rules',
+    passwordStrategy: 'Password Strategy',
+    minPasswordLength: 'Min Password Length',
+    maxPasswordLength: 'Max Password Length',
+  },
+
+  // Mail Config
+  mail: {
+    title: 'Mail Config',
+    smtpServer: 'SMTP Server',
+    smtpPort: 'SMTP Port',
+    senderEmail: 'Sender Email',
+    testMail: 'Test Mail',
+    emailAuth: 'Email Auth',
+  },
+
+  // NTP Config
+  ntp: {
+    title: 'NTP Config',
+    ntpServer: 'NTP Server',
+    ntpStatus: 'NTP Status',
+    syncNow: 'Sync Now',
+    timezone: 'Timezone',
+  },
+
+  // Device Blacklist
+  blacklist: {
+    title: 'Device Blacklist',
+    addDevice: 'Add Device',
+    removeDevice: 'Remove Device',
+    batchRemove: 'Batch Remove',
+    operationLogs: 'Operation Logs',
+    sn: 'Serial Number',
+    deviceType: 'Device Type',
+    reason: 'Reason',
+  },
+
+  // TCPDump
+  tcpdump: {
+    title: 'TCPDump',
+    networkCards: 'Network Cards',
+    startCapture: 'Start Capture',
+    stopCapture: 'Stop Capture',
+    captureFiles: 'Capture Files',
+    downloadFile: 'Download File',
+  },
+
+  // PM File Management
+  pmfile: {
+    title: 'PM File Management',
+    uploadPMFile: 'Upload PM File',
+    downloadPMFile: 'Download PM File',
+    parseResult: 'Parse Result',
+  },
+
+  // Heartbeat Management
+  heartbeat: {
+    title: 'Heartbeat Management',
+    heartbeatStatus: 'Heartbeat Status',
+    processHeartbeat: 'Process Heartbeat',
+    sendHeartbeat: 'Send Heartbeat',
+  },
+
+  // Device Auth
+  deviceauth: {
+    title: 'Device Auth',
+    authConfig: 'Auth Config',
+    authInfo: 'Auth Info',
+  },
+
+  // Northbound Logs
+  northinterfacelog: {
+    title: 'Northbound Logs',
+    auditLogs: 'Audit Logs',
+    requestMethod: 'Request Method',
+    requestUrl: 'Request URL',
+    responseCode: 'Response Code',
+  },
+
+  // Diagnostics
+  diagnostics: {
+    title: 'Diagnostics',
+    ping: 'Ping',
+    traceRoute: 'Trace Route',
+    downloadTest: 'Download Test',
+    uploadTest: 'Upload Test',
+    targetHost: 'Target Host',
+  },
+
+  // License Management
+  license: {
+    title: 'License Management',
+    licenseInfo: 'License Info',
+    uploadLicense: 'Upload License',
+    sasConfig: 'SAS Config',
+    entraEndpoints: 'Entra Endpoints',
+  },
+
+  // Tenancy Management
+  tenancy: {
+    title: 'Tenancy Management',
+    addTenancy: 'Add Tenancy',
+    tenancyName: 'Tenancy Name',
+    expiryDate: 'Expiry Date',
+    deviceQuota: 'Device Quota',
+    userQuota: 'User Quota',
+  },
+
+  // Upgrade Management
+  upgrade: {
+    title: 'Upgrade Management',
+    upgradeFiles: 'Upgrade Files',
+    upgradeTasks: 'Upgrade Tasks',
+    autoUpgrade: 'Auto Upgrade',
+    rollback: 'Rollback',
+    shutdownTasks: 'Shutdown Tasks',
+    uploadFile: 'Upload File',
+    startTask: 'Start Task',
+  },
+
+  // Profile
+  profile: {
+    title: 'Profile',
+    changePassword: 'Change Password',
+    oldPassword: 'Old Password',
+    newPassword: 'New Password',
+    confirmPassword: 'Confirm Password',
   },
 };

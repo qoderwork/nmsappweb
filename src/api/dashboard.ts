@@ -105,3 +105,18 @@ export function getPDCPTrafficStatistic(params: { startTime: string; endTime: st
 export function getKPIStatistic(params: { deviceGroupId: string[]; granularity: string; gmt: string; timestamp?: number }) {
   return http.post<KPIStatistic>('/statisticKPIForDevicelop', params);
 }
+
+/** 获取 CPU 和内存使用率 */
+export interface CpuMemUsage {
+  cpu: number;
+  mem: number;
+  timestamp: string;
+}
+
+export function getCpuMemUsage() {
+  return http.post<CpuMemUsage>('/cpu-mem-usage', {});
+}
+
+/* ============ 告警相关（从 alarm 模块重新导出，方便 dashboard 统一导入） ============ */
+export { getSeverityCount, getAlarmStatisticTopN } from './alarm';
+export type { SeverityCount } from '@/types';

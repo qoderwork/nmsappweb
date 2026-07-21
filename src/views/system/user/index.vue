@@ -10,8 +10,9 @@ import { useI18n } from 'vue-i18n';
 import { ElMessage, ElMessageBox, ElDialog, ElForm, ElFormItem, ElInput, ElSwitch, ElButton, ElTable, ElTableColumn, ElTag, ElPagination } from 'element-plus';
 import { Search, Refresh, Plus, Edit, Delete, Lock, Unlock, Key, CopyDocument } from '@element-plus/icons-vue';
 
-import { getUsers, createUser, updateUser, deleteUser, enableUser, disableUser, resetPassword } from '@/api/user';
+import { getUsers, createUser, updateUser, deleteUser, enableUser, disableUser, resetPassword, unlockUser, kickOutUser, setTenancyForUser, getRoles } from '@/api/user';
 import type { UserDTO } from '@/types/user';
+import type { Role } from '@/types/user';
 
 const { t } = useI18n();
 
@@ -209,6 +210,90 @@ async function handleDelete(row: UserDTO) {
   }
 }
 
+/** 解锁用户 */
+async function handleUnlock(row: UserDTO) {
+  try {
+    await ElMessageBox.confirm(
+      `确定要解锁用户 "${row.username}" 吗？`,
+      '解锁确认',
+      { type: 'warning' }
+    );
+    await unlockUser(row.id);
+    ElMessage.success('解锁成功');
+    loadData();
+  } catch (e) {
+    if (e !== 'cancel') {
+      console.error('[UserManagement] unlock failed:', e);
+    }
+  }
+}
+
+/** 踢出用户 */
+async function handleKickOut(row: UserDTO) {
+  try {
+    await ElMessageBox.confirm(
+      `确定要踢出用户 "${row.username}" 吗？该用户将被强制下线。`,
+      '踢出确认',
+      { type: 'warning' }
+    );
+    await kickOutUser(row.id);
+    ElMessage.success('踢出成功');
+    loadData();
+  } catch (e) {
+    if (e !== 'cancel') {
+      console.error('[UserManagement] kick out failed:', e);
+    }
+  }
+}
+
+/** 分配角色 */
+const roleDialogVisible = ref(false);
+const roleForm = reactive({ userId: 0, roleIds: [] as number[] });
+const availableRoles = ref<Role[]>([]);
+
+async function handleAssignRole(row: UserDTO) {
+  roleForm.userId = row.id;
+  roleForm.roleIds = (row as any).roleIds || [];
+  try {
+    availableRoles.value = await getRoles();
+  } catch (e) {
+    console.error('[UserManagement] load roles failed:', e);
+  }
+  roleDialogVisible.value = true;
+}
+
+async function handleSaveRole() {
+  try {
+    await updateUser(roleForm.userId, { roleIds: roleForm.roleIds } as any);
+    ElMessage.success('角色分配成功');
+    roleDialogVisible.value = false;
+    loadData();
+  } catch (e) {
+    console.error('[UserManagement] assign role failed:', e);
+  }
+}
+
+/** 分配租户 */
+const tenancyDialogVisible = ref(false);
+const tenancyForm = reactive({ userId: 0, tenancyId: 0 });
+
+function handleAssignTenancy(row: UserDTO) {
+  tenancyForm.userId = row.id;
+  tenancyForm.tenancyId = (row as any).tenancyId || 0;
+  tenancyDialogVisible.value = true;
+}
+
+async function handleSaveTenancy() {
+  try {
+    await setTenancyForUser({ userId: tenancyForm.userId, licenseId: tenancyForm.tenancyId });
+    ElMessage.success('租户分配成功');
+    tenancyDialogVisible.value = false;
+    loadData();
+  } catch (e) {
+    console.error('[UserManagement] assign tenancy failed:', e);
+  }
+}
+
 /** 启用用户 */
 async function handleEnable(row: UserDTO) {
   try {
@@ -352,6 +437,19 @@ onMounted(() => {
               <Key />
               重置密码
             </el-button>
+            <el-button link size="small" @click="handleUnlock(row as UserDTO)">
+              <Unlock />
+              解锁
+            </el-button>
+            <el-button link size="small" @click="handleKickOut(row as UserDTO)">
+              踢出
+            </el-button>
+            <el-button link size="small" @click="handleAssignRole(row as UserDTO)">
+              分配角色
+            </el-button>
+            <el-button link size="small" @click="handleAssignTenancy(row as UserDTO)">
+              分配租户
+            </el-button>
             <el-button link type="danger" size="small" @click="handleDelete(row as UserDTO)">
               <Delete />
               删除
@@ -419,6 +517,42 @@ onMounted(() => {
       </div>
       <template #footer>
         <el-button type="primary" @click="handleClosePasswordDialog">我已保存</el-button>
+      </template>
+    </ElDialog>
+
+    <!-- 分配角色弹窗 -->
+    <ElDialog v-model="roleDialogVisible" title="分配角色" width="500px">
+      <el-checkbox-group v-model="roleForm.roleIds">
+        <el-checkbox
+          v-for="role in availableRoles"
+          :key="role.id"
+          :label="role.id"
+          :value="role.id"
+          style="display: block; margin-bottom: 8px;"
+        >
+          {{ role.roleName || role.id }}
+          <span v-if="role.description" style="color: #999; font-size: 12px; margin-left: 8px;">
+            ({{ role.description }})
+          </span>
+        </el-checkbox>
+      </el-checkbox-group>
+      <el-empty v-if="availableRoles.length === 0" description="暂无可用角色" />
+      <template #footer>
+        <el-button @click="roleDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSaveRole">确定</el-button>
+      </template>
+    </ElDialog>
+
+    <!-- 分配租户弹窗 -->
+    <ElDialog v-model="tenancyDialogVisible" title="分配租户" width="400px">
+      <ElForm label-width="80px">
+        <ElFormItem label="租户 ID">
+          <ElInput v-model.number="tenancyForm.tenancyId" type="number" placeholder="请输入租户 ID" />
+        </ElFormItem>
+      </ElForm>
+      <template #footer>
+        <el-button @click="tenancyDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleSaveTenancy">确定</el-button>
       </template>
     </ElDialog>
   </div>

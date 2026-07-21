@@ -55,17 +55,16 @@ export function importDevices(
   file: File,
   options?: { deviceGroupId?: string; deviceType?: string }
 ) {
-  const formData = new FormData();
-  formData.append('file', file);
-  if (options?.deviceGroupId) {
-    formData.append('deviceGroupId', options.deviceGroupId);
-  }
-  if (options?.deviceType) {
-    formData.append('deviceType', options.deviceType);
-  }
+  // 过滤 undefined 值，避免 FormData.append 传入 "undefined" 字符串
+  const extraData = options
+    ? Object.fromEntries(
+        Object.entries(options).filter(([, v]) => v != null)
+      )
+    : undefined;
+
   return http.upload<DeviceImportResult>('/devices/import', file, {
     fieldName: 'file',
-    extraData: options,
+    extraData,
   });
 }
 

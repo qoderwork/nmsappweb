@@ -11,10 +11,10 @@ import { useI18n } from 'vue-i18n';
 import type { FormInstance, FormRules, FormItemRule } from 'element-plus';
 
 import { useAuthStore } from '@/stores/auth';
-import { changePassword } from '@/api/auth';
+import { modifyPassword } from '@/api/user';
 import { showErrorMessage, showSuccessMessage } from '@/utils/error';
 import { FormRules as FormRulePresets } from '@/utils/validate';
-import type { ChangePasswordParams } from '@/types';
+import type { ModifyPasswordRequest } from '@/types/user';
 
 const router = useRouter();
 const { t } = useI18n();
@@ -54,7 +54,7 @@ const userInfoItems = computed(() => {
 const pwdFormRef = ref<FormInstance>();
 const pwdLoading = ref(false);
 
-const pwdForm = reactive<ChangePasswordParams>({
+const pwdForm = reactive({
   oldPassword: '',
   newPassword: '',
   confirmPassword: '',
@@ -104,7 +104,7 @@ async function handleChangePassword() {
 
   pwdLoading.value = true;
   try {
-    await changePassword(pwdForm);
+    await modifyPassword({ oldPassword: pwdForm.oldPassword, newPassword: pwdForm.newPassword });
     showSuccessMessage('密码修改成功，请重新登录');
     resetPwdForm();
     // 修改密码成功后退出登录，并跳转登录页强制使用新密码重新登录

@@ -259,6 +259,9 @@ export default {
     heartbeatManagement: '心跳管理',
     deviceAuth: '设备认证',
     profile: '个人中心',
+    ztpManagement: 'ZTP 零配置',
+    bsbackupManagement: '基站备份恢复',
+    normalFileManagement: '普通文件管理',
   },
 
   // 用户管理
@@ -536,5 +539,337 @@ export default {
     deleteTaskConfirm: '确定删除此 CA 任务？',
     resultSuccess: '成功',
     resultFailed: '失败',
+  },
+
+  // ZTP 零配置
+  ztp: {
+    title: 'ZTP 零配置',
+    results: '执行结果',
+    config: '配置管理',
+    tbgManagement: '模板管理',
+    psapId: 'PSAP ID',
+    provision: '发放',
+    batchReztp: '批量重新ZTP',
+    setting: '设置',
+    retryLogs: '重试日志',
+    historyFiles: '历史文件',
+    enableStatus: '启用状态',
+    disableStatus: '禁用状态',
+  },
+
+  // 基站备份恢复
+  bsbackup: {
+    title: '基站备份恢复',
+    deviceConfig: '设备配置',
+    backupTasks: '备份任务',
+    taskResults: '任务结果',
+    importConfig: '导入配置',
+    exportConfig: '导出配置',
+    createBackupTask: '创建备份任务',
+    createRestoreTask: '创建恢复任务',
+    startTask: '启动任务',
+    cancelTask: '取消任务',
+  },
+
+  // 普通文件管理
+  normalfile: {
+    title: '普通文件管理',
+    fileList: '文件列表',
+    uploadFile: '上传文件',
+    downloadToDevice: '下发到设备',
+    downloadResults: '下发结果',
+    chunkedUpload: '分片上传',
+    simpleUpload: '简单上传',
+    fileName: '文件名',
+    fileSize: '文件大小',
+    status: '状态',
+  },
+
+  // 站点管理
+  site: {
+    title: '站点管理',
+    siteName: '站点名称',
+    description: '描述',
+    area: '区域',
+    addSite: '新增站点',
+    editSite: '编辑站点',
+  },
+
+  // CBSD 管理
+  cbsd: {
+    title: 'CBSD 管理',
+    cbsdList: 'CBSD 列表',
+    register: '注册',
+    deregister: '注销',
+    enable: '启用',
+    disable: '禁用',
+    spectrumInquiry: '频谱查询',
+    sasConfig: 'SAS 配置',
+  },
+
+  // 核心网
+  coreNetwork: {
+    title: '核心网',
+    addCoreNetwork: '新增核心网',
+    parameters: '参数配置',
+    alarms: '告警',
+    ueList: 'UE 列表',
+    kpis: 'KPI',
+    statistics: '统计',
+  },
+
+  // 拓扑管理
+  topology: {
+    title: '拓扑管理',
+    lteTopology: 'LTE 拓扑',
+    nrTopology: 'NR 拓扑',
+    batchUpgrade: '批量升级',
+    reloadTopology: '重载拓扑',
+  },
+
+  // 事件日志
+  eventLog: {
+    title: '事件日志',
+    eventType: '事件类型',
+    eventTime: '事件时间',
+    source: '来源',
+    severity: '严重级别',
+    message: '消息内容',
+  },
+
+  // 设备日志
+  deviceLog: {
+    title: '设备日志',
+    collection: '日志采集',
+    logFiles: '日志文件',
+    startCollection: '开始采集',
+    downloadLog: '下载日志',
+    deleteLog: '删除日志',
+  },
+
+  // 参数管理
+  parameter: {
+    title: '参数管理',
+    modelTree: '型号树',
+    parameterSet: '参数集',
+    parameterTemplate: '参数模板',
+    deploy: '下发',
+    tr069Parameter: 'TR069 参数',
+    batchConfig: '批量配置',
+  },
+
+  // 参数监控
+  paramMonitor: {
+    title: '参数监控',
+    monitorConfig: '监控配置',
+    realtimeData: '实时数据',
+    thresholdRule: '阈值规则',
+    addConfig: '新增配置',
+    toggleConfig: '切换配置',
+  },
+
+  // 参数对比
+  paramCompare: {
+    title: '参数对比',
+    compareResult: '对比结果',
+    batchCompare: '批量对比',
+    template: '模板',
+  },
+
+  // MR 报表
+  mr: {
+    title: 'MR 报表',
+    mrLogs: 'MR 日志',
+    statisticData: '统计数据',
+    generateReport: '生成报表',
+    downloadReport: '下载报表',
+  },
+
+  // PM 性能管理
+  pm: {
+    title: 'PM 性能管理',
+    kpiList: 'KPI 列表',
+    kpiTemplate: 'KPI 模板',
+    kpiSet: 'KPI 集合',
+    kpiAlarm: 'KPI 告警',
+    measurement: '测量',
+    replenishTask: '补采任务',
+    exportExcel: '导出 Excel',
+  },
+
+  // 系统配置
+  systemSettings: {
+    title: '系统配置',
+    deviceSettings: '设备设置',
+    acsSettings: 'ACS 设置',
+    logSettings: '日志设置',
+    northBound: '北向接口',
+    mailConfig: '邮件配置',
+    ntpConfig: 'NTP 配置',
+  },
+
+  // SSH 终端
+  ssh: {
+    title: 'SSH 终端',
+    sshLabels: 'SSH 标签',
+    sshAccessTimer: '访问定时器',
+    websshTerminal: 'WebSSH 终端',
+    addLabel: '新增标签',
+    connect: '连接',
+    disconnect: '断开',
+  },
+
+  // 备份恢复
+  backup: {
+    title: '备份恢复',
+    nmsBackup: 'NMS 备份',
+    backupTask: '备份任务',
+    restoreTask: '恢复任务',
+    backupLogs: '备份日志',
+    runBackup: '执行备份',
+    revertBackup: '回滚备份',
+  },
+
+  // MML 命令
+  mml: {
+    title: 'MML 命令',
+    mmlSets: 'MML 集合',
+    mmlCommands: 'MML 命令',
+    executeMml: '执行 MML',
+    batchProcess: '批量处理',
+    importMml: '导入 MML',
+    mmlVersions: 'MML 版本',
+  },
+
+  // 安全策略
+  security: {
+    title: '安全策略',
+    securityRules: '安全规则',
+    passwordStrategy: '密码策略',
+    minPasswordLength: '最小密码长度',
+    maxPasswordLength: '最大密码长度',
+  },
+
+  // 邮件配置
+  mail: {
+    title: '邮件配置',
+    smtpServer: 'SMTP 服务器',
+    smtpPort: 'SMTP 端口',
+    senderEmail: '发件人邮箱',
+    testMail: '测试邮件',
+    emailAuth: '邮箱认证',
+  },
+
+  // NTP 配置
+  ntp: {
+    title: 'NTP 配置',
+    ntpServer: 'NTP 服务器',
+    ntpStatus: 'NTP 状态',
+    syncNow: '立即同步',
+    timezone: '时区',
+  },
+
+  // 设备黑名单
+  blacklist: {
+    title: '设备黑名单',
+    addDevice: '添加设备',
+    removeDevice: '移除设备',
+    batchRemove: '批量移除',
+    operationLogs: '操作日志',
+    sn: '序列号',
+    deviceType: '设备类型',
+    reason: '原因',
+  },
+
+  // 抓包管理
+  tcpdump: {
+    title: '抓包管理',
+    networkCards: '网卡列表',
+    startCapture: '开始抓包',
+    stopCapture: '停止抓包',
+    captureFiles: '抓包文件',
+    downloadFile: '下载文件',
+  },
+
+  // PM 文件管理
+  pmfile: {
+    title: 'PM 文件管理',
+    uploadPMFile: '上传 PM 文件',
+    downloadPMFile: '下载 PM 文件',
+    parseResult: '解析结果',
+  },
+
+  // 心跳管理
+  heartbeat: {
+    title: '心跳管理',
+    heartbeatStatus: '心跳状态',
+    processHeartbeat: '处理心跳',
+    sendHeartbeat: '发送心跳',
+  },
+
+  // 设备认证
+  deviceauth: {
+    title: '设备认证',
+    authConfig: '认证配置',
+    authInfo: '认证信息',
+  },
+
+  // 北向日志
+  northinterfacelog: {
+    title: '北向日志',
+    auditLogs: '审计日志',
+    requestMethod: '请求方法',
+    requestUrl: '请求地址',
+    responseCode: '响应码',
+  },
+
+  // 诊断工具
+  diagnostics: {
+    title: '诊断工具',
+    ping: 'Ping',
+    traceRoute: '路由跟踪',
+    downloadTest: '下载测试',
+    uploadTest: '上传测试',
+    targetHost: '目标主机',
+  },
+
+  // 授权管理
+  license: {
+    title: '授权管理',
+    licenseInfo: '授权信息',
+    uploadLicense: '上传 License',
+    sasConfig: 'SAS 配置',
+    entraEndpoints: 'Entra 端点',
+  },
+
+  // 租户管理
+  tenancy: {
+    title: '租户管理',
+    addTenancy: '新增租户',
+    tenancyName: '租户名称',
+    expiryDate: '到期日期',
+    deviceQuota: '设备配额',
+    userQuota: '用户配额',
+  },
+
+  // 升级管理
+  upgrade: {
+    title: '升级管理',
+    upgradeFiles: '升级文件',
+    upgradeTasks: '升级任务',
+    autoUpgrade: '自动升级',
+    rollback: '回滚',
+    shutdownTasks: '关机任务',
+    uploadFile: '上传文件',
+    startTask: '启动任务',
+  },
+
+  // 个人中心
+  profile: {
+    title: '个人中心',
+    changePassword: '修改密码',
+    oldPassword: '旧密码',
+    newPassword: '新密码',
+    confirmPassword: '确认密码',
   },
 };
