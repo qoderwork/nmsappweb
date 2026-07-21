@@ -153,7 +153,7 @@ function buildCellRateOption(data: Record<string, { time: string; data: unknown 
 function buildPDCPOption(data: { plmn: string; down: number; up: number }[]): echarts.EChartsOption {
   return {
     tooltip: { trigger: 'axis' },
-    legend: { data: ['下行', '上行'], bottom: 0, textStyle: { fontSize: 10 } },
+    legend: { data: [t('dashboard.downlink'), t('dashboard.uplink')], bottom: 0, textStyle: { fontSize: 10 } },
     grid: { top: 20, right: 20, bottom: 40, left: 60 },
     xAxis: {
       type: 'category',
@@ -163,7 +163,7 @@ function buildPDCPOption(data: { plmn: string; down: number; up: number }[]): ec
     yAxis: { type: 'value', axisLabel: { fontSize: 10, formatter: (v: number) => (v >= 1000 ? (v / 1000).toFixed(1) + 'G' : v + 'M') } },
     series: [
       {
-        name: '下行',
+        name: t('dashboard.downlink'),
         type: 'bar',
         stack: 'traffic',
         data: data.map(d => d.down),
@@ -171,7 +171,7 @@ function buildPDCPOption(data: { plmn: string; down: number; up: number }[]): ec
         barMaxWidth: 28,
       },
       {
-        name: '上行',
+        name: t('dashboard.uplink'),
         type: 'bar',
         stack: 'traffic',
         data: data.map(d => d.up),
@@ -326,7 +326,7 @@ function updateCharts() {
     memGaugeChart = echarts.init(memGaugeRef.value);
   }
   if (memGaugeChart) {
-    memGaugeChart.setOption(buildGaugeOption('内存', memPercent.value, memPercent.value > 80 ? '#ef4444' : '#10b981'), true);
+    memGaugeChart.setOption(buildGaugeOption(t('dashboard.memory'), memPercent.value, memPercent.value > 80 ? '#ef4444' : '#10b981'), true);
   }
 }
 
@@ -441,22 +441,22 @@ const quickActions = computed<QuickAction[]>(() => [
       <el-card class="dashboard-panel" shadow="never" :body-style="{ padding: '16px' }">
         <template #header>
           <div class="dashboard-panel__header">
-            <span class="dashboard-panel__title">告警统计 Top 8</span>
-            <el-tag size="small" type="info">近24小时</el-tag>
+            <span class="dashboard-panel__title">{{ t('dashboard.alarmStatsTop8') }}</span>
+            <el-tag size="small" type="info">{{ t('dashboard.last24Hours') }}</el-tag>
           </div>
         </template>
         <div ref="alarmBarRef" class="chart-container chart-container--medium" />
-        <el-empty v-if="alarmTopN.length === 0 && !loading" description="暂无告警数据" :image-size="60" />
+        <el-empty v-if="alarmTopN.length === 0 && !loading" :description="t('dashboard.noAlarmData')" :image-size="60" />
       </el-card>
 
       <el-card class="dashboard-panel" shadow="never" :body-style="{ padding: '16px' }">
         <template #header>
           <div class="dashboard-panel__header">
-            <span class="dashboard-panel__title">告警类型分布</span>
+            <span class="dashboard-panel__title">{{ t('dashboard.alarmTypeDistribution') }}</span>
           </div>
         </template>
         <div ref="alarmPieRef" class="chart-container chart-container--medium" />
-        <el-empty v-if="alarmTopN.length === 0 && !loading" description="暂无告警数据" :image-size="60" />
+        <el-empty v-if="alarmTopN.length === 0 && !loading" :description="t('dashboard.noAlarmData')" :image-size="60" />
       </el-card>
     </section>
 
@@ -465,8 +465,8 @@ const quickActions = computed<QuickAction[]>(() => [
       <el-card class="dashboard-panel" shadow="never" :body-style="{ padding: '16px' }">
         <template #header>
           <div class="dashboard-panel__header">
-            <span class="dashboard-panel__title">基站小区可用率</span>
-            <el-tag size="small" type="info">近24小时</el-tag>
+            <span class="dashboard-panel__title">{{ t('dashboard.cellAvailabilityRate') }}</span>
+            <el-tag size="small" type="info">{{ t('dashboard.last24Hours') }}</el-tag>
           </div>
         </template>
         <div ref="cellRateRef" class="chart-container chart-container--medium" />
@@ -475,7 +475,7 @@ const quickActions = computed<QuickAction[]>(() => [
       <el-card class="dashboard-panel" shadow="never" :body-style="{ padding: '16px' }">
         <template #header>
           <div class="dashboard-panel__header">
-            <span class="dashboard-panel__title">PDCP 流量统计</span>
+            <span class="dashboard-panel__title">{{ t('dashboard.pdcpTrafficStats') }}</span>
           </div>
         </template>
         <div ref="pdcpRef" class="chart-container chart-container--medium" />
@@ -488,7 +488,7 @@ const quickActions = computed<QuickAction[]>(() => [
       <el-card class="dashboard-panel" shadow="never" :body-style="{ padding: '16px' }">
         <template #header>
           <div class="dashboard-panel__header">
-            <span class="dashboard-panel__title">系统资源</span>
+            <span class="dashboard-panel__title">{{ t('dashboard.systemResources') }}</span>
           </div>
         </template>
         <div class="gauge-row">
@@ -501,25 +501,25 @@ const quickActions = computed<QuickAction[]>(() => [
       <el-card class="dashboard-panel" shadow="never" :body-style="{ padding: '16px' }">
         <template #header>
           <div class="dashboard-panel__header">
-            <span class="dashboard-panel__title">设备分布</span>
-            <el-tag size="small" type="info">{{ productCounts.length }} 类</el-tag>
+            <span class="dashboard-panel__title">{{ t('dashboard.deviceDistribution') }}</span>
+            <el-tag size="small" type="info">{{ productCounts.length }} {{ t('dashboard.productType') }}</el-tag>
           </div>
         </template>
         <el-table v-if="productCounts.length > 0" :data="productCounts" stripe size="small" style="width: 100%">
-          <el-table-column prop="productType" label="产品类型" min-width="100" />
-          <el-table-column prop="count" label="总数" width="60" align="center" />
-          <el-table-column prop="onlineCount" label="在线" width="60" align="center">
+          <el-table-column prop="productType" :label="t('dashboard.productType')" min-width="100" />
+          <el-table-column prop="count" :label="t('common.all')" width="60" align="center" />
+          <el-table-column prop="onlineCount" :label="t('device.online')" width="60" align="center">
             <template #default="{ row }">
               <el-tag type="success" size="small">{{ row.onlineCount }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="offlineCount" label="离线" width="60" align="center">
+          <el-table-column prop="offlineCount" :label="t('device.offline')" width="60" align="center">
             <template #default="{ row }">
               <el-tag type="info" size="small">{{ row.offlineCount }}</el-tag>
             </template>
           </el-table-column>
         </el-table>
-        <el-empty v-else description="暂无设备" :image-size="50" />
+        <el-empty v-else :description="t('dashboard.noDevice')" :image-size="50" />
       </el-card>
 
       <!-- Quick actions -->

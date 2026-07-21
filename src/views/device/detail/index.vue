@@ -102,9 +102,9 @@ function getStatusType(status?: string | null): 'success' | 'danger' | 'info' {
 
 /** 获取状态文本 */
 function getStatusText(status?: string | null): string {
-  if (status === 'online') return '在线';
-  if (status === 'offline') return '离线';
-  return '未知';
+  if (status === 'online') return t('device.online');
+  if (status === 'offline') return t('device.offline');
+  return t('device.unknown');
 }
 
 /** 解析 JSON 字段 */
@@ -138,7 +138,7 @@ onMounted(() => {
         </div>
         <div class="header-actions">
           <el-button type="warning" :icon="Refresh" @click="handleEmptyCommands">
-            清空命令队列
+            {{ t('device.clearCommands') }}
           </el-button>
           <el-button type="danger" :icon="Delete" @click="handleDelete">
             {{ t('common.delete') }}
@@ -162,121 +162,121 @@ onMounted(() => {
 
       <el-tabs v-model="activeTab" class="detail-tabs">
         <!-- Tab1: 基本信息 -->
-        <el-tab-pane label="基本信息" name="basic">
+        <el-tab-pane :label="t('device.basicInfo')" name="basic">
           <el-descriptions v-if="device" :column="2" border class="detail-descriptions">
-            <el-descriptions-item label="设备 ID">{{ device.ne_neid }}</el-descriptions-item>
-            <el-descriptions-item label="序列号">{{ device.serial_number || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="设备名称">{{ device.device_name || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="设备类型">{{ device.device_type?.toUpperCase() || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="厂商">{{ device.manufacturer || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="型号">{{ device.model_name || device.product || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="OUI">{{ device.oui || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="MAC 地址">{{ device.mac || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="站点 ID">{{ device.site_id || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="安装位置">{{ device.installation_location || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="经纬度">
+            <el-descriptions-item :label="t('device.neId')">{{ device.ne_neid }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.sn')">{{ device.serial_number || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.name')">{{ device.device_name || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.deviceType')">{{ device.device_type?.toUpperCase() || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.vendor')">{{ device.manufacturer || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.model')">{{ device.model_name || device.product || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.oui')">{{ device.oui || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.mac')">{{ device.mac || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.siteId')">{{ device.site_id || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.location')">{{ device.installation_location || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.longitudeLatitude')">
               <template v-if="device.longitude && device.latitude">
                 {{ device.longitude }}, {{ device.latitude }}
               </template>
               <template v-else>-</template>
             </el-descriptions-item>
-            <el-descriptions-item label="创建时间">{{ formatTime(device.creation_time) }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.createTime')">{{ formatTime(device.creation_time) }}</el-descriptions-item>
           </el-descriptions>
         </el-tab-pane>
 
         <!-- Tab2: 网络信息 -->
-        <el-tab-pane label="网络信息" name="network">
+        <el-tab-pane :label="t('device.networkInfo')" name="network">
           <el-descriptions v-if="device" :column="2" border class="detail-descriptions">
-            <el-descriptions-item label="IP 地址">{{ device.device_ip || device.ip || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="端口">{{ device.port || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="Connection Request URL" :span="2">{{ device.coon_req_url || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="Connection Request 用户名">{{ device.connection_request_username || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="Connection Request 密码">{{ device.connection_request_password ? '******' : '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.ip')">{{ device.device_ip || device.ip || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.port')">{{ device.port || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.connectionRequestUrl')" :span="2">{{ device.coon_req_url || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.connectionRequestUsername')">{{ device.connection_request_username || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.connectionRequestPassword')">{{ device.connection_request_password ? '******' : '-' }}</el-descriptions-item>
           </el-descriptions>
         </el-tab-pane>
 
         <!-- Tab3: 版本信息 -->
-        <el-tab-pane label="版本信息" name="version">
+        <el-tab-pane :label="t('device.versionInfo')" name="version">
           <el-descriptions v-if="device" :column="2" border class="detail-descriptions">
-            <el-descriptions-item label="软件版本">{{ device.software_version || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="硬件版本">{{ device.hardware_version || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="固件版本">{{ device.firmware_version || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="完整软件版本">{{ device.full_software_version || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="目标版本">{{ device.target_version || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="目标硬件版本">{{ device.target_hardware_version || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="STM 版本">{{ device.stm_version || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="Generation">{{ device.generation || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="是否新版本">
+            <el-descriptions-item :label="t('device.version')">{{ device.software_version || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.hardwareVersion')">{{ device.hardware_version || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.firmwareVersion')">{{ device.firmware_version || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.fullSoftwareVersion')">{{ device.full_software_version || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.targetVersion')">{{ device.target_version || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.targetHardwareVersion')">{{ device.target_hardware_version || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.stmVersion')">{{ device.stm_version || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.generation')">{{ device.generation || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.isNewVersion')">
               <el-tag :type="device.is_new_version ? 'success' : 'info'" size="small">
-                {{ device.is_new_version ? '是' : '否' }}
+                {{ device.is_new_version ? t('common.yes') : t('common.no') }}
               </el-tag>
             </el-descriptions-item>
           </el-descriptions>
         </el-tab-pane>
 
         <!-- Tab4: 状态信息 -->
-        <el-tab-pane label="状态信息" name="status">
+        <el-tab-pane :label="t('device.statusInfo')" name="status">
           <el-descriptions v-if="device" :column="2" border class="detail-descriptions">
-            <el-descriptions-item label="当前状态">
+            <el-descriptions-item :label="t('device.status')">
               <el-tag :type="getStatusType(device.status)" size="small">
                 {{ getStatusText(device.status) }}
               </el-tag>
             </el-descriptions-item>
-            <el-descriptions-item label="是否初始化">
+            <el-descriptions-item :label="t('device.isInitialized')">
               <el-tag :type="device.is_initialized ? 'success' : 'warning'" size="small">
-                {{ device.is_initialized ? '是' : '否' }}
+                {{ device.is_initialized ? t('common.yes') : t('common.no') }}
               </el-tag>
             </el-descriptions-item>
-            <el-descriptions-item label="ZTP 就绪">
+            <el-descriptions-item :label="t('device.ztpReady')">
               <el-tag :type="device.ready_to_ztp ? 'success' : 'info'" size="small">
-                {{ device.ready_to_ztp ? '是' : '否' }}
+                {{ device.ready_to_ztp ? t('common.yes') : t('common.no') }}
               </el-tag>
             </el-descriptions-item>
-            <el-descriptions-item label="开站配置状态">{{ device.open_station_config_status || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="诊断中">
+            <el-descriptions-item :label="t('device.openStationConfigStatus')">{{ device.open_station_config_status || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.inDiagnostics')">
               <el-tag :type="device.in_diagnostics ? 'warning' : 'info'" size="small">
-                {{ device.in_diagnostics ? '是' : '否' }}
+                {{ device.in_diagnostics ? t('common.yes') : t('common.no') }}
               </el-tag>
             </el-descriptions-item>
-            <el-descriptions-item label="低资源">
+            <el-descriptions-item :label="t('device.lowResource')">
               <el-tag :type="device.low_resource ? 'danger' : 'success'" size="small">
-                {{ device.low_resource ? '是' : '否' }}
+                {{ device.low_resource ? t('common.yes') : t('common.no') }}
               </el-tag>
             </el-descriptions-item>
-            <el-descriptions-item label="最后日志采集时间">{{ formatTime(device.last_log_collection_time) }}</el-descriptions-item>
-            <el-descriptions-item label="配置上传时间">{{ formatTime(device.config_file_upload_time) }}</el-descriptions-item>
-            <el-descriptions-item label="CBSD 证书上传时间">{{ formatTime(device.cbsd_cert_file_upload_time) }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.lastLogCollectionTime')">{{ formatTime(device.last_log_collection_time) }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.configFileUploadTime')">{{ formatTime(device.config_file_upload_time) }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.cbsdCertUploadTime')">{{ formatTime(device.cbsd_cert_file_upload_time) }}</el-descriptions-item>
           </el-descriptions>
         </el-tab-pane>
 
         <!-- Tab5: CPE 信号质量（仅 CPE 设备显示） -->
-        <el-tab-pane v-if="isCPE" label="信号质量" name="signal">
+        <el-tab-pane v-if="isCPE" :label="t('device.signalQuality')" name="signal">
           <div class="signal-panel">
             <el-alert type="info" :closable="false" style="margin-bottom: 16px">
               <template #title>
                 <el-icon><Connection /></el-icon>
-                <span style="margin-left: 8px">CPE 无线信号质量监控</span>
+                <span style="margin-left: 8px">{{ t('device.cpeWirelessSignalMonitoring') }}</span>
               </template>
-              <div>以下数据来自设备上报的 WiFi/GPS 信息和诊断数据</div>
+              <div>{{ t('device.signalDataFromDevice') }}</div>
             </el-alert>
 
             <!-- GPS 位置信息 -->
             <el-card shadow="never" :body-style="{ padding: '16px' }">
               <template #header>
-                <span class="section-title">GPS 位置</span>
+                <span class="section-title">{{ t('device.gpsLocation') }}</span>
               </template>
               <el-descriptions :column="2" border>
-                <el-descriptions-item label="经度">{{ device?.longitude || '-' }}</el-descriptions-item>
-                <el-descriptions-item label="纬度">{{ device?.latitude || '-' }}</el-descriptions-item>
-                <el-descriptions-item label="安装位置">{{ device?.installation_location || '-' }}</el-descriptions-item>
-                <el-descriptions-item label="PSAP ID">{{ device?.psap_id || '-' }}</el-descriptions-item>
+                <el-descriptions-item :label="t('device.longitude')">{{ device?.longitude || '-' }}</el-descriptions-item>
+                <el-descriptions-item :label="t('device.latitude')">{{ device?.latitude || '-' }}</el-descriptions-item>
+                <el-descriptions-item :label="t('device.location')">{{ device?.installation_location || '-' }}</el-descriptions-item>
+                <el-descriptions-item :label="t('ztp.psapId')">{{ device?.psap_id || '-' }}</el-descriptions-item>
               </el-descriptions>
             </el-card>
 
             <!-- WiFi/GPS 信息解析展示 -->
             <el-card shadow="never" :body-style="{ padding: '16px' }" style="margin-top: 16px">
               <template #header>
-                <span class="section-title">WiFi/GPS 原始信息</span>
+                <span class="section-title">{{ t('device.wifiGpsRawInfo') }}</span>
               </template>
               <template v-if="device?.wifi_or_gps_info">
                 <el-input
@@ -286,13 +286,13 @@ onMounted(() => {
                   readonly
                 />
               </template>
-              <el-empty v-else description="暂无 WiFi/GPS 信息" :image-size="60" />
+              <el-empty v-else :description="t('device.noWifiGpsInfo')" :image-size="60" />
             </el-card>
 
             <!-- E911 数据解析展示 -->
             <el-card shadow="never" :body-style="{ padding: '16px' }" style="margin-top: 16px">
               <template #header>
-                <span class="section-title">E911 数据</span>
+                <span class="section-title">{{ t('device.e911Data') }}</span>
               </template>
               <template v-if="device?.e911_data">
                 <el-input
@@ -302,46 +302,46 @@ onMounted(() => {
                   readonly
                 />
               </template>
-              <el-empty v-else description="暂无 E911 数据" :image-size="60" />
+              <el-empty v-else :description="t('device.noE911Data')" :image-size="60" />
             </el-card>
 
             <!-- 信号质量指标（需要后端 cpe_statistic_record API 支持） -->
             <el-card shadow="never" :body-style="{ padding: '16px' }" style="margin-top: 16px">
               <template #header>
                 <div class="signal-card-header">
-                  <span class="section-title">信号指标趋势</span>
-                  <el-button type="primary" size="small" :loading="loading" @click="loadData">刷新</el-button>
+                  <span class="section-title">{{ t('device.signalMetricsTrend') }}</span>
+                  <el-button type="primary" size="small" :loading="loading" @click="loadData">{{ t('common.refresh') }}</el-button>
                 </div>
               </template>
               <el-alert type="warning" :closable="false">
                 <template #title>
-                  信号指标（RSRP/SINR/吞吐量等）需要后端提供 cpe_statistic_record 查询 API
+                  {{ t('device.signalMetricsNeedApi') }}
                 </template>
               </el-alert>
-              <el-empty description="暂无实时信号数据" :image-size="60" />
+              <el-empty :description="t('device.noRealtimeSignalData')" :image-size="60" />
             </el-card>
           </div>
         </el-tab-pane>
 
         <!-- Tab6: 扩展信息 -->
-        <el-tab-pane label="扩展信息" name="extended">
+        <el-tab-pane :label="t('device.extendedInfo')" name="extended">
           <el-descriptions v-if="device" :column="2" border class="detail-descriptions">
-            <el-descriptions-item label="ZTP 参数" :span="2">
+            <el-descriptions-item :label="t('device.ztpParams')" :span="2">
               <el-input v-if="device.ztp_parameters" :model-value="device.ztp_parameters" type="textarea" :rows="3" readonly />
               <span v-else>-</span>
             </el-descriptions-item>
-            <el-descriptions-item label="配置文件">{{ device.config_file || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="CBSD 证书文件">{{ device.cbsd_cert_file || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="AOS 文件名">{{ device.aos_file_name || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="Market">{{ device.market || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="PSAP ID">{{ device.psap_id || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="Root Node">{{ device.root_node || '-' }}</el-descriptions-item>
-            <el-descriptions-item label="License ID">{{ device.license_id || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.configFile')">{{ device.config_file || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.cbsdCertFile')">{{ device.cbsd_cert_file || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.aosFileName')">{{ device.aos_file_name || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.market')">{{ device.market || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('ztp.psapId')">{{ device.psap_id || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.rootNode')">{{ device.root_node || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.licenseId')">{{ device.license_id || '-' }}</el-descriptions-item>
           </el-descriptions>
         </el-tab-pane>
       </el-tabs>
 
-      <el-empty v-if="!device && !loading" description="暂无设备数据" />
+      <el-empty v-if="!device && !loading" :description="t('device.noDeviceData')" />
     </el-card>
   </div>
 </template>

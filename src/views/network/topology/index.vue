@@ -1,17 +1,11 @@
 <script setup lang="ts">
 /**
  * 拓扑管理页面
- *
- * 功能：
- * - LTE 拓扑查询展示
- * - NR 拓扑查询展示
- * - 重新加载 LTE 拓扑
- * - 批量升级 EU/RU
- * - 批量升级日志
  */
-import { reactive, ref, onMounted } from 'vue';
+import { reactive, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Search, Refresh, View, Upload, Document, Folder } from '@element-plus/icons-vue';
+import { Search, Refresh, Document, Folder } from '@element-plus/icons-vue';
+import { useI18n } from 'vue-i18n';
 
 import {
   getLteTopology,
@@ -22,9 +16,10 @@ import {
 } from '@/api/topology';
 import type { TopologyBBU, ListBatchUpgradeLogVO } from '@/types/topology';
 
-// 动态导入递归组件（避免循环引用问题）
 import TopologyTree from './components/TopologyTree.vue';
 import TopologyGraph from './components/TopologyGraph.vue';
+
+const { t } = useI18n();
 
 // ============ 状态 ============
 const activeTab = ref('lte');
@@ -54,10 +49,9 @@ const logTotal = ref(0);
 
 // ============ 方法 ============
 
-/** 查询 LTE 拓扑 */
 async function queryLteTopology() {
   if (!lteElementId.value) {
-    ElMessage.warning('请输入设备 ID');
+    ElMessage.warning(t('topology.enterDeviceId'));
     return;
   }
   lteLoading.value = true;
@@ -71,10 +65,9 @@ async function queryLteTopology() {
   }
 }
 
-/** 查询 NR 拓扑 */
 async function queryNrTopology() {
   if (!nrElementId.value) {
-    ElMessage.warning('请输入设备 ID');
+    ElMessage.warning(t('topology.enterDeviceId'));
     return;
   }
   nrLoading.value = true;
@@ -88,42 +81,39 @@ async function queryNrTopology() {
   }
 }
 
-/** 重新加载 LTE 拓扑 */
 async function handleReloadLte() {
   if (!lteElementId.value) {
-    ElMessage.warning('请输入设备 ID');
+    ElMessage.warning(t('topology.enterDeviceId'));
     return;
   }
   try {
-    await ElMessageBox.confirm('确定要重新加载 LTE 拓扑吗？', '确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('topology.confirmReloadLte'), t('common.confirm'), { type: 'warning' });
     await reloadLteTopology({ id: Number(lteElementId.value) });
-    ElMessage.success('已触发重新加载');
+    ElMessage.success(t('topology.reloadTriggered'));
     queryLteTopology();
   } catch (e) {
     if (e !== 'cancel') console.error('[Topology] reload failed:', e);
   }
 }
 
-/** 重新加载 NR 拓扑 */
 async function handleReloadNr() {
   if (!nrElementId.value) {
-    ElMessage.warning('请输入设备 ID');
+    ElMessage.warning(t('topology.enterDeviceId'));
     return;
   }
   try {
-    await ElMessageBox.confirm('确定要重新加载 NR 拓扑吗？', '确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('topology.confirmReloadNr'), t('common.confirm'), { type: 'warning' });
     await reloadNrTopology({ id: Number(nrElementId.value) });
-    ElMessage.success('已触发重新加载');
+    ElMessage.success(t('topology.reloadTriggered'));
     queryNrTopology();
   } catch (e) {
     if (e !== 'cancel') console.error('[Topology] reload NR failed:', e);
   }
 }
 
-/** 加载批量升级日志 */
 async function loadBatchUpgradeLogs() {
   if (!logQuery.elementId) {
-    ElMessage.warning('请输入设备 ID');
+    ElMessage.warning(t('topology.enterDeviceId'));
     return;
   }
   logLoading.value = true;
@@ -169,16 +159,15 @@ function handleLogSizeChange(size: number) {
   loadBatchUpgradeLogs();
 }
 
-/** 格式化时间 */
 function formatTime(time?: string | null): string {
   if (!time) return '-';
   return new Date(time).toLocaleString('zh-CN');
 }
 
 function getResultText(result?: number | null): string {
-  if (result === 1) return '成功';
-  if (result === 0) return '失败';
-  return '进行中';
+  if (result === 1) return t('topology.success');
+  if (result === 0) return t('topology.failed');
+  return t('topology.inProgress');
 }
 
 function getResultType(result?: number | null): 'success' | 'danger' | 'warning' {
@@ -192,15 +181,15 @@ function getResultType(result?: number | null): 'success' | 'danger' | 'warning'
   <div class="topology-management-page">
     <el-tabs v-model="activeTab" type="border-card">
       <!-- LTE 拓扑 -->
-      <el-tab-pane label="LTE 拓扑" name="lte">
+      <el-tab-pane :label="t('topology.lteTopology')" name="lte">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true" @submit.prevent="queryLteTopology">
-            <el-form-item label="设备 ID">
-              <el-input v-model="lteElementId" placeholder="BBU 设备 ID" clearable style="width: 150px" @keyup.enter="queryLteTopology" />
+            <el-form-item :label="t('topology.deviceId')">
+              <el-input v-model="lteElementId" :placeholder="t('topology.bbuIdPlaceholder')" clearable style="width: 150px" @keyup.enter="queryLteTopology" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Search" @click="queryLteTopology">查询</el-button>
-              <el-button :icon="Refresh" @click="handleReloadLte">重新加载</el-button>
+              <el-button type="primary" :icon="Search" @click="queryLteTopology">{{ t('topology.query') }}</el-button>
+              <el-button :icon="Refresh" @click="handleReloadLte">{{ t('topology.reload') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -219,27 +208,27 @@ function getResultType(result?: number | null): 'success' | 'danger' | 'warning'
                 <div v-for="port in lteBBU.ports" :key="port.portIndex" class="topology-port-section">
                   <div class="topology-port-title">
                     <el-icon><Document /></el-icon>
-                    端口 {{ port.portIndex }} - {{ port.type }}
+                    {{ t('topology.port') }} {{ port.portIndex }} - {{ port.type }}
                   </div>
                   <TopologyTree :devices="port.nextLevelDevices" :level="0" />
                 </div>
               </template>
             </TopologyGraph>
           </template>
-          <el-empty v-else description="请输入设备 ID 查询拓扑" />
+          <el-empty v-else :description="t('topology.noTopologyData')" />
         </el-card>
       </el-tab-pane>
 
       <!-- NR 拓扑 -->
-      <el-tab-pane label="NR 拓扑" name="nr">
+      <el-tab-pane :label="t('topology.nrTopology')" name="nr">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true" @submit.prevent="queryNrTopology">
-            <el-form-item label="设备 ID">
-              <el-input v-model="nrElementId" placeholder="gNB 设备 ID" clearable style="width: 150px" @keyup.enter="queryNrTopology" />
+            <el-form-item :label="t('topology.deviceId')">
+              <el-input v-model="nrElementId" :placeholder="t('topology.gnbIdPlaceholder')" clearable style="width: 150px" @keyup.enter="queryNrTopology" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Search" @click="queryNrTopology">查询</el-button>
-              <el-button :icon="Refresh" @click="handleReloadNr">重新加载</el-button>
+              <el-button type="primary" :icon="Search" @click="queryNrTopology">{{ t('topology.query') }}</el-button>
+              <el-button :icon="Refresh" @click="handleReloadNr">{{ t('topology.reload') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -258,36 +247,36 @@ function getResultType(result?: number | null): 'success' | 'danger' | 'warning'
                 <div v-for="port in nrBBU.ports" :key="port.portIndex" class="topology-port-section">
                   <div class="topology-port-title">
                     <el-icon><Document /></el-icon>
-                    端口 {{ port.portIndex }} - {{ port.type }}
+                    {{ t('topology.port') }} {{ port.portIndex }} - {{ port.type }}
                   </div>
                   <TopologyTree :devices="port.nextLevelDevices" :level="0" />
                 </div>
               </template>
             </TopologyGraph>
           </template>
-          <el-empty v-else description="请输入设备 ID 查询拓扑" />
+          <el-empty v-else :description="t('topology.noTopologyData')" />
         </el-card>
       </el-tab-pane>
 
-      <!-- 批量升级日志 -->
-      <el-tab-pane label="升级日志" name="logs">
+      <!-- 升级日志 -->
+      <el-tab-pane :label="t('topology.upgradeLog')" name="logs">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true" @submit.prevent="handleLogSearch">
-            <el-form-item label="设备 ID">
-              <el-input v-model="logQuery.elementId" placeholder="设备 ID" clearable style="width: 120px" @keyup.enter="handleLogSearch" />
+            <el-form-item :label="t('topology.deviceId')">
+              <el-input v-model="logQuery.elementId" :placeholder="t('topology.deviceIdPlaceholder')" clearable style="width: 120px" @keyup.enter="handleLogSearch" />
             </el-form-item>
-            <el-form-item label="操作用户">
-              <el-input v-model="logQuery.operationUser" placeholder="用户名" clearable style="width: 120px" @keyup.enter="handleLogSearch" />
+            <el-form-item :label="t('topology.operationUser')">
+              <el-input v-model="logQuery.operationUser" :placeholder="t('topology.username')" clearable style="width: 120px" @keyup.enter="handleLogSearch" />
             </el-form-item>
-            <el-form-item label="开始时间">
-              <el-date-picker v-model="logQuery.startTime" type="datetime" placeholder="开始时间" value-format="YYYY-MM-DD HH:mm:ss" style="width: 180px" />
+            <el-form-item :label="t('topology.startTime')">
+              <el-date-picker v-model="logQuery.startTime" type="datetime" :placeholder="t('topology.startTime')" value-format="YYYY-MM-DD HH:mm:ss" style="width: 180px" />
             </el-form-item>
-            <el-form-item label="结束时间">
-              <el-date-picker v-model="logQuery.endTime" type="datetime" placeholder="结束时间" value-format="YYYY-MM-DD HH:mm:ss" style="width: 180px" />
+            <el-form-item :label="t('topology.endTime')">
+              <el-date-picker v-model="logQuery.endTime" type="datetime" :placeholder="t('topology.endTime')" value-format="YYYY-MM-DD HH:mm:ss" style="width: 180px" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Search" @click="handleLogSearch">搜索</el-button>
-              <el-button :icon="Refresh" @click="handleLogReset">重置</el-button>
+              <el-button type="primary" :icon="Search" @click="handleLogSearch">{{ t('topology.search') }}</el-button>
+              <el-button :icon="Refresh" @click="handleLogReset">{{ t('topology.reset') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -295,23 +284,23 @@ function getResultType(result?: number | null): 'success' | 'danger' | 'warning'
         <el-card shadow="never" :body-style="{ padding: '0' }">
           <el-table v-loading="logLoading" :data="logList" stripe border style="width: 100%">
             <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="operationUser" label="操作用户" width="120" />
-            <el-table-column prop="operationTime" label="操作时间" min-width="160">
+            <el-table-column prop="operationUser" :label="t('topology.operationUser')" width="120" />
+            <el-table-column prop="operationTime" :label="t('topology.operationTime')" min-width="160">
               <template #default="{ row }">{{ formatTime(row.operationTime) }}</template>
             </el-table-column>
-            <el-table-column prop="downloadedTime" label="下载时间" min-width="160">
+            <el-table-column prop="downloadedTime" :label="t('topology.downloadTime')" min-width="160">
               <template #default="{ row }">{{ formatTime(row.downloadedTime) }}</template>
             </el-table-column>
-            <el-table-column prop="upgradedTime" label="升级时间" min-width="160">
+            <el-table-column prop="upgradedTime" :label="t('topology.upgradeTime')" min-width="160">
               <template #default="{ row }">{{ formatTime(row.upgradedTime) }}</template>
             </el-table-column>
-            <el-table-column prop="result" label="结果" width="90" align="center">
+            <el-table-column prop="result" :label="t('topology.result')" width="90" align="center">
               <template #default="{ row }">
                 <el-tag :type="getResultType(row.result)" size="small">{{ getResultText(row.result) }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="faultInfo" label="故障信息" min-width="160" show-overflow-tooltip />
-            <el-table-column label="版本变更" min-width="300">
+            <el-table-column prop="faultInfo" :label="t('topology.faultInfo')" min-width="160" show-overflow-tooltip />
+            <el-table-column :label="t('topology.versionChange')" min-width="300">
               <template #default="{ row }">
                 <div v-for="v in row.versionInfo" :key="v.serialNumber" class="version-change-item">
                   {{ v.serialNumber }}: {{ v.originalVersion }} → {{ v.upgradedVersion }}

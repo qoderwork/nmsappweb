@@ -1,15 +1,16 @@
 <script setup lang="ts">
 /**
  * 通用占位页面 - 用于演示菜单结构
- * 后续接入实际 API 后替换为真实页面
  */
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
 const route = useRoute();
+const { t } = useI18n();
 
 const pageTitle = computed(() => {
-  return (route.meta?.title as string) || route.name?.toString() || '页面';
+  return (route.meta?.title as string) || route.name?.toString() || 'Page';
 });
 </script>
 
@@ -20,9 +21,9 @@ const pageTitle = computed(() => {
         <el-icon class="placeholder-icon"><Construction /></el-icon>
         <h2 class="placeholder-title">{{ pageTitle }}</h2>
         <p class="placeholder-desc">
-          此页面为演示占位，后续接入实际 API 后将呈现完整业务功能
+          {{ t('common.noData') }}
         </p>
-        <el-tag type="info" size="large">开发中</el-tag>
+        <el-tag type="info" size="large">{{ t('common.loading') }}</el-tag>
       </div>
     </el-card>
   </div>

@@ -657,7 +657,7 @@ onBeforeUnmount(() => {
     <!-- ========== 在线统计卡片（可折叠） ========== -->
     <el-card shadow="never" :body-style="{ padding: '12px 16px' }" class="stats-card">
       <div class="stats-header" @click="showStats = !showStats">
-        <span class="stats-title">设备在线统计</span>
+        <span class="stats-title">{{ t('device.onlineStats') }}</span>
         <el-icon><ArrowUp v-if="showStats" /><ArrowDown v-else /></el-icon>
       </div>
       <el-collapse-transition>
@@ -668,10 +668,10 @@ onBeforeUnmount(() => {
               <div class="stat-label">gNB</div>
               <div class="stat-values">
                 <span class="stat-online">
-                  <el-tag type="success" size="small">在线 {{ onlineInfo.gnbOnlineCount }}</el-tag>
+                  <el-tag type="success" size="small">{{ t('device.online') }} {{ onlineInfo.gnbOnlineCount }}</el-tag>
                 </span>
                 <span class="stat-offline">
-                  <el-tag type="danger" size="small">离线 {{ onlineInfo.gnbOfflineCount }}</el-tag>
+                  <el-tag type="danger" size="small">{{ t('device.offline') }} {{ onlineInfo.gnbOfflineCount }}</el-tag>
                 </span>
               </div>
             </div>
@@ -680,10 +680,10 @@ onBeforeUnmount(() => {
               <div class="stat-label">eNB</div>
               <div class="stat-values">
                 <span class="stat-online">
-                  <el-tag type="success" size="small">在线 {{ onlineInfo.enbOnlineCount }}</el-tag>
+                  <el-tag type="success" size="small">{{ t('device.online') }} {{ onlineInfo.enbOnlineCount }}</el-tag>
                 </span>
                 <span class="stat-offline">
-                  <el-tag type="danger" size="small">离线 {{ onlineInfo.enbOfflineCount }}</el-tag>
+                  <el-tag type="danger" size="small">{{ t('device.offline') }} {{ onlineInfo.enbOfflineCount }}</el-tag>
                 </span>
               </div>
             </div>
@@ -692,15 +692,15 @@ onBeforeUnmount(() => {
               <div class="stat-label">CPE</div>
               <div class="stat-values">
                 <span class="stat-online">
-                  <el-tag type="success" size="small">在线 {{ onlineInfo.cpeOnlineCount }}</el-tag>
+                  <el-tag type="success" size="small">{{ t('device.online') }} {{ onlineInfo.cpeOnlineCount }}</el-tag>
                 </span>
                 <span class="stat-offline">
-                  <el-tag type="danger" size="small">离线 {{ onlineInfo.cpeOfflineCount }}</el-tag>
+                  <el-tag type="danger" size="small">{{ t('device.offline') }} {{ onlineInfo.cpeOfflineCount }}</el-tag>
                 </span>
               </div>
             </div>
           </div>
-          <div v-else class="stats-empty">暂无统计数据</div>
+          <div v-else class="stats-empty">{{ t('device.noStatsData') }}</div>
         </div>
       </el-collapse-transition>
     </el-card>
@@ -758,7 +758,7 @@ onBeforeUnmount(() => {
               {{ t('common.search') }}
             </el-button>
             <el-button @click="showAdvanced = !showAdvanced">
-              高级筛选
+              {{ t('device.advancedFilter') }}
               <el-icon class="el-icon--right">
                 <ArrowDown v-if="!showAdvanced" />
                 <ArrowUp v-else />
@@ -772,15 +772,15 @@ onBeforeUnmount(() => {
         <el-collapse-transition>
           <div v-show="showAdvanced" class="advanced-filters">
             <el-form :inline="true" class="search-form">
-              <el-form-item label="在线状态">
+              <el-form-item :label="t('device.onlineStatus')">
                 <el-select
                   v-model="queryParams.status"
-                  placeholder="全部"
+                  :placeholder="t('device.all')"
                   clearable
                   style="width: 140px"
                   @change="handleSearch"
                 >
-                  <el-option label="全部" value="" />
+                  <el-option :label="t('device.all')" value="" />
                   <el-option :label="t('device.online')" value="online" />
                   <el-option :label="t('device.offline')" value="offline" />
                 </el-select>
@@ -801,19 +801,19 @@ onBeforeUnmount(() => {
                   />
                 </el-select>
               </el-form-item>
-              <el-form-item label="软件版本">
+              <el-form-item :label="t('device.softwareVersion')">
                 <el-input
                   v-model="queryParams.softwareVersion"
-                  placeholder="请输入软件版本"
+                  :placeholder="t('device.enterSoftwareVersion')"
                   clearable
                   style="width: 160px"
                   @keyup.enter="handleSearch"
                 />
               </el-form-item>
-              <el-form-item label="产品类型">
+              <el-form-item :label="t('device.productType')">
                 <el-input
                   v-model="queryParams.product"
-                  placeholder="请输入产品类型"
+                  :placeholder="t('device.enterProductType')"
                   clearable
                   style="width: 160px"
                   @keyup.enter="handleSearch"
@@ -854,17 +854,17 @@ onBeforeUnmount(() => {
             {{ row.device_name || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="device_type" label="设备类型" min-width="100">
+        <el-table-column prop="device_type" :label="t('device.deviceType')" min-width="100">
           <template #default="{ row }">
             {{ row.device_type || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="generation" label="代次" min-width="80">
+        <el-table-column prop="generation" :label="t('device.generation')" min-width="80">
           <template #default="{ row }">
             {{ row.generation || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="product" label="产品" min-width="100">
+        <el-table-column prop="product" :label="t('device.product')" min-width="100">
           <template #default="{ row }">
             {{ row.product || '-' }}
           </template>
@@ -884,7 +884,7 @@ onBeforeUnmount(() => {
             {{ row.software_version || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="hardware_version" label="硬件版本" min-width="110">
+        <el-table-column prop="hardware_version" :label="t('device.hardwareVersion')" min-width="110">
           <template #default="{ row }">
             {{ row.hardware_version || '-' }}
           </template>
@@ -896,7 +896,7 @@ onBeforeUnmount(() => {
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="site_id" label="站点 ID" min-width="100">
+        <el-table-column prop="site_id" :label="t('device.siteId')" min-width="100">
           <template #default="{ row }">
             {{ row.site_id || '-' }}
           </template>
@@ -911,7 +911,7 @@ onBeforeUnmount(() => {
             {{ row.latitude || '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="creation_time" label="创建时间" min-width="160">
+        <el-table-column prop="creation_time" :label="t('device.createTime')" min-width="160">
           <template #default="{ row }">
             {{ formatTime(row.creation_time) }}
           </template>
@@ -952,30 +952,30 @@ onBeforeUnmount(() => {
         @click.stop
       >
         <div class="context-menu-item" @click="handleContextAction('detail')">
-          详情
+          {{ t('device.detailTitle') }}
         </div>
         <div v-permission="'device.edit'" class="context-menu-item" @click="handleContextAction('settings')">
-          设置
+          {{ t('device.settings') }}
         </div>
         <div v-permission="'device.config'" class="context-menu-item" @click="handleContextAction('config')">
-          配置管理
+          {{ t('device.configManagement') }}
         </div>
         <div v-permission="'device.modelTree'" class="context-menu-item" @click="handleContextAction('modelTree')">
-          模型树
+          {{ t('device.modelTree') }}
         </div>
         <div class="context-menu-divider" />
         <div v-permission="'device.emptyCommands'" class="context-menu-item" @click="handleContextAction('emptyCommands')">
-          清空命令队列
+          {{ t('device.clearCommands') }}
         </div>
         <div v-permission="'device.factoryReset'" class="context-menu-item" @click="handleContextAction('factoryReset')">
-          恢复出厂
+          {{ t('device.factoryResetAction') }}
         </div>
         <div v-permission="'device.alarmSync'" class="context-menu-item" @click="handleContextAction('alarmSync')">
-          告警同步
+          {{ t('device.alarmSync') }}
         </div>
         <div class="context-menu-divider" />
         <div v-permission="'device.delete'" class="context-menu-item context-menu-item--danger" @click="handleContextAction('delete')">
-          删除
+          {{ t('common.delete') }}
         </div>
       </div>
     </teleport>
@@ -988,12 +988,12 @@ onBeforeUnmount(() => {
       :close-on-click-modal="false"
     >
       <el-form label-width="100px">
-        <el-form-item label="序列号" required>
+        <el-form-item :label="t('device.sn')" required>
           <el-input
             v-model="addForm.serialNumbers"
             type="textarea"
             :rows="6"
-            placeholder="请输入设备序列号，多个用分号(;)分隔，每行一个"
+            :placeholder="t('device.enterSerialNumbers')"
           />
         </el-form-item>
         <el-form-item :label="t('device.group')">
@@ -1028,7 +1028,7 @@ onBeforeUnmount(() => {
       :close-on-click-modal="false"
     >
       <el-form label-width="100px">
-        <el-form-item label="文件" required>
+        <el-form-item :label="t('common.upload')" required>
           <el-upload
             ref="uploadRef"
             :auto-upload="false"
@@ -1037,12 +1037,12 @@ onBeforeUnmount(() => {
             :on-change="handleFileChange"
             :on-remove="() => (importForm.file = null)"
           >
-            <el-button :icon="Upload">选择文件</el-button>
+            <el-button :icon="Upload">{{ t('device.selectFile') }}</el-button>
             <template #tip>
               <div class="el-upload__tip">
-                支持 .xlsx、.csv 格式
+                {{ t('device.supportXlsxCsv') }}
                 <el-link type="primary" @click.prevent="downloadTemplate" style="margin-left: 8px;">
-                  下载模板
+                  {{ t('device.downloadTemplate') }}
                 </el-link>
               </div>
             </template>
@@ -1081,19 +1081,19 @@ onBeforeUnmount(() => {
     >
       <el-form label-width="120px">
         <el-form-item :label="t('device.name')">
-          <el-input v-model="settingsForm.device_name" placeholder="请输入设备名称" />
+          <el-input v-model="settingsForm.device_name" :placeholder="t('device.enterDeviceName')" />
         </el-form-item>
         <el-form-item :label="t('device.location')">
-          <el-input v-model="settingsForm.installation_location" placeholder="请输入安装位置" />
+          <el-input v-model="settingsForm.installation_location" :placeholder="t('device.enterLocation')" />
         </el-form-item>
         <el-form-item :label="t('device.longitude')">
-          <el-input v-model="settingsForm.longitude" placeholder="请输入经度" />
+          <el-input v-model="settingsForm.longitude" :placeholder="t('device.enterLongitude')" />
         </el-form-item>
         <el-form-item :label="t('device.latitude')">
-          <el-input v-model="settingsForm.latitude" placeholder="请输入纬度" />
+          <el-input v-model="settingsForm.latitude" :placeholder="t('device.enterLatitude')" />
         </el-form-item>
-        <el-form-item label="站点 ID">
-          <el-input v-model="settingsForm.site_id" placeholder="请输入站点 ID" />
+        <el-form-item :label="t('device.siteId')">
+          <el-input v-model="settingsForm.site_id" :placeholder="t('device.enterSiteId')" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -1107,17 +1107,17 @@ onBeforeUnmount(() => {
     <!-- ========== 模型树对话框 ========== -->
     <el-dialog
       v-model="modelTreeDialogVisible"
-      :title="`${t('parameter.modelTree')} - ${modelTreeDeviceName}`"
+      :title="`${t('device.modelTree')} - ${modelTreeDeviceName}`"
       width="700px"
       top="5vh"
       :close-on-click-modal="false"
     >
       <div class="model-tree-toolbar">
         <el-button size="small" @click="handleReloadModelTree">
-          重新加载
+          {{ t('device.reload') }}
         </el-button>
         <el-button size="small" @click="handleRefreshModelTree">
-          刷新参数
+          {{ t('device.refreshParams') }}
         </el-button>
       </div>
       <div v-loading="modelTreeLoading" class="model-tree-container">
@@ -1129,7 +1129,7 @@ onBeforeUnmount(() => {
           default-expand-all
           :expand-on-click-node="false"
         />
-        <el-empty v-else description="暂无模型树数据" />
+        <el-empty v-else :description="t('device.noModelTreeData')" />
       </div>
       <template #footer>
         <el-button @click="modelTreeDialogVisible = false">{{ t('common.close') }}</el-button>
@@ -1139,12 +1139,12 @@ onBeforeUnmount(() => {
     <!-- ========== 配置管理对话框（占位） ========== -->
     <el-dialog
       v-model="configDialogVisible"
-      :title="`${t('device.configuration')} - ${configDeviceName}`"
+      :title="`${t('device.configManagement')} - ${configDeviceName}`"
       width="600px"
       :close-on-click-modal="false"
     >
       <div class="config-placeholder">
-        <el-empty description="配置管理功能开发中..." />
+        <el-empty :description="t('device.configDevInProgress')" />
       </div>
       <template #footer>
         <el-button @click="configDialogVisible = false">{{ t('common.close') }}</el-button>

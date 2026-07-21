@@ -21,6 +21,7 @@ import {
   MoreFilled, Edit, View,
 } from '@element-plus/icons-vue';
 import * as echarts from 'echarts';
+import { useI18n } from 'vue-i18n';
 
 import {
   getAlarms, getAlarm, deleteAlarm, clearAlarm, confirmAlarm, unconfirmAlarm,
@@ -41,6 +42,8 @@ import type {
 import { AlarmStatus, AlarmType } from '@/types/alarm';
 import { http } from '@/utils/request';
 import { useAlarmPush, WsTopics, type AlarmPushMessage } from '@/composables/useWebSocketMessage';
+
+const { t } = useI18n();
 
 // ============ 主标签页 ============
 const activeTab = ref('monitor');
@@ -846,12 +849,12 @@ watch(activeTab, (val) => {
   <div class="alarm-page">
     <el-tabs v-model="activeTab" type="border-card">
       <!-- ==================== Tab 1: 告警监控 ==================== -->
-      <el-tab-pane label="告警监控" name="monitor">
+      <el-tab-pane :label="t('alarm.alarmMonitor')" name="monitor">
         <div class="monitor-layout">
           <!-- 左侧模板面板 -->
           <div class="template-sidebar">
             <div class="sidebar-header">
-              <span class="sidebar-title">告警模板</span>
+              <span class="sidebar-title">{{ t('alarm.alarmTemplate') }}</span>
               <el-button v-permission="'alarm.template.create'" type="primary" size="small" :icon="Plus" circle @click="openAddTemplateDialog" />
             </div>
             <div v-loading="templateLoading" class="sidebar-list">
@@ -863,14 +866,14 @@ watch(activeTab, (val) => {
                 @click="handleSelectTemplate(tpl)"
                 @contextmenu="handleTemplateContextMenu($event, tpl)"
               >
-                <div class="template-name">{{ tpl.name || '未命名模板' }}</div>
-                <div class="template-desc">{{ tpl.description || '无描述' }}</div>
+                <div class="template-name">{{ tpl.name || t('alarm.unnamedTemplate') }}</div>
+                <div class="template-desc">{{ tpl.description || t('alarm.templateDesc') }}</div>
                 <div class="template-badges">
-                  <el-tag v-if="tpl.enableEmailNotification" size="small" type="success">邮件</el-tag>
+                  <el-tag v-if="tpl.enableEmailNotification" size="small" type="success">{{ t('alarm.emailNotify') }}</el-tag>
                 </div>
               </div>
               <div v-if="templateList.length === 0 && !templateLoading" class="sidebar-empty">
-                暂无模板
+                {{ t('alarm.noTemplate') }}
               </div>
             </div>
 
@@ -882,14 +885,14 @@ watch(activeTab, (val) => {
                 :style="{ left: templateContextMenuPos.x + 'px', top: templateContextMenuPos.y + 'px' }"
               >
                 <div class="context-menu-item" @click="templateContextMenuTarget && openEditTemplateDialog(templateContextMenuTarget)">
-                  <el-icon><Edit /></el-icon> 编辑
+                  <el-icon><Edit /></el-icon> {{ t('device.edit') }}
                 </div>
                 <div class="context-menu-item" @click="templateContextMenuTarget && handleDeleteTemplate(templateContextMenuTarget)">
-                  <el-icon><Delete /></el-icon> 删除
+                  <el-icon><Delete /></el-icon> {{ t('common.delete') }}
                 </div>
                 <div class="context-menu-item" @click="templateContextMenuTarget && handleToggleTemplateEmail(templateContextMenuTarget)">
                   <el-icon><Message /></el-icon>
-                  {{ templateContextMenuTarget?.enableEmailNotification ? '关闭邮件通知' : '开启邮件通知' }}
+                  {{ templateContextMenuTarget?.enableEmailNotification ? t('alarm.emailNotifyDisabledSuccess') : t('alarm.emailNotifyEnabledSuccess') }}
                 </div>
               </div>
             </teleport>
@@ -899,74 +902,74 @@ watch(activeTab, (val) => {
           <div class="alarm-content">
             <!-- 工具栏 -->
             <div class="toolbar">
-              <el-button v-permission="'alarm.sync'" :icon="Refresh" :loading="syncing" @click="handleManualSync">手动同步</el-button>
-              <el-button v-permission="'alarm.syncConfig'" :icon="Setting" @click="openSyncConfigDialog">同步配置</el-button>
-              <el-button v-permission="'alarm.emailConfig'" :icon="Message" @click="openEmailConfigDialog">邮件配置</el-button>
-              <el-button v-permission="'alarm.filter'" :icon="Filter" @click="openFilterDialog">过滤器</el-button>
-              <el-button v-permission="'alarm.export'" :icon="Download" @click="handleExportCSV">导出</el-button>
-              <el-button v-permission="'alarm.chart'" :icon="Picture" @click="openChartDialog">统计图表</el-button>
+              <el-button v-permission="'alarm.sync'" :icon="Refresh" :loading="syncing" @click="handleManualSync">{{ t('alarm.manualSync') }}</el-button>
+              <el-button v-permission="'alarm.syncConfig'" :icon="Setting" @click="openSyncConfigDialog">{{ t('alarm.syncConfig') }}</el-button>
+              <el-button v-permission="'alarm.emailConfig'" :icon="Message" @click="openEmailConfigDialog">{{ t('alarm.emailConfig') }}</el-button>
+              <el-button v-permission="'alarm.filter'" :icon="Filter" @click="openFilterDialog">{{ t('alarm.filter') }}</el-button>
+              <el-button v-permission="'alarm.export'" :icon="Download" @click="handleExportCSV">{{ t('alarm.export') }}</el-button>
+              <el-button v-permission="'alarm.chart'" :icon="Picture" @click="openChartDialog">{{ t('alarm.statsChart') }}</el-button>
               <div v-if="selectedTemplateId" class="toolbar-template-hint">
                 <el-tag closable @close="selectedTemplateId = null; handleSearch()">
-                  当前模板: {{ templateList.find(t => t.id === selectedTemplateId)?.name }}
+                  {{ t('alarm.alarmTemplate') }}: {{ templateList.find(t => t.id === selectedTemplateId)?.name }}
                 </el-tag>
               </div>
             </div>
 
             <!-- 搜索筛选（可折叠） -->
             <el-collapse v-model="filterExpanded" class="search-collapse">
-              <el-collapse-item title="搜索条件" name="filter">
+              <el-collapse-item :title="t('alarm.searchCondition')" name="filter">
                 <el-form :inline="true" @submit.prevent="handleSearch" class="search-form">
-                  <el-form-item label="严重级别">
-                    <el-select v-model="queryParams.severity" placeholder="全部" clearable style="width: 120px">
-                      <el-option value="Critical" label="严重" />
-                      <el-option value="Major" label="主要" />
-                      <el-option value="Minor" label="次要" />
-                      <el-option value="Warning" label="警告" />
-                      <el-option value="Info" label="信息" />
+                  <el-form-item :label="t('alarm.severity')">
+                    <el-select v-model="queryParams.severity" :placeholder="t('alarm.all')" clearable style="width: 120px">
+                      <el-option value="Critical" :label="t('alarm.critical')" />
+                      <el-option value="Major" :label="t('alarm.major')" />
+                      <el-option value="Minor" :label="t('alarm.minor')" />
+                      <el-option value="Warning" :label="t('alarm.warning')" />
+                      <el-option value="Info" :label="t('alarm.info')" />
                     </el-select>
                   </el-form-item>
-                  <el-form-item label="告警状态">
-                    <el-select v-model="queryParams.alarmStatus" placeholder="全部" clearable style="width: 140px">
-                      <el-option :value="1" label="活动未确认" />
-                      <el-option :value="2" label="历史未确认" />
-                      <el-option :value="3" label="活动已确认" />
-                      <el-option :value="4" label="历史已确认" />
+                  <el-form-item :label="t('alarm.alarmStatus')">
+                    <el-select v-model="queryParams.alarmStatus" :placeholder="t('alarm.all')" clearable style="width: 140px">
+                      <el-option :value="1" :label="t('alarm.activeUnconfirmed')" />
+                      <el-option :value="2" :label="t('alarm.historyUnconfirmed')" />
+                      <el-option :value="3" :label="t('alarm.activeConfirmed')" />
+                      <el-option :value="4" :label="t('alarm.historyConfirmed')" />
                     </el-select>
                   </el-form-item>
-                  <el-form-item label="事件类型">
-                    <el-select v-model="queryParams.eventType" placeholder="全部" clearable filterable style="width: 160px">
+                  <el-form-item :label="t('alarm.eventType')">
+                    <el-select v-model="queryParams.eventType" :placeholder="t('alarm.all')" clearable filterable style="width: 160px">
                       <el-option v-for="et in eventTypes" :key="et" :value="et" :label="et" />
                     </el-select>
                   </el-form-item>
-                  <el-form-item label="可能原因">
-                    <el-input v-model="queryParams.probableCause" placeholder="可能原因" clearable style="width: 160px" />
+                  <el-form-item :label="t('alarm.probableCause')">
+                    <el-input v-model="queryParams.probableCause" :placeholder="t('alarm.probableCause')" clearable style="width: 160px" />
                   </el-form-item>
-                  <el-form-item label="告警源">
-                    <el-input v-model="queryParams.alarmSource" placeholder="告警源" clearable style="width: 160px" />
+                  <el-form-item :label="t('alarm.alarmSource')">
+                    <el-input v-model="queryParams.alarmSource" :placeholder="t('alarm.alarmSource')" clearable style="width: 160px" />
                   </el-form-item>
-                  <el-form-item label="时间范围">
+                  <el-form-item :label="t('alarm.timeRange')">
                     <el-date-picker
                       v-model="queryParams.timeRange"
                       type="datetimerange"
-                      range-separator="至"
-                      start-placeholder="开始时间"
-                      end-placeholder="结束时间"
+                      range-separator="-"
+                      :start-placeholder="t('monitor.startTime')"
+                      :end-placeholder="t('monitor.endTime')"
                       value-format="YYYY-MM-DD HH:mm:ss"
                       style="width: 360px"
                     />
                   </el-form-item>
-                  <el-form-item label="关键字">
+                  <el-form-item :label="t('alarm.keyword')">
                     <el-input
                       v-model="queryParams.keyword"
-                      placeholder="告警标识/设备名称"
+                      :placeholder="t('alarm.keywordPlaceholder')"
                       clearable
                       style="width: 200px"
                       @keyup.enter="handleSearch"
                     />
                   </el-form-item>
                   <el-form-item>
-                    <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
-                    <el-button :icon="Refresh" @click="handleReset">重置</el-button>
+                    <el-button type="primary" :icon="Search" @click="handleSearch">{{ t('common.search') }}</el-button>
+                    <el-button :icon="Refresh" @click="handleReset">{{ t('common.reset') }}</el-button>
                   </el-form-item>
                 </el-form>
               </el-collapse-item>
@@ -974,9 +977,9 @@ watch(activeTab, (val) => {
 
             <!-- 批量操作栏 -->
             <div v-if="selectedIds.length > 0" class="batch-bar">
-              <span>已选择 {{ selectedIds.length }} 条告警</span>
+              <span>{{ t('alarm.selectedAlarms', { count: selectedIds.length }) }}</span>
               <el-button v-permission="'alarm.clear'" type="danger" size="small" style="margin-left: 16px" @click="handleBatchClear">
-                批量清除
+                {{ t('alarm.batchClear') }}
               </el-button>
             </div>
 
@@ -991,36 +994,36 @@ watch(activeTab, (val) => {
               @selection-change="handleSelectionChange"
             >
               <el-table-column type="selection" width="50" />
-              <el-table-column prop="severity" label="严重级别" width="100" align="center">
+              <el-table-column prop="severity" :label="t('alarm.severity')" width="100" align="center">
                 <template #default="{ row }">
                   <el-tag :type="getSeverityType(row.severity)" size="small">
                     {{ getSeverityText(row.severity) }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="alarmIdentifier" label="告警标识" min-width="160" show-overflow-tooltip />
-              <el-table-column prop="probableCause" label="可能原因" min-width="160" show-overflow-tooltip />
-              <el-table-column prop="alarmSource" label="告警源" min-width="130" show-overflow-tooltip />
-              <el-table-column prop="networkElement" label="网元" min-width="120" show-overflow-tooltip />
-              <el-table-column prop="alarmStatus" label="告警状态" width="120" align="center">
+              <el-table-column prop="alarmIdentifier" :label="t('alarm.alarmIdentifier')" min-width="160" show-overflow-tooltip />
+              <el-table-column prop="probableCause" :label="t('alarm.probableCause')" min-width="160" show-overflow-tooltip />
+              <el-table-column prop="alarmSource" :label="t('alarm.alarmSource')" min-width="130" show-overflow-tooltip />
+              <el-table-column prop="networkElement" :label="t('alarm.networkElement')" min-width="120" show-overflow-tooltip />
+              <el-table-column prop="alarmStatus" :label="t('alarm.alarmStatus')" width="120" align="center">
                 <template #default="{ row }">
                   <el-tag :type="getAlarmStatusType(row.alarmStatus)" size="small">
                     {{ getAlarmStatusText(row.alarmStatus) }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="eventTime" label="事件时间" min-width="160">
+              <el-table-column prop="eventTime" :label="t('alarm.eventTime')" min-width="160">
                 <template #default="{ row }">{{ formatTime(row.eventTime) }}</template>
               </el-table-column>
-              <el-table-column prop="clearedTime" label="清除时间" min-width="160">
+              <el-table-column prop="clearedTime" :label="t('alarm.clearTime')" min-width="160">
                 <template #default="{ row }">{{ formatTime(row.clearedTime) }}</template>
               </el-table-column>
-              <el-table-column prop="clearUser" label="确认人" min-width="90" show-overflow-tooltip />
-              <el-table-column prop="comment" label="评论" min-width="120" show-overflow-tooltip />
-              <el-table-column label="操作" width="320" fixed="right">
+              <el-table-column prop="clearUser" :label="t('alarm.clearUser')" min-width="90" show-overflow-tooltip />
+              <el-table-column prop="comment" :label="t('alarm.comment')" min-width="120" show-overflow-tooltip />
+              <el-table-column :label="t('common.actions')" width="320" fixed="right">
                 <template #default="{ row }">
                   <el-button v-permission="'alarm.view'" link type="primary" size="small" @click="handleViewDetail(row as Alarm)">
-                    <el-icon><View /></el-icon> 详情
+                    <el-icon><View /></el-icon> {{ t('common.detail') }}
                   </el-button>
                   <el-button
                     v-permission="'alarm.confirm'"
@@ -1028,7 +1031,7 @@ watch(activeTab, (val) => {
                     link type="success" size="small"
                     @click="handleConfirm(row as Alarm)"
                   >
-                    <el-icon><CircleCheck /></el-icon> 确认
+                    <el-icon><CircleCheck /></el-icon> {{ t('alarm.confirm') }}
                   </el-button>
                   <el-button
                     v-permission="'alarm.confirm'"
@@ -1036,14 +1039,14 @@ watch(activeTab, (val) => {
                     link type="warning" size="small"
                     @click="handleUnconfirm(row as Alarm)"
                   >
-                    <el-icon><CircleClose /></el-icon> 取消确认
+                    <el-icon><CircleClose /></el-icon> {{ t('alarm.unconfirm') }}
                   </el-button>
                   <el-button v-permission="'alarm.clear'" link type="primary" size="small" @click="handleClear(row as Alarm)">
-                    <el-icon><Warning /></el-icon> 清除
+                    <el-icon><Warning /></el-icon> {{ t('alarm.clear') }}
                   </el-button>
-                  <el-button v-permission="'alarm.comment'" link type="info" size="small" @click="handleOpenComment(row as Alarm)">评论</el-button>
+                  <el-button v-permission="'alarm.comment'" link type="info" size="small" @click="handleOpenComment(row as Alarm)">{{ t('alarm.comment') }}</el-button>
                   <el-button v-permission="'alarm.delete'" link type="danger" size="small" @click="handleDeleteAlarm(row as Alarm)">
-                    <el-icon><Delete /></el-icon> 删除
+                    <el-icon><Delete /></el-icon> {{ t('common.delete') }}
                   </el-button>
                 </template>
               </el-table-column>
@@ -1067,7 +1070,7 @@ watch(activeTab, (val) => {
       </el-tab-pane>
 
       <!-- ==================== Tab 2: 告警库 ==================== -->
-      <el-tab-pane label="告警库" name="library">
+      <el-tab-pane :label="t('alarm.alarmLibrary')" name="library">
         <div class="library-toolbar">
           <el-upload
             :show-file-list="false"
@@ -1075,9 +1078,9 @@ watch(activeTab, (val) => {
             :before-upload="() => false"
             :on-change="handleImportLibrary"
           >
-            <el-button v-permission="'alarm.library.import'" type="primary" :icon="Upload">导入</el-button>
+            <el-button v-permission="'alarm.library.import'" type="primary" :icon="Upload">{{ t('common.import') }}</el-button>
           </el-upload>
-          <el-button v-permission="'alarm.library.download'" :icon="Download" @click="handleDownloadTemplate">下载模板</el-button>
+          <el-button v-permission="'alarm.library.download'" :icon="Download" @click="handleDownloadTemplate">{{ t('alarm.downloadTemplate') }}</el-button>
         </div>
 
         <el-table
@@ -1089,23 +1092,23 @@ watch(activeTab, (val) => {
           row-key="id"
         >
           <el-table-column type="index" label="#" width="60" />
-          <el-table-column prop="alarmIdentifier" label="告警标识" min-width="180" show-overflow-tooltip />
-          <el-table-column prop="probableCause" label="可能原因" min-width="180" show-overflow-tooltip />
-          <el-table-column prop="severity" label="严重级别" width="100" align="center">
+          <el-table-column prop="alarmIdentifier" :label="t('alarm.alarmIdentifier')" min-width="180" show-overflow-tooltip />
+          <el-table-column prop="probableCause" :label="t('alarm.probableCause')" min-width="180" show-overflow-tooltip />
+          <el-table-column prop="severity" :label="t('alarm.severity')" width="100" align="center">
             <template #default="{ row }">
               <el-tag :type="getSeverityType(row.severity)" size="small">
                 {{ getSeverityText(row.severity) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="eventType" label="事件类型" min-width="140" show-overflow-tooltip />
-          <el-table-column prop="alarmSource" label="告警源" min-width="140" show-overflow-tooltip />
-          <el-table-column prop="explanation" label="说明" min-width="200" show-overflow-tooltip />
-          <el-table-column prop="specificProblem" label="具体问题" min-width="180" show-overflow-tooltip />
-          <el-table-column label="操作" width="100" fixed="right">
+          <el-table-column prop="eventType" :label="t('alarm.eventType')" min-width="140" show-overflow-tooltip />
+          <el-table-column prop="alarmSource" :label="t('alarm.alarmSource')" min-width="140" show-overflow-tooltip />
+          <el-table-column prop="explanation" :label="t('alarm.handleSuggestion')" min-width="200" show-overflow-tooltip />
+          <el-table-column prop="specificProblem" :label="t('alarm.specificProblem')" min-width="180" show-overflow-tooltip />
+          <el-table-column :label="t('common.actions')" width="100" fixed="right">
                 <template #default="{ row }">
                   <el-button v-permission="'alarm.library.delete'" link type="danger" size="small" @click="handleDeleteLibrary(row as AlarmLibraryType)">
-                    <el-icon><Delete /></el-icon> 删除
+                    <el-icon><Delete /></el-icon> {{ t('common.delete') }}
                   </el-button>
                 </template>
               </el-table-column>
@@ -1127,118 +1130,118 @@ watch(activeTab, (val) => {
     <!-- ==================== 弹窗区域 ==================== -->
 
     <!-- 1. 告警详情弹窗 -->
-    <el-dialog v-model="detailDialogVisible" title="告警详情" width="700px" destroy-on-close>
+    <el-dialog v-model="detailDialogVisible" :title="t('alarm.alarmDetail')" width="700px" destroy-on-close>
       <div v-loading="detailLoading">
         <el-descriptions v-if="detailAlarm" :column="2" border>
-          <el-descriptions-item label="告警ID">{{ detailAlarm.id }}</el-descriptions-item>
-          <el-descriptions-item label="告警标识">{{ detailAlarm.alarmIdentifier || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="严重级别">
+          <el-descriptions-item :label="t('alarm.alarmIdentifier')">{{ detailAlarm.id }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.alarmIdentifier')">{{ detailAlarm.alarmIdentifier || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.severity')">
             <el-tag :type="getSeverityType(detailAlarm.severity)" size="small">
               {{ getSeverityText(detailAlarm.severity) }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="可能原因">{{ detailAlarm.probableCause || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="告警源">{{ detailAlarm.alarmSource || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="网元">{{ detailAlarm.networkElement || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="事件类型">{{ detailAlarm.eventType || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="告警状态">
+          <el-descriptions-item :label="t('alarm.probableCause')">{{ detailAlarm.probableCause || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.alarmSource')">{{ detailAlarm.alarmSource || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.networkElement')">{{ detailAlarm.networkElement || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.eventType')">{{ detailAlarm.eventType || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.alarmStatus')">
             <el-tag :type="getAlarmStatusType(detailAlarm.alarmStatus)" size="small">
               {{ getAlarmStatusText(detailAlarm.alarmStatus) }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="事件时间">{{ formatTime(detailAlarm.eventTime) }}</el-descriptions-item>
-          <el-descriptions-item label="更新时间">{{ formatTime(detailAlarm.updateTime) }}</el-descriptions-item>
-          <el-descriptions-item label="清除时间">{{ formatTime(detailAlarm.clearedTime) }}</el-descriptions-item>
-          <el-descriptions-item label="清除人">{{ detailAlarm.clearUser || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="具体问题">{{ detailAlarm.specificProblem || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="告警库ID">{{ detailAlarm.alarmId || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="网元ID">{{ detailAlarm.elementId ?? '-' }}</el-descriptions-item>
-          <el-descriptions-item label="租户ID">{{ detailAlarm.licenseId ?? '-' }}</el-descriptions-item>
-          <el-descriptions-item label="是否抑制">{{ detailAlarm.isSuppressed ? '是' : '否' }}</el-descriptions-item>
-          <el-descriptions-item label="抑制原因">{{ detailAlarm.suppressionReason || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="处理建议" :span="2">{{ detailAlarm.handleSuggestion || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="附加信息" :span="2">{{ detailAlarm.additionalInformation || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="评论" :span="2">{{ detailAlarm.comment || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="创建时间">{{ formatTime(detailAlarm.createTime) }}</el-descriptions-item>
-          <el-descriptions-item label="是否导出">{{ detailAlarm.exported ? '是' : '否' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.eventTime')">{{ formatTime(detailAlarm.eventTime) }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.updateTime')">{{ formatTime(detailAlarm.updateTime) }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.clearTime')">{{ formatTime(detailAlarm.clearedTime) }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.clearUser')">{{ detailAlarm.clearUser || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.specificProblem')">{{ detailAlarm.specificProblem || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.alarmIdentifier')">{{ detailAlarm.alarmId || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('device.neId')">{{ detailAlarm.elementId ?? '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('device.licenseId')">{{ detailAlarm.licenseId ?? '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.isSuppressed')">{{ detailAlarm.isSuppressed ? t('common.yes') : t('common.no') }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.suppressionReason')">{{ detailAlarm.suppressionReason || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.handleSuggestion')" :span="2">{{ detailAlarm.handleSuggestion || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.additionalInfo')" :span="2">{{ detailAlarm.additionalInformation || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.comment')" :span="2">{{ detailAlarm.comment || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('device.createTime')">{{ formatTime(detailAlarm.createTime) }}</el-descriptions-item>
+          <el-descriptions-item :label="t('alarm.isExported')">{{ detailAlarm.exported ? t('common.yes') : t('common.no') }}</el-descriptions-item>
         </el-descriptions>
       </div>
       <template #footer>
-        <el-button @click="detailDialogVisible = false">关闭</el-button>
+        <el-button @click="detailDialogVisible = false">{{ t('common.close') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 2. 模板新增/编辑弹窗 -->
     <el-dialog
       v-model="templateDialogVisible"
-      :title="templateDialogMode === 'add' ? '新增告警模板' : '编辑告警模板'"
+      :title="templateDialogMode === 'add' ? t('alarm.addTemplate') : t('alarm.editTemplate')"
       width="600px"
       destroy-on-close
     >
       <el-form :model="templateForm" label-width="130px" v-loading="templateFormLoading">
-        <el-form-item label="模板名称" required>
-          <el-input v-model="templateForm.name" placeholder="请输入模板名称" />
+        <el-form-item :label="t('alarm.templateName')" required>
+          <el-input v-model="templateForm.name" :placeholder="t('alarm.enterTemplateName')" />
         </el-form-item>
-        <el-form-item label="描述">
-          <el-input v-model="templateForm.description" type="textarea" :rows="2" placeholder="请输入描述" />
+        <el-form-item :label="t('common.description')">
+          <el-input v-model="templateForm.description" type="textarea" :rows="2" :placeholder="t('alarm.enterTemplateDesc')" />
         </el-form-item>
-        <el-form-item label="适用所有基站">
+        <el-form-item :label="t('alarm.applyAllBaseStation')">
           <el-switch v-model="templateForm.executeOnAllBaseStation" />
         </el-form-item>
-        <el-form-item label="适用所有CPE">
+        <el-form-item :label="t('alarm.applyAllCPE')">
           <el-switch v-model="templateForm.executeOnAllCPE" />
         </el-form-item>
-        <el-form-item label="适用所有告警">
+        <el-form-item :label="t('alarm.applyAllAlarm')">
           <el-switch v-model="templateForm.executeOnAllAlarm" />
         </el-form-item>
-        <el-form-item label="基站ID列表" v-if="!templateForm.executeOnAllBaseStation">
-          <el-input v-model="templateForm.baseStationIds" placeholder="逗号分隔的基站ID" />
+        <el-form-item :label="t('alarm.baseStationIdList')" v-if="!templateForm.executeOnAllBaseStation">
+          <el-input v-model="templateForm.baseStationIds" :placeholder="t('alarm.baseStationIdList')" />
         </el-form-item>
-        <el-form-item label="CPE ID列表" v-if="!templateForm.executeOnAllCPE">
-          <el-input v-model="templateForm.cpeIds" placeholder="逗号分隔的CPE ID" />
+        <el-form-item :label="t('alarm.cpeIdList')" v-if="!templateForm.executeOnAllCPE">
+          <el-input v-model="templateForm.cpeIds" :placeholder="t('alarm.cpeIdList')" />
         </el-form-item>
-        <el-form-item label="告警ID列表" v-if="!templateForm.executeOnAllAlarm">
-          <el-input v-model="templateForm.alarmIds" placeholder="逗号分隔的告警ID" />
+        <el-form-item :label="t('alarm.alarmIdList')" v-if="!templateForm.executeOnAllAlarm">
+          <el-input v-model="templateForm.alarmIds" :placeholder="t('alarm.alarmIdList')" />
         </el-form-item>
-        <el-form-item label="邮件通知">
+        <el-form-item :label="t('alarm.emailNotifyEnabled')">
           <el-switch v-model="templateForm.enableEmailNotification" />
         </el-form-item>
-        <el-form-item label="邮件地址" v-if="templateForm.enableEmailNotification">
-          <el-input v-model="templateForm.emails" placeholder="逗号分隔的邮件地址" />
+        <el-form-item :label="t('alarm.emailAddress')" v-if="templateForm.enableEmailNotification">
+          <el-input v-model="templateForm.emails" :placeholder="t('alarm.emailAddress')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="templateDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="templateFormLoading" @click="handleSaveTemplate">确定</el-button>
+        <el-button @click="templateDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" :loading="templateFormLoading" @click="handleSaveTemplate">{{ t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 3. 告警过滤器弹窗 -->
-    <el-dialog v-model="filterDialogVisible" title="告警过滤器管理" width="800px" destroy-on-close>
+    <el-dialog v-model="filterDialogVisible" :title="t('alarm.filter')" width="800px" destroy-on-close>
       <div style="margin-bottom: 12px">
-        <el-button type="primary" :icon="Plus" @click="openAddFilterDialog">新增过滤器</el-button>
+        <el-button type="primary" :icon="Plus" @click="openAddFilterDialog">{{ t('alarm.addFilter') }}</el-button>
       </div>
       <el-table v-loading="filterLoading" :data="filterList" stripe border>
-        <el-table-column prop="filterRuleName" label="名称" min-width="150" />
-        <el-table-column prop="enable" label="启用" width="80" align="center">
+        <el-table-column prop="filterRuleName" :label="t('alarm.filterName')" min-width="150" />
+        <el-table-column prop="enable" :label="t('alarm.enable')" width="80" align="center">
           <template #default="{ row }">
             <el-switch :model-value="row.enable" @change="handleToggleFilter(row as AlarmFilter)" />
           </template>
         </el-table-column>
-        <el-table-column prop="executionAction" label="动作" width="100" align="center">
+        <el-table-column prop="executionAction" :label="t('alarm.executionAction')" width="100" align="center">
           <template #default="{ row }">
-            {{ row.executionAction === 1 ? '屏蔽' : '转发' }}
+            {{ row.executionAction === 1 ? t('alarm.block') : t('alarm.forward') }}
           </template>
         </el-table-column>
-        <el-table-column prop="alarmSources" label="告警源" min-width="140" show-overflow-tooltip />
-        <el-table-column prop="user" label="创建人" width="100" />
-        <el-table-column prop="updateTime" label="更新时间" width="160">
+        <el-table-column prop="alarmSources" :label="t('alarm.alarmSourceList')" min-width="140" show-overflow-tooltip />
+        <el-table-column prop="user" :label="t('common.creator')" width="100" />
+        <el-table-column prop="updateTime" :label="t('alarm.updateTime')" width="160">
           <template #default="{ row }">{{ formatTime(row.updateTime) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="150">
+        <el-table-column :label="t('common.actions')" width="150">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="openEditFilterDialog(row as AlarmFilter)">编辑</el-button>
-            <el-button link type="danger" size="small" @click="handleDeleteFilter(row as AlarmFilter)">删除</el-button>
+            <el-button link type="primary" size="small" @click="openEditFilterDialog(row as AlarmFilter)">{{ t('device.edit') }}</el-button>
+            <el-button link type="danger" size="small" @click="handleDeleteFilter(row as AlarmFilter)">{{ t('common.delete') }}</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -1247,143 +1250,143 @@ watch(activeTab, (val) => {
     <!-- 3b. 过滤器编辑子弹窗 -->
     <el-dialog
       v-model="filterEditDialogVisible"
-      :title="filterEditMode === 'add' ? '新增过滤器' : '编辑过滤器'"
+      :title="filterEditMode === 'add' ? t('alarm.addFilter') : t('alarm.editFilter')"
       width="600px"
       destroy-on-close
       append-to-body
     >
       <el-form :model="filterForm" label-width="130px">
-        <el-form-item label="过滤器名称" required>
-          <el-input v-model="filterForm.filterRuleName" placeholder="请输入名称" />
+        <el-form-item :label="t('alarm.filterName')" required>
+          <el-input v-model="filterForm.filterRuleName" :placeholder="t('alarm.enterFilterName')" />
         </el-form-item>
-        <el-form-item label="执行动作">
+        <el-form-item :label="t('alarm.executionAction')">
           <el-select v-model="filterForm.executionAction" style="width: 100%">
-            <el-option :value="1" label="屏蔽" />
-            <el-option :value="2" label="转发" />
+            <el-option :value="1" :label="t('alarm.block')" />
+            <el-option :value="2" :label="t('alarm.forward')" />
           </el-select>
         </el-form-item>
-        <el-form-item label="告警源">
-          <el-input v-model="filterForm.alarmSources" placeholder="逗号分隔的告警源" />
+        <el-form-item :label="t('alarm.alarmSourceList')">
+          <el-input v-model="filterForm.alarmSources" :placeholder="t('alarm.alarmSourceList')" />
         </el-form-item>
-        <el-form-item label="适用所有基站">
+        <el-form-item :label="t('alarm.applyAllBaseStation')">
           <el-switch v-model="filterForm.executeOnAllBaseStation" />
         </el-form-item>
-        <el-form-item label="适用所有CPE">
+        <el-form-item :label="t('alarm.applyAllCPE')">
           <el-switch v-model="filterForm.executeOnAllCPE" />
         </el-form-item>
-        <el-form-item label="适用所有告警">
+        <el-form-item :label="t('alarm.applyAllAlarm')">
           <el-switch v-model="filterForm.executionOnAllAlarm" />
         </el-form-item>
-        <el-form-item label="基站ID列表" v-if="!filterForm.executeOnAllBaseStation">
-          <el-input v-model="filterForm.baseStationIds" placeholder="逗号分隔" />
+        <el-form-item :label="t('alarm.baseStationIdList')" v-if="!filterForm.executeOnAllBaseStation">
+          <el-input v-model="filterForm.baseStationIds" :placeholder="t('alarm.baseStationIdList')" />
         </el-form-item>
-        <el-form-item label="CPE ID列表" v-if="!filterForm.executeOnAllCPE">
-          <el-input v-model="filterForm.cpeIds" placeholder="逗号分隔" />
+        <el-form-item :label="t('alarm.cpeIdList')" v-if="!filterForm.executeOnAllCPE">
+          <el-input v-model="filterForm.cpeIds" :placeholder="t('alarm.cpeIdList')" />
         </el-form-item>
-        <el-form-item label="告警ID列表" v-if="!filterForm.executionOnAllAlarm">
-          <el-input v-model="filterForm.alarmIds" placeholder="逗号分隔" />
+        <el-form-item :label="t('alarm.alarmIdList')" v-if="!filterForm.executionOnAllAlarm">
+          <el-input v-model="filterForm.alarmIds" :placeholder="t('alarm.alarmIdList')" />
         </el-form-item>
-        <el-form-item label="生效时间">
+        <el-form-item :label="t('alarm.effectiveTime')">
           <el-date-picker
             v-model="filterForm.startTime"
             type="datetime"
-            placeholder="开始时间"
+            :placeholder="t('monitor.startTime')"
             value-format="YYYY-MM-DD HH:mm:ss"
             style="width: 48%"
           />
-          <span style="margin: 0 8px">至</span>
+          <span style="margin: 0 8px">{{ t('common.to') }}</span>
           <el-date-picker
             v-model="filterForm.endTime"
             type="datetime"
-            placeholder="结束时间"
+            :placeholder="t('monitor.endTime')"
             value-format="YYYY-MM-DD HH:mm:ss"
             style="width: 48%"
           />
         </el-form-item>
-        <el-form-item label="启用">
+        <el-form-item :label="t('alarm.enable')">
           <el-switch v-model="filterForm.enable" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="filterEditDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveFilter">确定</el-button>
+        <el-button @click="filterEditDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleSaveFilter">{{ t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 4. 同步配置弹窗 -->
-    <el-dialog v-model="syncConfigDialogVisible" title="告警同步配置" width="500px" destroy-on-close>
+    <el-dialog v-model="syncConfigDialogVisible" :title="t('alarm.syncConfig')" width="500px" destroy-on-close>
       <el-form :model="syncConfig" label-width="110px" v-loading="syncConfigLoading">
-        <el-form-item label="启用同步">
+        <el-form-item :label="t('alarm.enableSync')">
           <el-switch v-model="syncConfig.enabled" />
         </el-form-item>
-        <el-form-item label="同步间隔(秒)">
+        <el-form-item :label="t('alarm.syncInterval')">
           <el-input-number v-model="syncConfig.syncInterval" :min="10" :max="86400" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="源地址">
-          <el-input v-model="syncConfig.sourceAddress" placeholder="告警源地址" />
+        <el-form-item :label="t('alarm.sourceAddress')">
+          <el-input v-model="syncConfig.sourceAddress" :placeholder="t('alarm.sourceAddress')" />
         </el-form-item>
-        <el-form-item label="上次同步时间">
+        <el-form-item :label="t('alarm.lastSyncTime')">
           <span>{{ formatTime(syncConfig.lastSyncTime) }}</span>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="syncConfigDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveSyncConfig">保存</el-button>
+        <el-button @click="syncConfigDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleSaveSyncConfig">{{ t('common.save') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 5. 邮件配置弹窗 -->
-    <el-dialog v-model="emailConfigDialogVisible" title="邮件通知配置" width="550px" destroy-on-close>
+    <el-dialog v-model="emailConfigDialogVisible" :title="t('alarm.emailConfig')" width="550px" destroy-on-close>
       <el-form :model="emailConfig" label-width="110px" v-loading="emailConfigLoading">
-        <el-form-item label="启用邮件">
+        <el-form-item :label="t('alarm.enableEmail')">
           <el-switch v-model="emailConfig.enabled" />
         </el-form-item>
-        <el-form-item label="SMTP服务器">
+        <el-form-item :label="t('alarm.smtpServer')">
           <el-input v-model="emailConfig.smtpHost" placeholder="smtp.example.com" />
         </el-form-item>
-        <el-form-item label="SMTP端口">
+        <el-form-item :label="t('alarm.smtpPort')">
           <el-input-number v-model="emailConfig.smtpPort" :min="1" :max="65535" style="width: 100%" />
         </el-form-item>
-        <el-form-item label="SMTP用户">
-          <el-input v-model="emailConfig.smtpUser" placeholder="SMTP用户名" />
+        <el-form-item :label="t('alarm.smtpUser')">
+          <el-input v-model="emailConfig.smtpUser" :placeholder="t('alarm.smtpUser')" />
         </el-form-item>
-        <el-form-item label="SMTP密码">
-          <el-input v-model="emailConfig.smtpPassword" type="password" show-password placeholder="SMTP密码" />
+        <el-form-item :label="t('alarm.smtpPassword')">
+          <el-input v-model="emailConfig.smtpPassword" type="password" show-password :placeholder="t('alarm.smtpPassword')" />
         </el-form-item>
-        <el-form-item label="收件人">
-          <el-input v-model="emailRecipientsStr" placeholder="逗号分隔的邮箱地址" />
+        <el-form-item :label="t('alarm.recipient')">
+          <el-input v-model="emailRecipientsStr" :placeholder="t('alarm.recipient')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="emailConfigDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveEmailConfig">保存</el-button>
+        <el-button @click="emailConfigDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleSaveEmailConfig">{{ t('common.save') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 6. 评论弹窗 -->
-    <el-dialog v-model="commentDialogVisible" title="添加评论" width="450px" destroy-on-close>
+    <el-dialog v-model="commentDialogVisible" :title="t('alarm.addComment')" width="450px" destroy-on-close>
       <el-form :model="commentForm" label-width="60px">
-        <el-form-item label="评论">
-          <el-input v-model="commentForm.comment" type="textarea" :rows="4" placeholder="请输入告警评论" />
+        <el-form-item :label="t('alarm.comment')">
+          <el-input v-model="commentForm.comment" type="textarea" :rows="4" :placeholder="t('alarm.enterComment')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="commentDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveComment">确定</el-button>
+        <el-button @click="commentDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleSaveComment">{{ t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 7. 统计图表弹窗 -->
     <el-dialog
       v-model="chartDialogVisible"
-      title="告警统计"
+      :title="t('alarm.statsChart')"
       width="600px"
       destroy-on-close
       @opened="handleResizeChart"
     >
       <div v-loading="chartLoading" ref="chartRef" style="width: 100%; height: 400px;"></div>
       <template #footer>
-        <el-button @click="chartDialogVisible = false">关闭</el-button>
+        <el-button @click="chartDialogVisible = false">{{ t('common.close') }}</el-button>
       </template>
     </el-dialog>
   </div>
