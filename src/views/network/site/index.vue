@@ -223,7 +223,7 @@ onMounted(() => {
         <el-form-item>
           <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
           <el-button :icon="Refresh" @click="handleReset">重置</el-button>
-          <el-button type="success" :icon="Plus" @click="handleAdd">新增站点</el-button>
+          <el-button v-permission="'site.create'" type="success" :icon="Plus" @click="handleAdd">新增站点</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -255,11 +255,11 @@ onMounted(() => {
         </el-table-column>
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleEdit(row as SiteInfoVo)">
+            <el-button v-permission="'site.edit'" link type="primary" size="small" @click="handleEdit(row as SiteInfoVo)">
               <Edit />
               编辑
             </el-button>
-            <el-button link type="danger" size="small" @click="handleDelete(row as SiteInfoVo)">
+            <el-button v-permission="'site.delete'" link type="danger" size="small" @click="handleDelete(row as SiteInfoVo)">
               <Delete />
               删除
             </el-button>

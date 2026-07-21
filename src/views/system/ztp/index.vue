@@ -65,6 +65,9 @@ import {
   updateNorthReport,
   deleteNorthReport,
 } from '@/api/ztp';
+import { useAuthStore } from '@/stores/auth';
+
+const authStore = useAuthStore();
 import type {
   ZTPResultVo,
   ZTPLog,
@@ -445,8 +448,8 @@ function handlePsapSizeChange(size: number) {
 async function handleSyncPSAPID() {
   syncLoading.value = true;
   try {
-    // Use a default licenseId of 0; in production this comes from the auth token
-    const res = await syncPSAPID({ licenseId: 0 });
+    const licenseId = Number(authStore.licenseId) || 1;
+    const res = await syncPSAPID({ licenseId });
     ElMessage.success(`同步完成，共 ${res?.count ?? 0} 条`);
     loadPSAPIDList();
   } catch (e) {
@@ -614,7 +617,7 @@ onMounted(() => {
           <el-button type="warning" @click="openBatchReztp">批量重开</el-button>
         </div>
 
-        <el-table :data="resultList" :loading="resultLoading" border stripe>
+        <el-table :data="resultList" v-loading="resultLoading" border stripe>
           <el-table-column prop="id" label="ID" width="70" />
           <el-table-column prop="elementName" label="网元名称" min-width="140" />
           <el-table-column prop="serialNumber" label="序列号" min-width="140" />
@@ -693,7 +696,7 @@ onMounted(() => {
               <el-input-number v-model="settingForm.retryInterval" :min="10" :max="3600" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Setting" @click="saveSetting">保存配置</el-button>
+              <el-button v-permission="'ztp.saveSetting'" type="primary" :icon="Setting" @click="saveSetting">保存配置</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -702,7 +705,7 @@ onMounted(() => {
       <!-- ========== TBG 管理 ========== -->
       <el-tab-pane label="TBG 管理" name="tbg">
         <div class="page-header">
-          <el-button type="primary" :icon="Plus" @click="openAddTbg">新增 TBG</el-button>
+          <el-button v-permission="'ztp.addTbg'" type="primary" :icon="Plus" @click="openAddTbg">新增 TBG</el-button>
           <el-upload
             :show-file-list="false"
             accept=".xlsx,.xls,.csv"
@@ -714,7 +717,7 @@ onMounted(() => {
           <el-button :icon="Refresh" @click="loadTBGList">刷新</el-button>
         </div>
 
-        <el-table :data="tbgList" :loading="tbgLoading" border stripe>
+        <el-table :data="tbgList" v-loading="tbgLoading" border stripe>
           <el-table-column prop="id" label="ID" width="80" />
           <el-table-column prop="name" label="名称" min-width="160" />
           <el-table-column prop="ip" label="IP 地址" min-width="140" />
@@ -727,7 +730,7 @@ onMounted(() => {
           <el-table-column label="操作" width="180" fixed="right">
             <template #default="{ row }">
               <el-button size="small" :icon="Edit" @click="openEditTbg(row as TBG)">编辑</el-button>
-              <el-button size="small" type="danger" :icon="Delete" @click="handleDeleteTbg(row as TBG)">删除</el-button>
+              <el-button v-permission="'ztp.deleteTbg'" size="small" type="danger" :icon="Delete" @click="handleDeleteTbg(row as TBG)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -758,11 +761,11 @@ onMounted(() => {
           />
           <el-button type="primary" :icon="Search" @click="() => { psapQuery.page = 1; loadPSAPIDList(); }">查询</el-button>
           <el-button :icon="Refresh" @click="loadPSAPIDList">刷新</el-button>
-          <el-button type="success" :icon="RefreshRight" :loading="syncLoading" @click="handleSyncPSAPID">同步</el-button>
+          <el-button type="success" :icon="RefreshRight" v-loading="syncLoading" @click="handleSyncPSAPID">同步</el-button>
           <el-button :icon="Document" @click="openSyncLogs">同步日志</el-button>
         </div>
 
-        <el-table :data="psapList" :loading="psapLoading" border stripe>
+        <el-table :data="psapList" v-loading="psapLoading" border stripe>
           <el-table-column prop="id" label="ID" width="80" />
           <el-table-column prop="psapId" label="PSAP-ID" min-width="160" />
           <el-table-column prop="latitude" label="纬度" width="120" />
@@ -786,11 +789,11 @@ onMounted(() => {
       <!-- ========== 北向报告 ========== -->
       <el-tab-pane label="北向报告" name="reports">
         <div class="page-header">
-          <el-button type="primary" :icon="Plus" @click="openAddReport">新增报告</el-button>
+          <el-button v-permission="'ztp.addReport'" type="primary" :icon="Plus" @click="openAddReport">新增报告</el-button>
           <el-button :icon="Refresh" @click="loadReports">刷新</el-button>
         </div>
 
-        <el-table :data="reportList" :loading="reportLoading" border stripe>
+        <el-table :data="reportList" v-loading="reportLoading" border stripe>
           <el-table-column prop="id" label="ID" width="80" />
           <el-table-column prop="name" label="报告名称" min-width="180" />
           <el-table-column prop="type" label="类型" width="120" />
@@ -806,7 +809,7 @@ onMounted(() => {
           <el-table-column label="操作" width="180" fixed="right">
             <template #default="{ row }">
               <el-button size="small" :icon="Edit" @click="openEditReport(row as NorthReport)">编辑</el-button>
-              <el-button size="small" type="danger" :icon="Delete" @click="handleDeleteReport(row as NorthReport)">删除</el-button>
+              <el-button v-permission="'ztp.deleteReport'" size="small" type="danger" :icon="Delete" @click="handleDeleteReport(row as NorthReport)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -815,7 +818,7 @@ onMounted(() => {
 
     <!-- ========== ZTP 日志对话框 ========== -->
     <el-dialog title="ZTP 日志" v-model="logDialogVisible" width="700px">
-      <el-table :data="logList" :loading="logLoading" border stripe max-height="400">
+      <el-table :data="logList" v-loading="logLoading" border stripe max-height="400">
         <el-table-column prop="id" label="ID" width="70" />
         <el-table-column prop="step" label="步骤" width="140" />
         <el-table-column prop="status" label="状态" width="110">
@@ -834,7 +837,7 @@ onMounted(() => {
 
     <!-- ========== 重试日志对话框 ========== -->
     <el-dialog title="ZTP 重试日志" v-model="retryLogDialogVisible" width="700px">
-      <el-table :data="retryLogList" :loading="retryLogLoading" border stripe max-height="400">
+      <el-table :data="retryLogList" v-loading="retryLogLoading" border stripe max-height="400">
         <el-table-column prop="id" label="ID" width="70" />
         <el-table-column prop="retryCount" label="重试次数" width="100" />
         <el-table-column prop="status" label="状态" width="110">
@@ -853,7 +856,7 @@ onMounted(() => {
 
     <!-- ========== 历史文件对话框 ========== -->
     <el-dialog title="ZTP 历史文件" v-model="historyDialogVisible" width="750px">
-      <el-table :data="historyList" :loading="historyLoading" border stripe max-height="400">
+      <el-table :data="historyList" v-loading="historyLoading" border stripe max-height="400">
         <el-table-column prop="id" label="ID" width="70" />
         <el-table-column prop="fileName" label="文件名" min-width="200" show-overflow-tooltip />
         <el-table-column prop="fileType" label="文件类型" width="110" />
@@ -925,7 +928,7 @@ onMounted(() => {
 
     <!-- ========== PSAP-ID 同步日志对话框 ========== -->
     <el-dialog title="PSAP-ID 同步日志" v-model="syncLogDialogVisible" width="700px">
-      <el-table :data="syncLogList" :loading="syncLogLoading" border stripe max-height="400">
+      <el-table :data="syncLogList" v-loading="syncLogLoading" border stripe max-height="400">
         <el-table-column prop="id" label="ID" width="70" />
         <el-table-column prop="licenseId" label="License ID" width="110" />
         <el-table-column prop="count" label="同步数量" width="100" />

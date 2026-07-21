@@ -109,6 +109,8 @@ export const StorageKeys = {
   SIDEBAR_COLLAPSED: 'sidebar_collapsed',
   TAGS_VIEW: 'tags_view',
   LICENSE_ID: 'license_id',
+  AUTO_REFRESH_ENABLED: 'auto_refresh_enabled',
+  AUTO_REFRESH_INTERVAL: 'auto_refresh_interval',
 } as const;
 
 export type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];

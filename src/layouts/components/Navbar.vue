@@ -3,7 +3,7 @@
  * 顶部导航栏
  *
  * 左侧：折叠按钮 + Breadcrumb
- * 右侧：主题切换、语言切换、全屏、用户菜单
+ * 右侧：主题切换、语言切换、全屏、自动刷新开关、用户菜单
  */
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -16,6 +16,7 @@ import {
   ArrowDown,
   User,
   SwitchButton,
+  Refresh,
 } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
 import { ElMessageBox } from 'element-plus';
@@ -33,29 +34,25 @@ const settingsStore = useSettingsStore();
 const router = useRouter();
 const { t } = useI18n();
 
-/** 是否折叠 */
 const collapsed = computed(() => appStore.sidebarCollapsed);
 
-/** 是否暗色主题 */
 const isDark = computed(() => settingsStore.isDark);
 
-/** 用户名首字母（无头像时显示） */
 const userInitial = computed(() => {
   const name = authStore.username || 'U';
   return name.charAt(0).toUpperCase();
 });
 
-/** 当前语言 */
 const currentLocale = computed(() => settingsStore.locale);
 
-/** 全屏状态 */
 const isFullscreen = ref(false);
+
+const autoRefreshEnabled = computed(() => settingsStore.autoRefreshEnabled);
 
 function updateFullscreen() {
   isFullscreen.value = !!document.fullscreenElement;
 }
 
-/** 切换侧边栏折叠 */
 function toggleSidebar() {
   if (appStore.isMobile) {
     appStore.toggleMobileSidebar();
@@ -64,12 +61,10 @@ function toggleSidebar() {
   }
 }
 
-/** 切换主题 */
 function toggleTheme() {
   settingsStore.toggleTheme();
 }
 
-/** 切换语言 */
 function handleLanguageChange(cmd: string) {
   const next = cmd as Locale;
   if (next === settingsStore.locale) return;
@@ -77,7 +72,6 @@ function handleLanguageChange(cmd: string) {
   changeLocale(next);
 }
 
-/** 切换全屏 */
 function toggleFullscreen() {
   if (document.fullscreenElement) {
     void document.exitFullscreen();
@@ -86,7 +80,10 @@ function toggleFullscreen() {
   }
 }
 
-/** 用户菜单命令处理 */
+function toggleAutoRefresh() {
+  settingsStore.toggleAutoRefresh();
+}
+
 async function handleUserCommand(command: string) {
   if (command === 'profile') {
     router.push('/profile');
@@ -95,7 +92,6 @@ async function handleUserCommand(command: string) {
   }
 }
 
-/** 退出登录（带确认对话框） */
 async function handleLogout() {
   try {
     await ElMessageBox.confirm(t('login.logoutConfirm'), t('common.tip'), {
@@ -172,6 +168,20 @@ onBeforeUnmount(() => {
       >
         <el-icon><FullScreen /></el-icon>
       </button>
+
+      <!-- 自动刷新开关 -->
+      <div class="nms-navbar__refresh">
+        <el-switch
+          v-model="autoRefreshEnabled"
+          :active-text="t('layout.autoRefresh')"
+          :inactive-text="t('layout.autoRefresh')"
+          :active-value="true"
+          :inactive-value="false"
+          @change="toggleAutoRefresh"
+          class="nms-navbar__refresh-switch"
+        />
+        <el-icon class="nms-navbar__refresh-icon"><Refresh /></el-icon>
+      </div>
 
       <!-- 用户菜单 -->
       <el-dropdown trigger="click" @command="handleUserCommand">
@@ -311,6 +321,24 @@ onBeforeUnmount(() => {
 
   &__dropdown-arrow {
     font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+  }
+
+  &__refresh {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: 0 var(--spacing-sm);
+  }
+
+  &__refresh-switch {
+    --el-switch-on-color: var(--brand-primary);
+    --el-switch-off-color: var(--border-lighter);
+    font-size: var(--font-size-xs);
+  }
+
+  &__refresh-icon {
+    font-size: var(--font-size-sm);
     color: var(--text-secondary);
   }
 }

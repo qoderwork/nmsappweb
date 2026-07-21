@@ -21,6 +21,8 @@ export interface MonitorConfigVo {
   interval?: number | null;
   enabled?: boolean | undefined;
   parameter_count?: number | null;
+  parameterIds?: string[] | null;
+  parameter_names?: string | null;
 }
 
 /** 阈值规则 */

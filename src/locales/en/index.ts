@@ -108,6 +108,7 @@ export default {
     dashboard: 'Dashboard',
     breadcrumb: 'Breadcrumb',
     lockScreen: 'Lock screen',
+    autoRefresh: 'Auto Refresh',
   },
 
   dashboard: {

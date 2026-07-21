@@ -22,6 +22,7 @@ import {
   updateTemplate,
   deleteTemplate,
   getFileLogs,
+  downloadPMFile,
 } from '@/api/pm';
 import type { PMKpi, PMTemplate, PMFileLog } from '@/types/pm';
 
@@ -362,6 +363,23 @@ function formatFileSize(size?: number | null): string {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+/** 下载 PM 文件（按设备 ID 批量下载） */
+async function handleDownloadFile(row: PMFileLog) {
+  try {
+    const blob = await downloadPMFile({ elementId: row.elementId });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = row.fileName || `pm_files_${row.elementId}.zip`;
+    link.click();
+    URL.revokeObjectURL(url);
+    ElMessage.success('下载成功');
+  } catch (e) {
+    console.error('[PMManagement] download file failed:', e);
+    ElMessage.error('下载失败');
+  }
+}
+
 // ============ Tab 切换加载数据 ============
 function handleTabChange(tab: string | number) {
   if (tab === 'kpi' && kpiData.value.length === 0) loadKpiList();
@@ -557,7 +575,7 @@ onMounted(() => {
             <el-table-column prop="status" label="状态" width="100" />
             <el-table-column label="操作" width="100" fixed="right">
               <template #default="{ row }">
-                <el-button link type="primary" size="small" :icon="Download">下载</el-button>
+                <el-button link type="primary" size="small" :icon="Download" @click="handleDownloadFile(row as PMFileLog)">下载</el-button>
               </template>
             </el-table-column>
           </el-table>

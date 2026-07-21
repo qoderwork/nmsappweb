@@ -6,10 +6,11 @@
  * Tab2: 阈值告警
  * Tab3: 实时监控
  */
-import { reactive, ref, onMounted, onUnmounted } from 'vue';
+import { reactive, ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Search, Refresh, Plus, Edit, Delete, VideoPlay, VideoPause } from '@element-plus/icons-vue';
+import * as echarts from 'echarts';
 
 import {
   addMonitorConfig,
@@ -94,7 +95,14 @@ function handleEditConfig(row: MonitorConfigVo) {
   configForm.id = row.id;
   configForm.name = row.name ?? '';
   configForm.element_id = row.element_id ?? undefined;
-  configForm.parameter_names = '';
+  // 回填 parameter_names：优先用 row.parameter_names，其次用 parameterIds 数组转 JSON 字符串
+  if (row.parameter_names) {
+    configForm.parameter_names = row.parameter_names;
+  } else if (row.parameterIds && row.parameterIds.length > 0) {
+    configForm.parameter_names = JSON.stringify(row.parameterIds);
+  } else {
+    configForm.parameter_names = '';
+  }
   configForm.interval = row.interval ?? 60;
   configForm.enabled = row.enabled ?? true;
   configDialogVisible.value = true;
@@ -282,6 +290,77 @@ const realtimeData = ref<RealtimeMonitorDataVo[]>([]);
 const realtimeLoading = ref(false);
 let realtimeTimer: ReturnType<typeof setInterval> | null = null;
 
+// ECharts 图表
+const chartRef = ref<HTMLElement | null>(null);
+let chartInstance: echarts.ECharts | null = null;
+const chartData = ref<Map<string, { times: string[]; values: number[] }>>(new Map());
+
+/** 初始化图表 */
+function initChart() {
+  if (!chartRef.value) return;
+  if (chartInstance) {
+    chartInstance.dispose();
+  }
+  chartInstance = echarts.init(chartRef.value);
+  chartInstance.setOption({
+    title: { text: '参数趋势', left: 'center' },
+    tooltip: { trigger: 'axis' },
+    legend: { top: 30, data: [] },
+    grid: { left: '3%', right: '4%', bottom: '3%', top: 80, containLabel: true },
+    xAxis: { type: 'category', boundaryGap: false, data: [] },
+    yAxis: { type: 'value' },
+    series: [],
+  });
+}
+
+/** 更新图表数据 */
+function updateChart() {
+  if (!chartInstance) return;
+  const series: any[] = [];
+  const legendData: string[] = [];
+  let maxTimes: string[] = [];
+
+  chartData.value.forEach((data, paramName) => {
+    legendData.push(paramName);
+    if (data.times.length > maxTimes.length) {
+      maxTimes = data.times;
+    }
+    series.push({
+      name: paramName,
+      type: 'line',
+      smooth: true,
+      data: data.values,
+    });
+  });
+
+  chartInstance.setOption({
+    legend: { data: legendData },
+    xAxis: { data: maxTimes },
+    series,
+  });
+}
+
+/** 追加实时数据到图表 */
+function appendRealtimeData() {
+  const now = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  realtimeData.value.forEach((item) => {
+    const paramName = item.parameter_name || 'unknown';
+    const value = parseFloat(item.value ?? '0') || 0;
+    if (!chartData.value.has(paramName)) {
+      chartData.value.set(paramName, { times: [], values: [] });
+    }
+    const data = chartData.value.get(paramName)!;
+    data.times.push(now);
+    data.values.push(value);
+    // 保留最近 60 个数据点（约 5 分钟）
+    if (data.times.length > 60) {
+      data.times.shift();
+      data.values.shift();
+    }
+  });
+  updateChart();
+}
+
 async function loadRealtimeData() {
   if (!realtimeElementId.value) {
     ElMessage.warning('请输入设备 ID');
@@ -302,6 +381,7 @@ async function loadRealtimeData() {
       parameter_names: names,
     });
     realtimeData.value = res;
+    appendRealtimeData();
   } catch (e) {
     console.error('[ParamMonitor] load realtime data failed:', e);
   } finally {
@@ -310,7 +390,16 @@ async function loadRealtimeData() {
 }
 
 function startRealtime() {
-  loadRealtimeData();
+  // 重置图表数据
+  chartData.value.clear();
+  if (!chartInstance) {
+    nextTick(() => {
+      initChart();
+      loadRealtimeData();
+    });
+  } else {
+    loadRealtimeData();
+  }
   if (realtimeTimer) clearInterval(realtimeTimer);
   realtimeTimer = setInterval(() => {
     if (realtimeElementId.value && realtimeParamNames.value) {
@@ -326,8 +415,21 @@ function stopRealtime() {
   }
 }
 
+// 监听 Tab 切换，初始化图表
+watch(activeTab, (val) => {
+  if (val === 'realtime') {
+    nextTick(() => {
+      initChart();
+    });
+  }
+});
+
 onUnmounted(() => {
   stopRealtime();
+  if (chartInstance) {
+    chartInstance.dispose();
+    chartInstance = null;
+  }
 });
 
 // ============ 通用方法 ============
@@ -375,11 +477,11 @@ onMounted(() => {
             </el-table-column>
             <el-table-column label="操作" width="220" fixed="right">
               <template #default="{ row }">
-                <el-button link type="primary" size="small" :icon="Edit" @click="handleEditConfig(row as MonitorConfigVo)">编辑</el-button>
-                <el-button link :type="row.enabled ? 'warning' : 'success'" size="small" @click="handleToggleConfig(row as MonitorConfigVo)">
+                <el-button v-permission="'paramMonitor.edit'" link type="primary" size="small" :icon="Edit" @click="handleEditConfig(row as MonitorConfigVo)">编辑</el-button>
+                <el-button v-permission="'paramMonitor.toggle'" link :type="row.enabled ? 'warning' : 'success'" size="small" @click="handleToggleConfig(row as MonitorConfigVo)">
                   {{ row.enabled ? '禁用' : '启用' }}
                 </el-button>
-                <el-button link type="danger" size="small" :icon="Delete" @click="handleDeleteConfig(row as MonitorConfigVo)">删除</el-button>
+                <el-button v-permission="'paramMonitor.delete'" link type="danger" size="small" :icon="Delete" @click="handleDeleteConfig(row as MonitorConfigVo)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -419,9 +521,9 @@ onMounted(() => {
             </el-table-column>
             <el-table-column label="操作" width="220" fixed="right">
               <template #default="{ row }">
-                <el-button link type="primary" size="small" :icon="Edit" @click="handleEditRule(row as ThresholdRule)">编辑</el-button>
-                <el-button link type="info" size="small" @click="handleTestRule(row as ThresholdRule)">测试</el-button>
-                <el-button link type="danger" size="small" :icon="Delete" @click="handleDeleteRule(row as ThresholdRule)">删除</el-button>
+                <el-button v-permission="'paramMonitor.editRule'" link type="primary" size="small" :icon="Edit" @click="handleEditRule(row as ThresholdRule)">编辑</el-button>
+                <el-button v-permission="'paramMonitor.testRule'" link type="info" size="small" @click="handleTestRule(row as ThresholdRule)">测试</el-button>
+                <el-button v-permission="'paramMonitor.deleteRule'" link type="danger" size="small" :icon="Delete" @click="handleDeleteRule(row as ThresholdRule)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -450,6 +552,9 @@ onMounted(() => {
         </el-card>
 
         <el-card shadow="never" :body-style="{ padding: '0' }">
+          <!-- 趋势图 -->
+          <div ref="chartRef" style="width: 100%; height: 300px; padding: 16px; box-sizing: border-box;"></div>
+          <!-- 数据表格 -->
           <el-table v-loading="realtimeLoading" :data="realtimeData" stripe border style="width: 100%">
             <el-table-column type="index" label="#" width="60" />
             <el-table-column prop="parameter_name" label="参数名" min-width="180" />

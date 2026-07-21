@@ -23,12 +23,13 @@ import type {
   DiagnosticsTaskType,
   DiagnosticsTaskStatus,
 } from '@/types/diagnostics';
+import DeviceSelector from '@/components/DeviceSelector.vue';
 
 const { t } = useI18n();
 
 // ============ 诊断操作表单 ============
 const diagForm = reactive({
-  elementId: '',
+  elementId: null as number | null,
   taskType: 'ping' as DiagnosticsTaskType,
   target: '',
   count: 4,
@@ -50,7 +51,7 @@ const taskTypeOptions: { label: string; value: DiagnosticsTaskType }[] = [
 /** 提交诊断任务 */
 async function handleDiagnose() {
   if (!diagForm.elementId) {
-    ElMessage.warning('请输入设备 ID');
+    ElMessage.warning('请选择设备');
     return;
   }
   diagSubmitting.value = true;
@@ -212,6 +213,15 @@ function formatTime(time?: string | null): string {
   return new Date(time).toLocaleString('zh-CN');
 }
 
+// ============ 诊断结果详情 ============
+const resultDetailVisible = ref(false);
+const resultDetailData = ref<DiagnosticsTask | null>(null);
+
+function handleViewResult(row: DiagnosticsTask) {
+  resultDetailData.value = row;
+  resultDetailVisible.value = true;
+}
+
 // ============ 生命周期 ============
 onMounted(() => {
   loadTaskList();
@@ -226,8 +236,8 @@ onMounted(() => {
         <span>诊断操作</span>
       </template>
       <el-form :model="diagForm" label-width="100px" style="max-width: 600px">
-        <el-form-item label="设备 ID" prop="elementId">
-          <el-input v-model="diagForm.elementId" placeholder="请输入设备 ID" />
+        <el-form-item label="设备" prop="elementId">
+          <DeviceSelector v-model="diagForm.elementId" placeholder="请选择设备" />
         </el-form-item>
         <el-form-item label="诊断类型" prop="taskType">
           <el-select v-model="diagForm.taskType" placeholder="请选择诊断类型" style="width: 100%">
@@ -267,7 +277,7 @@ onMounted(() => {
           </el-form-item>
         </template>
         <el-form-item>
-          <el-button type="primary" :icon="Promotion" :loading="diagSubmitting" @click="handleDiagnose">
+          <el-button v-permission="'diagnostics.execute'" type="primary" :icon="Promotion" :loading="diagSubmitting" @click="handleDiagnose">
             执行诊断
           </el-button>
         </el-form-item>
@@ -329,7 +339,14 @@ onMounted(() => {
           </template>
         </el-table-column>
         <el-table-column prop="command" label="命令" min-width="200" />
-        <el-table-column prop="result" label="结果" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="result" label="结果" min-width="200" show-overflow-tooltip>
+          <template #default="{ row }">
+            <el-button v-permission="'diagnostics.view'" v-if="row.result" link type="primary" size="small" @click="handleViewResult(row as DiagnosticsTask)">
+              {{ row.result }}
+            </el-button>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="createTime" label="创建时间" min-width="160">
           <template #default="{ row }">
             {{ formatTime(row.createTime) }}
@@ -355,6 +372,33 @@ onMounted(() => {
         />
       </div>
     </el-card>
+
+    <!-- 诊断结果详情弹窗 -->
+    <el-dialog v-model="resultDetailVisible" title="诊断结果详情" width="700px">
+      <el-descriptions v-if="resultDetailData" :column="2" border>
+        <el-descriptions-item label="设备 ID">{{ resultDetailData.elementId }}</el-descriptions-item>
+        <el-descriptions-item label="类型">{{ getTaskTypeText(resultDetailData.taskType) }}</el-descriptions-item>
+        <el-descriptions-item label="状态">
+          <el-tag :type="getStatusTagType(resultDetailData.status)" size="small">
+            {{ getStatusText(resultDetailData.status) }}
+          </el-tag>
+        </el-descriptions-item>
+        <el-descriptions-item label="创建时间">{{ formatTime(resultDetailData.createTime) }}</el-descriptions-item>
+        <el-descriptions-item label="结束时间">{{ formatTime(resultDetailData.endTime) }}</el-descriptions-item>
+        <el-descriptions-item label="命令" :span="2">{{ resultDetailData.command || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="完整结果" :span="2">
+          <el-input
+            :model-value="resultDetailData.result || ''"
+            type="textarea"
+            :rows="10"
+            readonly
+          />
+        </el-descriptions-item>
+      </el-descriptions>
+      <template #footer>
+        <el-button @click="resultDetailVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 

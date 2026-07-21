@@ -8,20 +8,23 @@
  * - 启动/取消升级任务
  * - 查看升级结果
  */
-import { reactive, ref, onMounted } from 'vue';
+import { reactive, ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Search, Refresh, VideoPlay, CircleClose, View, Delete } from '@element-plus/icons-vue';
+import { Search, Refresh, Plus, Upload, VideoPlay, CircleClose, View, Delete } from '@element-plus/icons-vue';
 
 import {
   getUpgradeTasks,
+  createUpgradeTask,
   startUpgradeTask,
   cancelUpgradeTask,
   getUpgradeFiles,
+  uploadUpgradeFile,
   deleteUpgradeFile,
   getUpgradeResults,
 } from '@/api/upgrade';
-import type { UpgradeTaskVo, UpgradeFile, UpgradeResultVo } from '@/types/upgrade';
+import type { UpgradeTaskVo, UpgradeFile, UpgradeResultVo, UpgradeTask } from '@/types/upgrade';
+import DeviceSelector from '@/components/DeviceSelector.vue';
 
 const { t } = useI18n();
 
@@ -51,6 +54,38 @@ const resultDialogVisible = ref(false);
 const resultLoading = ref(false);
 const resultList = ref<UpgradeResultVo[]>([]);
 const currentTaskName = ref('');
+
+// 新建任务弹窗
+const taskDialogVisible = ref(false);
+const taskDialogLoading = ref(false);
+const selectedDeviceIds = ref<number[]>([]);
+const taskForm = reactive<Partial<UpgradeTask>>({
+  name: '',
+  device_type: 'gnb',
+  upgrade_type: 'firmware',
+  scope: 'element',
+  element_ids: '',
+  device_group_ids: '',
+  upgrade_file_id: undefined,
+  execute_mode: 0,
+  concurrent_number: 1,
+  max_retry_times: 0,
+  manual_upgrade: false,
+});
+
+// 升级进度自动刷新
+let progressTimer: ReturnType<typeof setInterval> | null = null;
+
+// 上传文件弹窗
+const uploadDialogVisible = ref(false);
+const uploadDialogLoading = ref(false);
+const uploadForm = reactive({
+  file: null as File | null,
+  version: '',
+  device_type: 'gnb',
+  product_type: '',
+});
+const uploadRef = ref();
 
 // ============ 方法 ============
 
@@ -180,6 +215,92 @@ async function handleDeleteFile(row: UpgradeFile) {
   }
 }
 
+// ============ 新建升级任务 ============
+
+function openTaskDialog() {
+  Object.assign(taskForm, {
+    name: '',
+    device_type: 'gnb',
+    upgrade_type: 'firmware',
+    scope: 'element',
+    element_ids: '',
+    device_group_ids: '',
+    upgrade_file_id: undefined,
+    execute_mode: 0,
+    concurrent_number: 1,
+    max_retry_times: 0,
+    manual_upgrade: false,
+  });
+  selectedDeviceIds.value = [];
+  taskDialogVisible.value = true;
+}
+
+async function handleCreateTask() {
+  if (!taskForm.name?.trim()) {
+    ElMessage.warning('请输入任务名称');
+    return;
+  }
+  if (!taskForm.upgrade_file_id) {
+    ElMessage.warning('请选择升级文件');
+    return;
+  }
+  // 将选择的设备 ID 转为逗号分隔字符串
+  if (taskForm.scope === 'element' && selectedDeviceIds.value.length > 0) {
+    taskForm.element_ids = selectedDeviceIds.value.join(',');
+  }
+  taskDialogLoading.value = true;
+  try {
+    await createUpgradeTask(taskForm);
+    ElMessage.success('创建成功');
+    taskDialogVisible.value = false;
+    loadData();
+  } catch (e) {
+    console.error('[UpgradeManagement] create task failed:', e);
+  } finally {
+    taskDialogLoading.value = false;
+  }
+}
+
+// ============ 上传升级文件 ============
+
+function openUploadDialog() {
+  uploadForm.file = null;
+  uploadForm.version = '';
+  uploadForm.device_type = 'gnb';
+  uploadForm.product_type = '';
+  uploadDialogVisible.value = true;
+}
+
+function handleFileChange(uploadFile: any) {
+  uploadForm.file = uploadFile?.raw || uploadFile?.file || null;
+}
+
+async function handleUploadFile() {
+  if (!uploadForm.file) {
+    ElMessage.warning('请选择文件');
+    return;
+  }
+  if (!uploadForm.version.trim()) {
+    ElMessage.warning('请输入版本号');
+    return;
+  }
+  uploadDialogLoading.value = true;
+  try {
+    await uploadUpgradeFile(uploadForm.file, {
+      version: uploadForm.version,
+      device_type: uploadForm.device_type,
+      product_type: uploadForm.product_type,
+    });
+    ElMessage.success('上传成功');
+    uploadDialogVisible.value = false;
+    loadFiles();
+  } catch (e) {
+    console.error('[UpgradeManagement] upload file failed:', e);
+  } finally {
+    uploadDialogLoading.value = false;
+  }
+}
+
 /** 格式化时间 */
 function formatTime(time?: string | null): string {
   if (!time) return '-';
@@ -218,6 +339,21 @@ function getStatusText(status?: number | null): string {
 onMounted(() => {
   loadData();
   loadFiles();
+  // 每 10 秒自动刷新升级任务进度
+  progressTimer = setInterval(() => {
+    // 仅当有执行中的任务时刷新
+    const hasRunning = tableData.value.some((t) => t.status === 1);
+    if (hasRunning) {
+      loadData();
+    }
+  }, 10000);
+});
+
+onUnmounted(() => {
+  if (progressTimer) {
+    clearInterval(progressTimer);
+    progressTimer = null;
+  }
 });
 </script>
 
@@ -241,6 +377,7 @@ onMounted(() => {
             <el-form-item>
               <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
               <el-button :icon="Refresh" @click="handleReset">重置</el-button>
+              <el-button v-permission="'upgrade.create'" type="success" :icon="Plus" @click="openTaskDialog">新建任务</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -261,7 +398,11 @@ onMounted(() => {
             <el-table-column prop="deviceType" label="设备类型" width="100" />
             <el-table-column prop="upgradeType" label="升级类型" width="100" />
             <el-table-column prop="deviceCount" label="设备数" width="80" align="center" />
-            <el-table-column prop="progress" label="进度" width="80" align="center" />
+            <el-table-column prop="progress" label="进度" width="120" align="center">
+              <template #default="{ row }">
+                <el-progress :percentage="row.progress || 0" :stroke-width="14" :text-inside="true" />
+              </template>
+            </el-table-column>
             <el-table-column prop="successCount" label="成功" width="80" align="center">
               <template #default="{ row }">
                 <el-tag type="success" size="small">{{ row.successCount }}</el-tag>
@@ -286,11 +427,11 @@ onMounted(() => {
             </el-table-column>
             <el-table-column label="操作" width="220" fixed="right">
               <template #default="{ row }">
-                <el-button link type="success" size="small" @click="handleStart(row as UpgradeTaskVo)">
+                <el-button v-permission="'upgrade.start'" link type="success" size="small" @click="handleStart(row as UpgradeTaskVo)">
                   <VideoPlay />
                   启动
                 </el-button>
-                <el-button link type="warning" size="small" @click="handleCancel(row as UpgradeTaskVo)">
+                <el-button v-permission="'upgrade.cancel'" link type="warning" size="small" @click="handleCancel(row as UpgradeTaskVo)">
                   <CircleClose />
                   取消
                 </el-button>
@@ -320,6 +461,10 @@ onMounted(() => {
 
       <!-- 升级文件 -->
       <el-tab-pane label="升级文件" name="file">
+        <el-card shadow="never" :body-style="{ padding: '16px' }">
+          <el-button v-permission="'upgrade.upload'" type="success" :icon="Upload" @click="openUploadDialog">上传文件</el-button>
+          <el-button :icon="Refresh" @click="loadFiles">刷新</el-button>
+        </el-card>
         <el-card shadow="never" :body-style="{ padding: '0' }">
           <el-table
             v-loading="fileLoading"
@@ -351,7 +496,7 @@ onMounted(() => {
             </el-table-column>
             <el-table-column label="操作" width="120" fixed="right">
               <template #default="{ row }">
-                <el-button link type="danger" size="small" @click="handleDeleteFile(row as UpgradeFile)">
+                <el-button v-permission="'upgrade.deleteFile'" link type="danger" size="small" @click="handleDeleteFile(row as UpgradeFile)">
                   <Delete />
                   删除
                 </el-button>
@@ -381,6 +526,115 @@ onMounted(() => {
       </el-table>
       <template #footer>
         <el-button @click="resultDialogVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 新建任务弹窗 -->
+    <el-dialog v-model="taskDialogVisible" title="新建升级任务" width="600px" :close-on-click-modal="false">
+      <el-form :model="taskForm" label-width="120px" v-loading="taskDialogLoading">
+        <el-form-item label="任务名称" required>
+          <el-input v-model="taskForm.name" placeholder="请输入任务名称" />
+        </el-form-item>
+        <el-form-item label="设备类型">
+          <el-select v-model="taskForm.device_type" style="width: 100%">
+            <el-option label="GNB" value="gnb" />
+            <el-option label="CPE" value="cpe" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="升级类型">
+          <el-select v-model="taskForm.upgrade_type" style="width: 100%">
+            <el-option label="固件升级" value="firmware" />
+            <el-option label="软件升级" value="software" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="升级文件" required>
+          <el-select v-model="taskForm.upgrade_file_id" placeholder="请选择升级文件" style="width: 100%">
+            <el-option
+              v-for="file in fileList"
+              :key="file.id"
+              :label="`${file.original_file_name || file.file_name} (v${file.version})`"
+              :value="file.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="范围类型">
+          <el-select v-model="taskForm.scope" style="width: 100%">
+            <el-option label="指定设备" value="element" />
+            <el-option label="设备组" value="deviceGroup" />
+          </el-select>
+        </el-form-item>
+        <el-form-item v-if="taskForm.scope === 'element'" label="选择设备">
+          <DeviceSelector v-model="selectedDeviceIds" :multiple="true" :device-type="taskForm.device_type as any" placeholder="请选择设备" />
+        </el-form-item>
+        <el-form-item v-else label="设备组ID列表">
+          <el-input
+            v-model="taskForm.device_group_ids"
+            type="textarea"
+            :rows="3"
+            placeholder="多个设备组ID用逗号分隔"
+          />
+        </el-form-item>
+        <el-form-item label="执行模式">
+          <el-select v-model="taskForm.execute_mode" style="width: 100%">
+            <el-option label="立即执行" :value="0" />
+            <el-option label="定时执行" :value="1" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="并发数">
+          <el-input-number v-model="taskForm.concurrent_number" :min="1" :max="100" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="最大重试次数">
+          <el-input-number v-model="taskForm.max_retry_times" :min="0" :max="10" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="手动确认">
+          <el-switch
+            :model-value="taskForm.manual_upgrade ?? false"
+            @change="(val: string | number | boolean) => taskForm.manual_upgrade = Boolean(val)"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="taskDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="taskDialogLoading" @click="handleCreateTask">确定</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 上传文件弹窗 -->
+    <el-dialog v-model="uploadDialogVisible" title="上传升级文件" width="500px" :close-on-click-modal="false">
+      <el-form :model="uploadForm" label-width="100px" v-loading="uploadDialogLoading">
+        <el-form-item label="文件" required>
+          <el-upload
+            ref="uploadRef"
+            :auto-upload="false"
+            :limit="1"
+            accept=".bin,.pkg,.zip,.tar,.gz"
+            :on-change="handleFileChange"
+            :on-remove="() => (uploadForm.file = null)"
+          >
+            <el-button :icon="Upload">选择文件</el-button>
+            <template #tip>
+              <div class="el-upload__tip">
+                支持 .bin, .pkg, .zip, .tar, .gz 格式
+              </div>
+            </template>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="版本号" required>
+          <el-input v-model="uploadForm.version" placeholder="请输入版本号，如 1.0.0" />
+        </el-form-item>
+        <el-form-item label="设备类型">
+          <el-select v-model="uploadForm.device_type" style="width: 100%">
+            <el-option label="GNB" value="gnb" />
+            <el-option label="CPE" value="cpe" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="产品类型">
+          <el-input v-model="uploadForm.product_type" placeholder="可选，产品类型" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="uploadDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="uploadDialogLoading" @click="handleUploadFile">上传</el-button>
       </template>
     </el-dialog>
   </div>

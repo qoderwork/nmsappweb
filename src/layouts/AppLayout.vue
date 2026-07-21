@@ -8,29 +8,47 @@
  *
  * 主内容区使用 router-view + transition + keep-alive
  * TagsView 作为可选组件（受 settings.showTagsView 控制）
+ *
+ * WebSocket 连接：登录后自动连接，登出时断开，实现实时告警推送
  */
-import { computed } from 'vue';
+import { computed, onMounted, onUnmounted } from 'vue';
 
 import { useAppStore } from '@/stores/app';
+import { useAuthStore } from '@/stores/auth';
 import { useSettingsStore } from '@/stores/settings';
+import { useWebSocketStore } from '@/stores/websocket';
 import { useTheme } from '@/composables/useTheme';
+import { useGlobalWebSocketHandler } from '@/composables/useWebSocketMessage';
 
 import Sidebar from './components/Sidebar.vue';
 import Navbar from './components/Navbar.vue';
 import TagsView from './components/TagsView.vue';
 
 const appStore = useAppStore();
+const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
+const wsStore = useWebSocketStore();
 
-// 初始化主题（应用持久化的主题设置 + 监听系统主题变化）
 useTheme();
 
-/** 移动端抽屉可见状态（双向绑定到 store） */
+// 全局 WebSocket 消息处理器（处理文件下载、告警推送、设备状态变更等）
+useGlobalWebSocketHandler();
+
 const mobileDrawerVisible = computed<boolean>({
   get: () => appStore.mobileSidebarOpened,
   set: (val) => {
     appStore.mobileSidebarOpened = val;
   },
+});
+
+onMounted(() => {
+  if (authStore.isLoggedIn) {
+    void wsStore.connect();
+  }
+});
+
+onUnmounted(() => {
+  wsStore.disconnect();
 });
 </script>
 

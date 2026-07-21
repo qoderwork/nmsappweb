@@ -73,3 +73,15 @@ export function deleteTemplate(id: number | string) {
 export function getFileLogs(params: PMFileLogQueryParams = {}) {
   return http.getPage<PMFileLog>('/pm/file-logs', params);
 }
+
+/** 下载 PM 文件（按设备 ID + 可选时间范围） */
+export function downloadPMFile(params: {
+  elementId: number | string;
+  startTime?: string;
+  endTime?: string;
+}) {
+  return http.get<Blob>('/pm/file-logs/download', {
+    params,
+    responseType: 'blob',
+  } as any);
+}

@@ -18,9 +18,23 @@ export default defineConfig(({ mode }) => {
       sourcemap: false,
       rollupOptions: {
         output: {
-          manualChunks: {
-            'vue-vendor': ['vue', 'vue-router', 'pinia'],
-            'element-plus': ['element-plus', '@element-plus/icons-vue'],
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              // echarts（最大，优先拆出）
+              if (id.includes('echarts') || id.includes('zrender')) {
+                return 'echarts';
+              }
+              // element-plus
+              if (id.includes('element-plus') || id.includes('@element-plus/icons-vue')) {
+                return 'element-plus';
+              }
+              // vue 生态（排除已在 element-plus 内部的 @vueuse）
+              if (id.includes('/vue/') || id.includes('vue-router') || id.includes('pinia')) {
+                return 'vue-vendor';
+              }
+              // 其他第三方库
+              return 'vendor';
+            }
           },
         },
       },

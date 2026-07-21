@@ -37,3 +37,8 @@ export function listBatchUpgradeLogs(params: ListBatchUpgradeLogQuery) {
 export function reloadLteTopology(data: LongIdRequest) {
   return http.post<void>('/topology/lte/reload', data);
 }
+
+/** 重新加载 NR 拓扑 */
+export function reloadNrTopology(data: LongIdRequest) {
+  return http.post<void>('/topology/nr/reload', data);
+}

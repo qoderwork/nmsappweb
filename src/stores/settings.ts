@@ -17,16 +17,20 @@ export const useSettingsStore = defineStore('settings', () => {
   // ============ State ============
   const theme = ref<Theme>(localStorage.get<Theme>(StorageKeys.THEME) ?? 'light');
   const locale = ref<Locale>(localStorage.get<Locale>(StorageKeys.LOCALE) ?? 'zh');
-  /** 实际生效主题（auto 时根据系统解析） */
   const effectiveTheme = ref<'light' | 'dark'>('light');
-  /** 是否显示标签页 */
   const showTagsView = ref<boolean>(
     localStorage.get<boolean>(StorageKeys.TAGS_VIEW + '_enabled') ?? true
   );
-  /** 是否启用水印 */
   const enableWatermark = ref(false);
-  /** 是否启用 Breadcrumb */
   const showBreadcrumb = ref(true);
+  /** 全局自动刷新开关 */
+  const autoRefreshEnabled = ref<boolean>(
+    localStorage.get<boolean>(StorageKeys.AUTO_REFRESH_ENABLED) ?? true
+  );
+  /** 自动刷新间隔（秒） */
+  const autoRefreshInterval = ref<number>(
+    localStorage.get<number>(StorageKeys.AUTO_REFRESH_INTERVAL) ?? 60
+  );
 
   // ============ Getters ============
   const isDark = computed(() => effectiveTheme.value === 'dark');
@@ -50,6 +54,14 @@ export const useSettingsStore = defineStore('settings', () => {
 
   function setLocale(l: Locale) {
     locale.value = l;
+  }
+
+  function toggleAutoRefresh() {
+    autoRefreshEnabled.value = !autoRefreshEnabled.value;
+  }
+
+  function setAutoRefreshInterval(interval: number) {
+    autoRefreshInterval.value = interval;
   }
 
   /**
@@ -86,6 +98,14 @@ export const useSettingsStore = defineStore('settings', () => {
     localStorage.set(StorageKeys.LOCALE, val);
   });
 
+  watch(autoRefreshEnabled, (val) => {
+    localStorage.set(StorageKeys.AUTO_REFRESH_ENABLED, val);
+  });
+
+  watch(autoRefreshInterval, (val) => {
+    localStorage.set(StorageKeys.AUTO_REFRESH_INTERVAL, val);
+  });
+
   return {
     // state
     theme,
@@ -94,6 +114,8 @@ export const useSettingsStore = defineStore('settings', () => {
     showTagsView,
     enableWatermark,
     showBreadcrumb,
+    autoRefreshEnabled,
+    autoRefreshInterval,
     // getters
     isDark,
     themeIcon,
@@ -101,6 +123,8 @@ export const useSettingsStore = defineStore('settings', () => {
     setTheme,
     toggleTheme,
     setLocale,
+    toggleAutoRefresh,
+    setAutoRefreshInterval,
     applyTheme,
     watchSystemTheme,
   };

@@ -17,12 +17,14 @@ import {
   getLteTopology,
   getNrTopology,
   reloadLteTopology,
+  reloadNrTopology,
   listBatchUpgradeLogs,
 } from '@/api/topology';
 import type { TopologyBBU, ListBatchUpgradeLogVO } from '@/types/topology';
 
 // 动态导入递归组件（避免循环引用问题）
 import TopologyTree from './components/TopologyTree.vue';
+import TopologyGraph from './components/TopologyGraph.vue';
 
 // ============ 状态 ============
 const activeTab = ref('lte');
@@ -99,6 +101,22 @@ async function handleReloadLte() {
     queryLteTopology();
   } catch (e) {
     if (e !== 'cancel') console.error('[Topology] reload failed:', e);
+  }
+}
+
+/** 重新加载 NR 拓扑 */
+async function handleReloadNr() {
+  if (!nrElementId.value) {
+    ElMessage.warning('请输入设备 ID');
+    return;
+  }
+  try {
+    await ElMessageBox.confirm('确定要重新加载 NR 拓扑吗？', '确认', { type: 'warning' });
+    await reloadNrTopology({ id: Number(nrElementId.value) });
+    ElMessage.success('已触发重新加载');
+    queryNrTopology();
+  } catch (e) {
+    if (e !== 'cancel') console.error('[Topology] reload NR failed:', e);
   }
 }
 
@@ -196,13 +214,17 @@ function getResultType(result?: number | null): 'success' | 'danger' | 'warning'
                 <span class="topology-header__sn">{{ lteBBU.serialNumber }}</span>
               </div>
             </div>
-            <div v-for="port in lteBBU.ports" :key="port.portIndex" class="topology-port-section">
-              <div class="topology-port-title">
-                <el-icon><Document /></el-icon>
-                端口 {{ port.portIndex }} - {{ port.type }}
-              </div>
-              <TopologyTree :devices="port.nextLevelDevices" :level="0" />
-            </div>
+            <TopologyGraph :bbu="lteBBU">
+              <template #tree>
+                <div v-for="port in lteBBU.ports" :key="port.portIndex" class="topology-port-section">
+                  <div class="topology-port-title">
+                    <el-icon><Document /></el-icon>
+                    端口 {{ port.portIndex }} - {{ port.type }}
+                  </div>
+                  <TopologyTree :devices="port.nextLevelDevices" :level="0" />
+                </div>
+              </template>
+            </TopologyGraph>
           </template>
           <el-empty v-else description="请输入设备 ID 查询拓扑" />
         </el-card>
@@ -217,6 +239,7 @@ function getResultType(result?: number | null): 'success' | 'danger' | 'warning'
             </el-form-item>
             <el-form-item>
               <el-button type="primary" :icon="Search" @click="queryNrTopology">查询</el-button>
+              <el-button :icon="Refresh" @click="handleReloadNr">重新加载</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -230,13 +253,17 @@ function getResultType(result?: number | null): 'success' | 'danger' | 'warning'
                 <span class="topology-header__sn">{{ nrBBU.serialNumber }}</span>
               </div>
             </div>
-            <div v-for="port in nrBBU.ports" :key="port.portIndex" class="topology-port-section">
-              <div class="topology-port-title">
-                <el-icon><Document /></el-icon>
-                端口 {{ port.portIndex }} - {{ port.type }}
-              </div>
-              <TopologyTree :devices="port.nextLevelDevices" :level="0" />
-            </div>
+            <TopologyGraph :bbu="nrBBU">
+              <template #tree>
+                <div v-for="port in nrBBU.ports" :key="port.portIndex" class="topology-port-section">
+                  <div class="topology-port-title">
+                    <el-icon><Document /></el-icon>
+                    端口 {{ port.portIndex }} - {{ port.type }}
+                  </div>
+                  <TopologyTree :devices="port.nextLevelDevices" :level="0" />
+                </div>
+              </template>
+            </TopologyGraph>
           </template>
           <el-empty v-else description="请输入设备 ID 查询拓扑" />
         </el-card>

@@ -111,6 +111,7 @@ export default {
     dashboard: '首页',
     breadcrumb: '面包屑',
     lockScreen: '锁屏',
+    autoRefresh: '自动刷新',
   },
 
   // 仪表盘

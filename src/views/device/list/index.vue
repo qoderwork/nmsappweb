@@ -710,13 +710,14 @@ onBeforeUnmount(() => {
       <!-- 工具栏 -->
       <div class="toolbar">
         <div class="toolbar-left">
-          <el-button type="primary" :icon="Plus" @click="openAddDialog">
+          <el-button v-permission="'device.create'" type="primary" :icon="Plus" @click="openAddDialog">
             {{ t('device.add') }}
           </el-button>
-          <el-button :icon="Upload" @click="openImportDialog">
+          <el-button v-permission="'device.import'" :icon="Upload" @click="openImportDialog">
             {{ t('common.import') }}
           </el-button>
           <el-button
+            v-permission="'device.delete'"
             type="danger"
             :icon="Delete"
             :disabled="batchDeleteDisabled"
@@ -732,7 +733,7 @@ onBeforeUnmount(() => {
           <el-button :icon="Refresh" @click="handleRefresh">
             {{ t('common.refresh') }}
           </el-button>
-          <el-button :icon="Download" @click="handleExport">
+          <el-button v-permission="'device.export'" :icon="Download" @click="handleExport">
             {{ t('common.export') }}
           </el-button>
         </div>
@@ -953,27 +954,27 @@ onBeforeUnmount(() => {
         <div class="context-menu-item" @click="handleContextAction('detail')">
           详情
         </div>
-        <div class="context-menu-item" @click="handleContextAction('settings')">
+        <div v-permission="'device.edit'" class="context-menu-item" @click="handleContextAction('settings')">
           设置
         </div>
-        <div class="context-menu-item" @click="handleContextAction('config')">
+        <div v-permission="'device.config'" class="context-menu-item" @click="handleContextAction('config')">
           配置管理
         </div>
-        <div class="context-menu-item" @click="handleContextAction('modelTree')">
+        <div v-permission="'device.modelTree'" class="context-menu-item" @click="handleContextAction('modelTree')">
           模型树
         </div>
         <div class="context-menu-divider" />
-        <div class="context-menu-item" @click="handleContextAction('emptyCommands')">
+        <div v-permission="'device.emptyCommands'" class="context-menu-item" @click="handleContextAction('emptyCommands')">
           清空命令队列
         </div>
-        <div class="context-menu-item" @click="handleContextAction('factoryReset')">
+        <div v-permission="'device.factoryReset'" class="context-menu-item" @click="handleContextAction('factoryReset')">
           恢复出厂
         </div>
-        <div class="context-menu-item" @click="handleContextAction('alarmSync')">
+        <div v-permission="'device.alarmSync'" class="context-menu-item" @click="handleContextAction('alarmSync')">
           告警同步
         </div>
         <div class="context-menu-divider" />
-        <div class="context-menu-item context-menu-item--danger" @click="handleContextAction('delete')">
+        <div v-permission="'device.delete'" class="context-menu-item context-menu-item--danger" @click="handleContextAction('delete')">
           删除
         </div>
       </div>

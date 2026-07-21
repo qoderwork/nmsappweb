@@ -11,6 +11,7 @@
  * - 告警同步配置 / 邮件通知配置
  * - 告警库导入/下载模板/删除
  * - 告警严重级别饼图（ECharts）
+ * - WebSocket 实时告警推送
  */
 import { ref, reactive, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { ElMessage, ElMessageBox, type UploadFile } from 'element-plus';
@@ -39,6 +40,7 @@ import type {
 } from '@/types/alarm';
 import { AlarmStatus, AlarmType } from '@/types/alarm';
 import { http } from '@/utils/request';
+import { useAlarmPush, WsTopics, type AlarmPushMessage } from '@/composables/useWebSocketMessage';
 
 // ============ 主标签页 ============
 const activeTab = ref('monitor');
@@ -795,6 +797,26 @@ function isUnconfirmed(status?: AlarmStatus | null): boolean {
 }
 
 // ============ 生命周期 ============
+// ============ WebSocket 实时告警推送 ============
+useAlarmPush((alarm: AlarmPushMessage) => {
+  // 将新告警插入列表顶部（仅在告警监控 Tab 且未使用模板过滤时）
+  if (activeTab.value === 'monitor' && !selectedTemplateId.value) {
+    const newAlarm: Alarm = {
+      id: alarm.id,
+      alarmId: alarm.alarmId,
+      alarmName: alarm.alarmName,
+      alarmLevel: alarm.alarmLevel,
+      alarmStatus: alarm.alarmStatus,
+      deviceName: alarm.deviceName,
+      serialNumber: alarm.serialNumber,
+      createTime: alarm.createTime,
+    } as Alarm;
+    // 插入列表顶部
+    tableData.value = [newAlarm, ...tableData.value];
+    total.value += 1;
+  }
+});
+
 onMounted(() => {
   loadTemplates();
   loadEventTypes();
@@ -830,7 +852,7 @@ watch(activeTab, (val) => {
           <div class="template-sidebar">
             <div class="sidebar-header">
               <span class="sidebar-title">告警模板</span>
-              <el-button type="primary" size="small" :icon="Plus" circle @click="openAddTemplateDialog" />
+              <el-button v-permission="'alarm.template.create'" type="primary" size="small" :icon="Plus" circle @click="openAddTemplateDialog" />
             </div>
             <div v-loading="templateLoading" class="sidebar-list">
               <div
@@ -877,12 +899,12 @@ watch(activeTab, (val) => {
           <div class="alarm-content">
             <!-- 工具栏 -->
             <div class="toolbar">
-              <el-button :icon="Refresh" :loading="syncing" @click="handleManualSync">手动同步</el-button>
-              <el-button :icon="Setting" @click="openSyncConfigDialog">同步配置</el-button>
-              <el-button :icon="Message" @click="openEmailConfigDialog">邮件配置</el-button>
-              <el-button :icon="Filter" @click="openFilterDialog">过滤器</el-button>
-              <el-button :icon="Download" @click="handleExportCSV">导出</el-button>
-              <el-button :icon="Picture" @click="openChartDialog">统计图表</el-button>
+              <el-button v-permission="'alarm.sync'" :icon="Refresh" :loading="syncing" @click="handleManualSync">手动同步</el-button>
+              <el-button v-permission="'alarm.syncConfig'" :icon="Setting" @click="openSyncConfigDialog">同步配置</el-button>
+              <el-button v-permission="'alarm.emailConfig'" :icon="Message" @click="openEmailConfigDialog">邮件配置</el-button>
+              <el-button v-permission="'alarm.filter'" :icon="Filter" @click="openFilterDialog">过滤器</el-button>
+              <el-button v-permission="'alarm.export'" :icon="Download" @click="handleExportCSV">导出</el-button>
+              <el-button v-permission="'alarm.chart'" :icon="Picture" @click="openChartDialog">统计图表</el-button>
               <div v-if="selectedTemplateId" class="toolbar-template-hint">
                 <el-tag closable @close="selectedTemplateId = null; handleSearch()">
                   当前模板: {{ templateList.find(t => t.id === selectedTemplateId)?.name }}
@@ -953,7 +975,7 @@ watch(activeTab, (val) => {
             <!-- 批量操作栏 -->
             <div v-if="selectedIds.length > 0" class="batch-bar">
               <span>已选择 {{ selectedIds.length }} 条告警</span>
-              <el-button type="danger" size="small" style="margin-left: 16px" @click="handleBatchClear">
+              <el-button v-permission="'alarm.clear'" type="danger" size="small" style="margin-left: 16px" @click="handleBatchClear">
                 批量清除
               </el-button>
             </div>
@@ -997,10 +1019,11 @@ watch(activeTab, (val) => {
               <el-table-column prop="comment" label="评论" min-width="120" show-overflow-tooltip />
               <el-table-column label="操作" width="320" fixed="right">
                 <template #default="{ row }">
-                  <el-button link type="primary" size="small" @click="handleViewDetail(row as Alarm)">
+                  <el-button v-permission="'alarm.view'" link type="primary" size="small" @click="handleViewDetail(row as Alarm)">
                     <el-icon><View /></el-icon> 详情
                   </el-button>
                   <el-button
+                    v-permission="'alarm.confirm'"
                     v-if="isUnconfirmed(row.alarmStatus)"
                     link type="success" size="small"
                     @click="handleConfirm(row as Alarm)"
@@ -1008,17 +1031,18 @@ watch(activeTab, (val) => {
                     <el-icon><CircleCheck /></el-icon> 确认
                   </el-button>
                   <el-button
+                    v-permission="'alarm.confirm'"
                     v-else
                     link type="warning" size="small"
                     @click="handleUnconfirm(row as Alarm)"
                   >
                     <el-icon><CircleClose /></el-icon> 取消确认
                   </el-button>
-                  <el-button link type="primary" size="small" @click="handleClear(row as Alarm)">
+                  <el-button v-permission="'alarm.clear'" link type="primary" size="small" @click="handleClear(row as Alarm)">
                     <el-icon><Warning /></el-icon> 清除
                   </el-button>
-                  <el-button link type="info" size="small" @click="handleOpenComment(row as Alarm)">评论</el-button>
-                  <el-button link type="danger" size="small" @click="handleDeleteAlarm(row as Alarm)">
+                  <el-button v-permission="'alarm.comment'" link type="info" size="small" @click="handleOpenComment(row as Alarm)">评论</el-button>
+                  <el-button v-permission="'alarm.delete'" link type="danger" size="small" @click="handleDeleteAlarm(row as Alarm)">
                     <el-icon><Delete /></el-icon> 删除
                   </el-button>
                 </template>
@@ -1051,9 +1075,9 @@ watch(activeTab, (val) => {
             :before-upload="() => false"
             :on-change="handleImportLibrary"
           >
-            <el-button type="primary" :icon="Upload">导入</el-button>
+            <el-button v-permission="'alarm.library.import'" type="primary" :icon="Upload">导入</el-button>
           </el-upload>
-          <el-button :icon="Download" @click="handleDownloadTemplate">下载模板</el-button>
+          <el-button v-permission="'alarm.library.download'" :icon="Download" @click="handleDownloadTemplate">下载模板</el-button>
         </div>
 
         <el-table
@@ -1079,12 +1103,12 @@ watch(activeTab, (val) => {
           <el-table-column prop="explanation" label="说明" min-width="200" show-overflow-tooltip />
           <el-table-column prop="specificProblem" label="具体问题" min-width="180" show-overflow-tooltip />
           <el-table-column label="操作" width="100" fixed="right">
-            <template #default="{ row }">
-              <el-button link type="danger" size="small" @click="handleDeleteLibrary(row as AlarmLibraryType)">
-                <el-icon><Delete /></el-icon> 删除
-              </el-button>
-            </template>
-          </el-table-column>
+                <template #default="{ row }">
+                  <el-button v-permission="'alarm.library.delete'" link type="danger" size="small" @click="handleDeleteLibrary(row as AlarmLibraryType)">
+                    <el-icon><Delete /></el-icon> 删除
+                  </el-button>
+                </template>
+              </el-table-column>
         </el-table>
 
         <div class="pagination-wrapper">

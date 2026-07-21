@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import * as echarts from 'echarts';
 
 import { useAuthStore } from '@/stores/auth';
+import { useSettingsStore } from '@/stores/settings';
 import {
   getDeviceOnlineInfo,
   getProductTypeAndDeviceCount,
@@ -22,6 +23,7 @@ import type { SeverityCount } from '@/types';
 
 const { t } = useI18n();
 const authStore = useAuthStore();
+const settingsStore = useSettingsStore();
 
 const displayName = computed(() => authStore.username || t('login.username'));
 const today = computed(() =>
@@ -328,28 +330,27 @@ function updateCharts() {
   }
 }
 
-// ============ Auto-refresh (60s) ============
-let refreshTimer: ReturnType<typeof setInterval> | null = null;
+// ============ Auto-refresh (controlled by global setting) ============
 let countdownTimer: ReturnType<typeof setInterval> | null = null;
 
 function startAutoRefresh() {
   stopAutoRefresh();
-  refreshCountdown.value = 60;
+  refreshCountdown.value = settingsStore.autoRefreshInterval;
 
   countdownTimer = setInterval(() => {
     refreshCountdown.value--;
     if (refreshCountdown.value <= 0) {
-      refreshCountdown.value = 60;
-      loadDashboardData();
+      refreshCountdown.value = settingsStore.autoRefreshInterval;
+      if (settingsStore.autoRefreshEnabled) {
+        loadDashboardData();
+      }
     }
   }, 1000);
 }
 
 function stopAutoRefresh() {
   if (countdownTimer) clearInterval(countdownTimer);
-  if (refreshTimer) clearInterval(refreshTimer);
   countdownTimer = null;
-  refreshTimer = null;
 }
 
 // ============ Resize handling ============
