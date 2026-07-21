@@ -8,6 +8,7 @@
  * - SSH 访问定时器
  */
 import { reactive, ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   Search, Refresh, Plus, Edit, Delete, Timer, Connection,
@@ -25,6 +26,8 @@ import type {
   SSHLabel,
   SSHAccessTimerVO,
 } from '@/types/ssh';
+
+const { t } = useI18n();
 
 // ============ 状态 ============
 const activeTab = ref('terminal');
@@ -72,7 +75,7 @@ const timerForm = reactive({
 
 function connectWebSSH() {
   if (!connectForm.host || !connectForm.username) {
-    ElMessage.warning('请输入主机地址和用户名');
+    ElMessage.warning(t('ssh.inputHostAndUsername'));
     return;
   }
 
@@ -84,7 +87,7 @@ function connectWebSSH() {
 
   socket.onopen = () => {
     isConnected.value = true;
-    appendOutput('=== WebSSH 连接已建立 ===\n');
+    appendOutput(t('ssh.connected') + '\n');
     // 发送连接信息
     socket.send(JSON.stringify({
       type: 'connect',
@@ -101,12 +104,12 @@ function connectWebSSH() {
 
   socket.onerror = (e) => {
     console.error('[WebSSH] error:', e);
-    appendOutput('=== WebSSH 连接错误 ===\n');
+    appendOutput(t('ssh.connectionError') + '\n');
   };
 
   socket.onclose = () => {
     isConnected.value = false;
-    appendOutput('=== WebSSH 连接已关闭 ===\n');
+    appendOutput(t('ssh.connectionClosed') + '\n');
     ws.value = null;
   };
 }
@@ -178,16 +181,16 @@ function openEditLabel(row: SSHLabel) {
 
 async function saveLabel() {
   if (!labelForm.name || !labelForm.content) {
-    ElMessage.warning('请输入名称和内容');
+    ElMessage.warning(t('ssh.inputNameAndContent'));
     return;
   }
   try {
     if (isEditLabel.value) {
       await updateSSHLabel({ id: labelForm.id, name: labelForm.name, content: labelForm.content });
-      ElMessage.success('更新成功');
+      ElMessage.success(t('ssh.updateSuccess'));
     } else {
       await addSSHLabel({ name: labelForm.name, content: labelForm.content });
-      ElMessage.success('添加成功');
+      ElMessage.success(t('ssh.addSuccess'));
     }
     labelDialogVisible.value = false;
     loadLabels();
@@ -198,9 +201,9 @@ async function saveLabel() {
 
 async function handleDeleteLabel(row: SSHLabel) {
   try {
-    await ElMessageBox.confirm(`确定要删除标签 "${row.name}" 吗？`, '删除确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('ssh.deleteLabelConfirm', { name: row.name }), t('ssh.deleteConfirmTitle'), { type: 'warning' });
     await deleteSSHLabel({ id: row.id });
-    ElMessage.success('删除成功');
+    ElMessage.success(t('common.deleteSuccess'));
     loadLabels();
   } catch (e) {
     if (e !== 'cancel') console.error('[SSH] delete label failed:', e);
@@ -245,7 +248,7 @@ function openTimerDialog() {
 
 async function saveTimer() {
   if (!timerForm.elementIds) {
-    ElMessage.warning('请输入设备 ID');
+    ElMessage.warning(t('ssh.inputDeviceId'));
     return;
   }
   try {
@@ -255,7 +258,7 @@ async function saveTimer() {
       deviceGroupIds: [],
       deadline: timerForm.deadline,
     });
-    ElMessage.success('设置成功');
+    ElMessage.success(t('ssh.setSuccess'));
     timerDialogVisible.value = false;
     loadTimers();
   } catch (e) {
@@ -282,24 +285,24 @@ onUnmounted(() => {
   <div class="ssh-management-page">
     <el-tabs v-model="activeTab" type="border-card">
       <!-- WebSSH 终端 -->
-      <el-tab-pane label="WebSSH 终端" name="terminal">
+      <el-tab-pane :label="t('ssh.websshTerminal')" name="terminal">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true">
-            <el-form-item label="主机">
-              <el-input v-model="connectForm.host" placeholder="IP 或域名" style="width: 150px" :disabled="isConnected" />
+            <el-form-item :label="t('ssh.host')">
+              <el-input v-model="connectForm.host" :placeholder="t('ssh.hostPlaceholder')" style="width: 150px" :disabled="isConnected" />
             </el-form-item>
-            <el-form-item label="端口">
+            <el-form-item :label="t('ssh.port')">
               <el-input-number v-model="connectForm.port" :min="1" :max="65535" style="width: 100px" :disabled="isConnected" />
             </el-form-item>
-            <el-form-item label="用户名">
-              <el-input v-model="connectForm.username" placeholder="用户名" style="width: 120px" :disabled="isConnected" />
+            <el-form-item :label="t('ssh.username')">
+              <el-input v-model="connectForm.username" :placeholder="t('ssh.usernamePlaceholder')" style="width: 120px" :disabled="isConnected" />
             </el-form-item>
-            <el-form-item label="密码">
-              <el-input v-model="connectForm.password" type="password" placeholder="密码" style="width: 120px" :disabled="isConnected" show-password />
+            <el-form-item :label="t('ssh.password')">
+              <el-input v-model="connectForm.password" type="password" :placeholder="t('ssh.passwordPlaceholder')" style="width: 120px" :disabled="isConnected" show-password />
             </el-form-item>
             <el-form-item>
-              <el-button v-if="!isConnected" type="primary" :icon="Connection" @click="connectWebSSH">连接</el-button>
-              <el-button v-else type="danger" @click="disconnectWebSSH">断开</el-button>
+              <el-button v-if="!isConnected" type="primary" :icon="Connection" @click="connectWebSSH">{{ t('ssh.connect') }}</el-button>
+              <el-button v-else type="danger" @click="disconnectWebSSH">{{ t('ssh.disconnect') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -312,18 +315,18 @@ onUnmounted(() => {
             <el-input
               v-model="terminalInput"
               class="terminal-input"
-              placeholder="输入命令后按回车"
+              :placeholder="t('ssh.enterCommand')"
               :disabled="!isConnected"
               @keydown="handleKeydown"
             />
-            <el-button :disabled="!isConnected" type="primary" size="small" @click="sendCommand">发送</el-button>
+            <el-button :disabled="!isConnected" type="primary" size="small" @click="sendCommand">{{ t('ssh.send') }}</el-button>
           </div>
         </el-card>
 
         <!-- 快速标签 -->
         <el-card v-if="labelList.length > 0" shadow="never" :body-style="{ padding: '12px' }">
           <div class="label-tags">
-            <span class="label-tags__title">快速插入：</span>
+            <span class="label-tags__title">{{ t('ssh.fastInsert') }}</span>
             <el-tag
               v-for="label in labelList"
               :key="label.id"
@@ -338,23 +341,23 @@ onUnmounted(() => {
       </el-tab-pane>
 
       <!-- SSH 标签 -->
-      <el-tab-pane label="SSH 标签" name="labels">
+      <el-tab-pane :label="t('ssh.sshLabels')" name="labels">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
-          <el-button type="success" :icon="Plus" @click="openAddLabel">新增标签</el-button>
+          <el-button type="success" :icon="Plus" @click="openAddLabel">{{ t('ssh.addLabel') }}</el-button>
         </el-card>
 
         <el-card shadow="never" :body-style="{ padding: '0' }">
           <el-table v-loading="labelLoading" :data="labelList" stripe border style="width: 100%">
             <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="name" label="名称" min-width="150" />
-            <el-table-column prop="content" label="内容" min-width="300" show-overflow-tooltip />
-            <el-table-column label="操作" width="150" fixed="right">
+            <el-table-column prop="name" :label="t('ssh.name')" min-width="150" />
+            <el-table-column prop="content" :label="t('ssh.content')" min-width="300" show-overflow-tooltip />
+            <el-table-column :label="t('common.actions')" width="150" fixed="right">
               <template #default="{ row }">
                 <el-button link type="primary" size="small" @click="openEditLabel(row as SSHLabel)">
-                  <Edit /> 编辑
+                  <Edit /> {{ t('common.edit') }}
                 </el-button>
                 <el-button link type="danger" size="small" @click="handleDeleteLabel(row as SSHLabel)">
-                  <Delete /> 删除
+                  <Delete /> {{ t('common.delete') }}
                 </el-button>
               </template>
             </el-table-column>
@@ -363,16 +366,16 @@ onUnmounted(() => {
       </el-tab-pane>
 
       <!-- SSH 访问定时器 -->
-      <el-tab-pane label="访问定时器" name="timers">
+      <el-tab-pane :label="t('ssh.sshAccessTimer')" name="timers">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true" @submit.prevent="handleTimerSearch">
-            <el-form-item label="设备 ID">
-              <el-input v-model="timerQuery.elementId" placeholder="设备 ID" clearable style="width: 120px" @keyup.enter="handleTimerSearch" />
+            <el-form-item :label="t('ssh.deviceId')">
+              <el-input v-model="timerQuery.elementId" :placeholder="t('ssh.deviceIdPlaceholder')" clearable style="width: 120px" @keyup.enter="handleTimerSearch" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Search" @click="handleTimerSearch">搜索</el-button>
-              <el-button :icon="Refresh" @click="handleTimerReset">重置</el-button>
-              <el-button type="success" :icon="Timer" @click="openTimerDialog">设置定时器</el-button>
+              <el-button type="primary" :icon="Search" @click="handleTimerSearch">{{ t('common.search') }}</el-button>
+              <el-button :icon="Refresh" @click="handleTimerReset">{{ t('common.reset') }}</el-button>
+              <el-button type="success" :icon="Timer" @click="openTimerDialog">{{ t('ssh.setTimer') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -380,13 +383,13 @@ onUnmounted(() => {
         <el-card shadow="never" :body-style="{ padding: '0' }">
           <el-table v-loading="timerLoading" :data="timerList" stripe border style="width: 100%">
             <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="deviceName" label="设备名称" min-width="140" />
-            <el-table-column prop="serialNumber" label="序列号" min-width="140" />
-            <el-table-column prop="sshStatus" label="SSH 状态" width="100" />
-            <el-table-column prop="deadline" label="截止时间" min-width="160">
+            <el-table-column prop="deviceName" :label="t('ssh.deviceName')" min-width="140" />
+            <el-table-column prop="serialNumber" :label="t('ssh.serialNumber')" min-width="140" />
+            <el-table-column prop="sshStatus" :label="t('ssh.sshStatus')" width="100" />
+            <el-table-column prop="deadline" :label="t('ssh.deadline')" min-width="160">
               <template #default="{ row }">{{ formatTime(row.deadline) }}</template>
             </el-table-column>
-            <el-table-column prop="tenancyName" label="租户" width="120" />
+            <el-table-column prop="tenancyName" :label="t('ssh.tenancy')" width="120" />
           </el-table>
 
           <div class="pagination-wrapper">
@@ -406,34 +409,34 @@ onUnmounted(() => {
     </el-tabs>
 
     <!-- 标签弹窗 -->
-    <el-dialog v-model="labelDialogVisible" :title="isEditLabel ? '编辑标签' : '新增标签'" width="400px">
+    <el-dialog v-model="labelDialogVisible" :title="isEditLabel ? t('ssh.editLabel') : t('ssh.addLabel')" width="400px">
       <el-form label-width="80px">
-        <el-form-item label="名称">
-          <el-input v-model="labelForm.name" placeholder="标签名称" />
+        <el-form-item :label="t('ssh.name')">
+          <el-input v-model="labelForm.name" :placeholder="t('ssh.labelName')" />
         </el-form-item>
-        <el-form-item label="内容">
-          <el-input v-model="labelForm.content" type="textarea" :rows="4" placeholder="标签内容（命令或文本）" />
+        <el-form-item :label="t('ssh.content')">
+          <el-input v-model="labelForm.content" type="textarea" :rows="4" :placeholder="t('ssh.labelContent')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="labelDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveLabel">保存</el-button>
+        <el-button @click="labelDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="saveLabel">{{ t('common.save') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 定时器弹窗 -->
-    <el-dialog v-model="timerDialogVisible" title="设置 SSH 访问定时器" width="400px">
+    <el-dialog v-model="timerDialogVisible" :title="t('ssh.setAccessTimer')" width="400px">
       <el-form label-width="100px">
-        <el-form-item label="设备 ID">
-          <el-input v-model="timerForm.elementIds" placeholder="多个 ID 用逗号分隔" />
+        <el-form-item :label="t('ssh.deviceId')">
+          <el-input v-model="timerForm.elementIds" :placeholder="t('ssh.multipleIdsHint')" />
         </el-form-item>
-        <el-form-item label="时长（秒）">
+        <el-form-item :label="t('ssh.duration')">
           <el-input-number v-model="timerForm.deadline" :min="60" :step="60" style="width: 100%" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="timerDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveTimer">保存</el-button>
+        <el-button @click="timerDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="saveTimer">{{ t('common.save') }}</el-button>
       </template>
     </el-dialog>
   </div>

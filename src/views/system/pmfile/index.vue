@@ -4,7 +4,7 @@
       <div class="toolbar">
         <el-input
           v-model="searchSN"
-          placeholder="搜索设备SN"
+          :placeholder="t('pmfile.searchDeviceSn')"
           style="width: 200px"
           clearable
           @keyup.enter="loadPMFiles"
@@ -18,32 +18,32 @@
           :auto-upload="false"
           ref="uploadRef"
         >
-          <el-button type="primary">上传PM文件</el-button>
+          <el-button type="primary">{{ t('pmfile.uploadPMFile') }}</el-button>
         </el-upload>
       </div>
       <el-table :data="pmFiles" v-loading="loading" @selection-change="handleSelectionChange" border style="margin-top: 20px">
         <el-table-column type="selection" width="55" />
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="name" label="文件名" min-width="200" />
-        <el-table-column prop="size" label="大小(KB)" width="100">
+        <el-table-column prop="id" :label="t('pmfile.id')" width="80" />
+        <el-table-column prop="name" :label="t('pmfile.fileName')" min-width="200" />
+        <el-table-column prop="size" :label="t('pmfile.sizeKB')" width="100">
           <template #default="{ row }">{{ ((row as PMFile).size / 1024).toFixed(2) }}</template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="status" :label="t('pmfile.status')" width="100">
           <template #default="{ row }">
             <el-tag :type="(row as PMFile).status === 'SUCCESS' ? 'success' : 'warning'">
               {{ (row as PMFile).status }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="deviceSn" label="设备SN" width="150" />
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="150">
+        <el-table-column prop="deviceSn" :label="t('pmfile.deviceSn')" width="150" />
+        <el-table-column prop="createTime" :label="t('pmfile.createTime')" width="180" />
+        <el-table-column :label="t('common.actions')" width="150">
           <template #default="{ row }">
             <el-button type="primary" size="small" @click="handleDownload((row as PMFile).id)">
-              下载
+              {{ t('common.download') }}
             </el-button>
             <el-button type="danger" size="small" @click="handleDelete((row as PMFile).id)">
-              删除
+              {{ t('common.delete') }}
             </el-button>
           </template>
         </el-table-column>
@@ -64,8 +64,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { ElMessage, ElMessageBox, ElUpload, type UploadUserFile } from 'element-plus';
+import { useI18n } from 'vue-i18n';
 import type { PMFile } from '@/types/pmfile';
 import { listPMFiles, downloadPMFile, deletePMFile, uploadPMFile } from '@/api/pmfile';
+
+const { t } = useI18n();
 
 const loading = ref(false);
 const pmFiles = ref<PMFile[]>([]);
@@ -97,13 +100,13 @@ async function loadPMFiles() {
 function handleSelectionChange() {}
 
 function handleUploadSuccess() {
-  ElMessage.success('上传成功');
+  ElMessage.success(t('pmfile.uploadSuccess'));
   uploadFileList.value = [];
   loadPMFiles();
 }
 
 function handleUploadError() {
-  ElMessage.error('上传失败');
+  ElMessage.error(t('pmfile.uploadFailed'));
 }
 
 function handleDownload(id: number) {
@@ -113,9 +116,9 @@ function handleDownload(id: number) {
 
 async function handleDelete(id: number) {
   try {
-    await ElMessageBox.confirm('确定要删除吗？', '提示', { type: 'warning' });
+    await ElMessageBox.confirm(t('pmfile.deleteConfirm'), t('common.tip'), { type: 'warning' });
     await deletePMFile(id);
-    ElMessage.success('删除成功');
+    ElMessage.success(t('pmfile.deleteSuccess'));
     await loadPMFiles();
   } catch (e: unknown) {
     // cancelled

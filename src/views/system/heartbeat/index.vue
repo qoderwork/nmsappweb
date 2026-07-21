@@ -2,23 +2,23 @@
   <div class="heartbeat-container">
     <el-card>
       <div class="toolbar">
-        <el-button type="primary" @click="handleSendHeartbeat">发送心跳</el-button>
+        <el-button type="primary" @click="handleSendHeartbeat">{{ t('heartbeat.sendHeartbeat') }}</el-button>
       </div>
       <el-table :data="heartbeatStatusList" v-loading="loading" border style="margin-top: 20px">
-        <el-table-column prop="sn" label="设备SN" min-width="150" />
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="sn" :label="t('heartbeat.deviceSn')" min-width="150" />
+        <el-table-column prop="status" :label="t('common.status')" width="100">
           <template #default="{ row }">
             <el-tag :type="(row as HeartbeatStatus).status === 'ONLINE' ? 'success' : 'danger'">
-              {{ (row as HeartbeatStatus).status === 'ONLINE' ? '在线' : '离线' }}
+              {{ (row as HeartbeatStatus).status === 'ONLINE' ? t('heartbeat.online') : t('heartbeat.offline') }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="deviceType" label="设备类型" width="120" />
-        <el-table-column prop="lastHeartbeatTime" label="最后心跳时间" width="180" />
-        <el-table-column label="操作" width="100">
+        <el-table-column prop="deviceType" :label="t('heartbeat.deviceType')" width="120" />
+        <el-table-column prop="lastHeartbeatTime" :label="t('heartbeat.lastHeartbeatTime')" width="180" />
+        <el-table-column :label="t('common.actions')" width="100">
           <template #default="{ row }">
             <el-button type="primary" size="small" @click="handleSendHeartbeatBySN((row as HeartbeatStatus).sn)">
-              发送
+              {{ t('heartbeat.send') }}
             </el-button>
           </template>
         </el-table-column>
@@ -39,8 +39,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
+import { useI18n } from 'vue-i18n';
 import type { HeartbeatStatus } from '@/types/heartbeat';
 import { listHeartbeatStatus, sendHeartbeat } from '@/api/heartbeat';
+
+const { t } = useI18n();
 
 const loading = ref(false);
 const heartbeatStatusList = ref<HeartbeatStatus[]>([]);
@@ -62,16 +65,16 @@ async function loadHeartbeatStatus() {
 }
 
 async function handleSendHeartbeat() {
-  ElMessage.info('请选择具体设备发送心跳');
+  ElMessage.info(t('heartbeat.pleaseSelectDeviceToSend'));
 }
 
 async function handleSendHeartbeatBySN(sn: string) {
   try {
     await sendHeartbeat(sn);
-    ElMessage.success('心跳发送成功');
+    ElMessage.success(t('heartbeat.heartbeatSendSuccess'));
     await loadHeartbeatStatus();
   } catch (e: unknown) {
-    ElMessage.error('发送失败');
+    ElMessage.error(t('heartbeat.sendFailed'));
   }
 }
 

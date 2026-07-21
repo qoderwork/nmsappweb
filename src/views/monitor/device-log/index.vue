@@ -12,6 +12,7 @@
 import { reactive, ref, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Search, Refresh, Download, Delete, Collection, Timer } from '@element-plus/icons-vue';
+import { useI18n } from 'vue-i18n';
 
 import {
   listLogCollectionResults,
@@ -24,6 +25,8 @@ import {
   disablePeriodicUpload,
 } from '@/api/device-log';
 import type { LogCollectionResultVo, LogFileVo } from '@/types/device-log';
+
+const { t } = useI18n();
 
 // ============ 状态 ============
 const activeTab = ref('collection');
@@ -90,7 +93,7 @@ async function loadCollectionResults() {
 /** 加载设备日志文件 */
 async function loadLogFiles() {
   if (!logFileQuery.elementId) {
-    ElMessage.warning('请先输入设备 ID');
+    ElMessage.warning(t('deviceLog.enterDeviceIdFirst'));
     return;
   }
   fileLoading.value = true;
@@ -140,7 +143,7 @@ function handleCollectionSizeChange(size: number) {
 async function handleDownloadFile(row: LogFileVo | LogCollectionResultVo) {
   try {
     await downloadLogFile({ logId: row.id });
-    ElMessage.success('开始下载');
+    ElMessage.success(t('deviceLog.startDownload'));
   } catch (e) {
     console.error('[DeviceLog] download failed:', e);
   }
@@ -149,9 +152,9 @@ async function handleDownloadFile(row: LogFileVo | LogCollectionResultVo) {
 /** 删除日志文件 */
 async function handleDeleteFile(row: LogFileVo) {
   try {
-    await ElMessageBox.confirm(`确定要删除日志文件 "${row.fileName}" 吗？`, '删除确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('deviceLog.deleteFileConfirm', { name: row.fileName }), t('deviceLog.deleteConfirmTitle'), { type: 'warning' });
     await deleteLogFile({ logId: row.id });
-    ElMessage.success('删除成功');
+    ElMessage.success(t('deviceLog.deleteSuccess'));
     loadLogFiles();
   } catch (e) {
     if (e !== 'cancel') console.error('[DeviceLog] delete failed:', e);
@@ -161,13 +164,13 @@ async function handleDeleteFile(row: LogFileVo) {
 /** 删除全部日志 */
 async function handleDeleteAll() {
   if (!logFileQuery.elementId) {
-    ElMessage.warning('请先输入设备 ID');
+    ElMessage.warning(t('deviceLog.enterDeviceIdFirst'));
     return;
   }
   try {
-    await ElMessageBox.confirm('确定要删除该设备的全部日志文件吗？', '删除确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('deviceLog.deleteAllConfirm'), t('deviceLog.deleteConfirmTitle'), { type: 'warning' });
     await deleteAllLogFile({ elementId: Number(logFileQuery.elementId) });
-    ElMessage.success('删除成功');
+    ElMessage.success(t('deviceLog.deleteSuccess'));
     loadLogFiles();
   } catch (e) {
     if (e !== 'cancel') console.error('[DeviceLog] delete all failed:', e);
@@ -184,17 +187,17 @@ function openCollectionDialog() {
 /** 提交采集任务 */
 async function submitCollection() {
   if (!collectionForm.elementIds.trim()) {
-    ElMessage.warning('请输入设备 ID');
+    ElMessage.warning(t('deviceLog.enterDeviceIdRequired'));
     return;
   }
   try {
     const ids = collectionForm.elementIds.split(',').map((s) => Number(s.trim())).filter((n) => !isNaN(n));
     if (ids.length === 0) {
-      ElMessage.warning('设备 ID 格式错误');
+      ElMessage.warning(t('deviceLog.deviceIdFormatError'));
       return;
     }
     await addLogCollectionTask({ elementIds: ids, logType: collectionForm.logType });
-    ElMessage.success('采集任务已下发');
+    ElMessage.success(t('deviceLog.taskDispatched'));
     collectionDialogVisible.value = false;
     loadCollectionResults();
   } catch (e) {
@@ -213,17 +216,17 @@ function openPeriodicDialog() {
 /** 提交周期性上传配置 */
 async function submitPeriodic() {
   if (!periodicForm.elementId) {
-    ElMessage.warning('请输入设备 ID');
+    ElMessage.warning(t('deviceLog.enterDeviceIdRequired'));
     return;
   }
   try {
     const elementId = Number(periodicForm.elementId);
     if (periodicForm.enable) {
       await enablePeriodicUpload({ elementId, interval: periodicForm.interval });
-      ElMessage.success('已启用周期性上传');
+      ElMessage.success(t('deviceLog.periodicEnabled'));
     } else {
       await disablePeriodicUpload({ elementId });
-      ElMessage.success('已禁用周期性上传');
+      ElMessage.success(t('deviceLog.periodicDisabled'));
     }
     periodicDialogVisible.value = false;
   } catch (e) {
@@ -247,10 +250,10 @@ function formatFileSize(size?: number | null): string {
 
 /** 获取状态文本 */
 function getStatusText(status?: number): string {
-  if (status === 0) return '待处理';
-  if (status === 1) return '成功';
-  if (status === 3) return '失败';
-  return '未知';
+  if (status === 0) return t('deviceLog.pending');
+  if (status === 1) return t('deviceLog.success');
+  if (status === 3) return t('deviceLog.failed');
+  return t('deviceLog.unknown');
 }
 
 function getStatusType(status?: number): 'success' | 'warning' | 'danger' | 'info' {
@@ -269,27 +272,27 @@ onMounted(() => {
   <div class="device-log-page">
     <el-tabs v-model="activeTab" type="border-card">
       <!-- 日志采集结果 -->
-      <el-tab-pane label="采集结果" name="collection">
+      <el-tab-pane :label="t('deviceLog.collectionResult')" name="collection">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true" @submit.prevent="handleSearchCollection">
-            <el-form-item label="设备 ID">
-              <el-input v-model="collectionQuery.elementId" placeholder="设备 ID" clearable style="width: 120px" @keyup.enter="handleSearchCollection" />
+            <el-form-item :label="t('deviceLog.deviceId')">
+              <el-input v-model="collectionQuery.elementId" :placeholder="t('deviceLog.deviceId')" clearable style="width: 120px" @keyup.enter="handleSearchCollection" />
             </el-form-item>
-            <el-form-item label="设备类型">
-              <el-input v-model="collectionQuery.deviceType" placeholder="设备类型" clearable style="width: 120px" @keyup.enter="handleSearchCollection" />
+            <el-form-item :label="t('deviceLog.deviceType')">
+              <el-input v-model="collectionQuery.deviceType" :placeholder="t('deviceLog.deviceType')" clearable style="width: 120px" @keyup.enter="handleSearchCollection" />
             </el-form-item>
-            <el-form-item label="状态">
-              <el-select v-model="collectionQuery.status" placeholder="全部" clearable style="width: 100px">
-                <el-option label="待处理" :value="0" />
-                <el-option label="成功" :value="1" />
-                <el-option label="失败" :value="3" />
+            <el-form-item :label="t('deviceLog.status')">
+              <el-select v-model="collectionQuery.status" :placeholder="t('common.all')" clearable style="width: 100px">
+                <el-option :label="t('deviceLog.pending')" :value="0" />
+                <el-option :label="t('deviceLog.success')" :value="1" />
+                <el-option :label="t('deviceLog.failed')" :value="3" />
               </el-select>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Search" @click="handleSearchCollection">搜索</el-button>
-              <el-button :icon="Refresh" @click="handleResetCollection">重置</el-button>
-              <el-button type="success" :icon="Collection" @click="openCollectionDialog">采集任务</el-button>
-              <el-button type="warning" :icon="Timer" @click="openPeriodicDialog">周期性上传</el-button>
+              <el-button type="primary" :icon="Search" @click="handleSearchCollection">{{ t('common.search') }}</el-button>
+              <el-button :icon="Refresh" @click="handleResetCollection">{{ t('common.reset') }}</el-button>
+              <el-button type="success" :icon="Collection" @click="openCollectionDialog">{{ t('deviceLog.collectionTask') }}</el-button>
+              <el-button type="warning" :icon="Timer" @click="openPeriodicDialog">{{ t('deviceLog.periodicUpload') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -297,26 +300,26 @@ onMounted(() => {
         <el-card shadow="never" :body-style="{ padding: '0' }">
           <el-table v-loading="loading" :data="collectionResults" stripe border style="width: 100%">
             <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="elementId" label="设备 ID" width="100" />
-            <el-table-column prop="deviceName" label="设备名称" min-width="140" />
-            <el-table-column prop="serialNumber" label="序列号" min-width="140" />
-            <el-table-column prop="fileName" label="文件名" min-width="200" show-overflow-tooltip />
-            <el-table-column prop="fileSize" label="大小" width="100">
+            <el-table-column prop="elementId" :label="t('deviceLog.deviceId')" width="100" />
+            <el-table-column prop="deviceName" :label="t('device.name')" min-width="140" />
+            <el-table-column prop="serialNumber" :label="t('device.serialNumber')" min-width="140" />
+            <el-table-column prop="fileName" :label="t('deviceLog.fileName')" min-width="200" show-overflow-tooltip />
+            <el-table-column prop="fileSize" :label="t('deviceLog.fileSize')" width="100">
               <template #default="{ row }">{{ formatFileSize(row.fileSize) }}</template>
             </el-table-column>
-            <el-table-column prop="collectionTime" label="采集时间" min-width="160">
+            <el-table-column prop="collectionTime" :label="t('deviceLog.collectionTime')" min-width="160">
               <template #default="{ row }">{{ formatTime(row.collectionTime) }}</template>
             </el-table-column>
-            <el-table-column prop="status" label="状态" width="90" align="center">
+            <el-table-column prop="status" :label="t('deviceLog.status')" width="90" align="center">
               <template #default="{ row }">
                 <el-tag :type="getStatusType(row.status)" size="small">{{ getStatusText(row.status) }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="failureReason" label="失败原因" min-width="160" show-overflow-tooltip />
-            <el-table-column label="操作" width="100" fixed="right">
+            <el-table-column prop="failureReason" :label="t('deviceLog.failureReason')" min-width="160" show-overflow-tooltip />
+            <el-table-column :label="t('common.actions')" width="100" fixed="right">
               <template #default="{ row }">
                 <el-button link type="primary" size="small" @click="handleDownloadFile(row as LogCollectionResultVo)">
-                  <Download /> 下载
+                  <Download /> {{ t('deviceLog.download') }}
                 </el-button>
               </template>
             </el-table-column>
@@ -338,15 +341,15 @@ onMounted(() => {
       </el-tab-pane>
 
       <!-- 设备日志文件 -->
-      <el-tab-pane label="日志文件" name="files">
+      <el-tab-pane :label="t('deviceLog.logFiles')" name="files">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true" @submit.prevent="loadLogFiles">
-            <el-form-item label="设备 ID">
-              <el-input v-model="logFileQuery.elementId" placeholder="设备 ID" clearable style="width: 150px" @keyup.enter="loadLogFiles" />
+            <el-form-item :label="t('deviceLog.deviceId')">
+              <el-input v-model="logFileQuery.elementId" :placeholder="t('deviceLog.deviceId')" clearable style="width: 150px" @keyup.enter="loadLogFiles" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Search" @click="loadLogFiles">查询</el-button>
-              <el-button type="danger" :icon="Delete" @click="handleDeleteAll">删除全部</el-button>
+              <el-button type="primary" :icon="Search" @click="loadLogFiles">{{ t('deviceLog.query') }}</el-button>
+              <el-button type="danger" :icon="Delete" @click="handleDeleteAll">{{ t('deviceLog.deleteAll') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -354,20 +357,20 @@ onMounted(() => {
         <el-card shadow="never" :body-style="{ padding: '0' }">
           <el-table v-loading="fileLoading" :data="logFiles" stripe border style="width: 100%">
             <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="fileName" label="文件名" min-width="280" show-overflow-tooltip />
-            <el-table-column prop="fileSize" label="大小" width="100">
+            <el-table-column prop="fileName" :label="t('deviceLog.fileName')" min-width="280" show-overflow-tooltip />
+            <el-table-column prop="fileSize" :label="t('deviceLog.fileSize')" width="100">
               <template #default="{ row }">{{ formatFileSize(row.fileSize) }}</template>
             </el-table-column>
-            <el-table-column prop="collectionTime" label="采集时间" min-width="160">
+            <el-table-column prop="collectionTime" :label="t('deviceLog.collectionTime')" min-width="160">
               <template #default="{ row }">{{ formatTime(row.collectionTime) }}</template>
             </el-table-column>
-            <el-table-column label="操作" width="150" fixed="right">
+            <el-table-column :label="t('common.actions')" width="150" fixed="right">
               <template #default="{ row }">
                 <el-button link type="primary" size="small" @click="handleDownloadFile(row as LogFileVo)">
-                  <Download /> 下载
+                  <Download /> {{ t('deviceLog.download') }}
                 </el-button>
                 <el-button link type="danger" size="small" @click="handleDeleteFile(row as LogFileVo)">
-                  <Delete /> 删除
+                  <Delete /> {{ t('deviceLog.delete') }}
                 </el-button>
               </template>
             </el-table-column>
@@ -390,41 +393,41 @@ onMounted(() => {
     </el-tabs>
 
     <!-- 采集任务弹窗 -->
-    <el-dialog v-model="collectionDialogVisible" title="添加日志采集任务" width="400px">
+    <el-dialog v-model="collectionDialogVisible" :title="t('deviceLog.addCollectionTask')" width="400px">
       <el-form label-width="100px">
-        <el-form-item label="设备 ID" prop="elementIds">
-          <el-input v-model="collectionForm.elementIds" placeholder="多个 ID 用逗号分隔" />
+        <el-form-item :label="t('deviceLog.deviceId')" prop="elementIds">
+          <el-input v-model="collectionForm.elementIds" :placeholder="t('deviceLog.multipleIdsHint')" />
         </el-form-item>
-        <el-form-item label="日志类型">
+        <el-form-item :label="t('deviceLog.logType')">
           <el-select v-model="collectionForm.logType" style="width: 100%">
-            <el-option label="全部" value="all" />
-            <el-option label="系统日志" value="syslog" />
-            <el-option label="崩溃日志" value="crash" />
+            <el-option :label="t('common.all')" value="all" />
+            <el-option :label="t('deviceLog.syslog')" value="syslog" />
+            <el-option :label="t('deviceLog.crashLog')" value="crash" />
           </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="collectionDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitCollection">确定</el-button>
+        <el-button @click="collectionDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="submitCollection">{{ t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 周期性上传弹窗 -->
-    <el-dialog v-model="periodicDialogVisible" title="周期性上传配置" width="400px">
+    <el-dialog v-model="periodicDialogVisible" :title="t('deviceLog.periodicUploadConfig')" width="400px">
       <el-form label-width="100px">
-        <el-form-item label="设备 ID">
-          <el-input v-model="periodicForm.elementId" placeholder="设备 ID" />
+        <el-form-item :label="t('deviceLog.deviceId')">
+          <el-input v-model="periodicForm.elementId" :placeholder="t('deviceLog.deviceId')" />
         </el-form-item>
-        <el-form-item label="启用">
+        <el-form-item :label="t('common.enabled')">
           <el-switch v-model="periodicForm.enable" />
         </el-form-item>
-        <el-form-item label="间隔（秒）" v-if="periodicForm.enable">
+        <el-form-item :label="t('deviceLog.intervalSeconds')" v-if="periodicForm.enable">
           <el-input-number v-model="periodicForm.interval" :min="60" :step="60" style="width: 100%" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="periodicDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submitPeriodic">确定</el-button>
+        <el-button @click="periodicDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="submitPeriodic">{{ t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
   </div>

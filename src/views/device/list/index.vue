@@ -231,7 +231,7 @@ function openAddDialog() {
 
 async function handleAddDevice() {
   if (!addForm.serialNumbers.trim()) {
-    ElMessage.warning('请输入序列号');
+    ElMessage.warning(t('device.enterSnRequired'));
     return;
   }
   addDialogLoading.value = true;
@@ -247,7 +247,7 @@ async function handleAddDevice() {
         ne_areaid: addForm.groupId ? Number(addForm.groupId) : undefined,
       } as Partial<Device>);
     }
-    ElMessage.success(`成功添加 ${serials.length} 个设备`);
+    ElMessage.success(t('device.addedCount', { count: serials.length }));
     addDialogVisible.value = false;
     loadData();
   } catch (e) {
@@ -271,7 +271,7 @@ function handleFileChange(uploadFile: any) {
 
 async function handleImportDevice() {
   if (!importForm.file) {
-    ElMessage.warning('请选择文件');
+    ElMessage.warning(t('device.selectFileRequired'));
     return;
   }
   importDialogLoading.value = true;
@@ -280,7 +280,7 @@ async function handleImportDevice() {
       deviceGroupId: importForm.groupId || undefined,
     });
     ElMessage.success(
-      `导入完成：新增 ${result.addedCount}，修改 ${result.modifiedCount}，失败 ${result.failedCount}`
+      t('device.importComplete', { added: result.addedCount, modified: result.modifiedCount, failed: result.failedCount })
     );
     importDialogVisible.value = false;
     loadData();
@@ -310,8 +310,8 @@ async function handleBatchDelete() {
   if (selectedRows.value.length === 0) return;
   try {
     await ElMessageBox.confirm(
-      `确定要删除选中的 ${selectedRows.value.length} 个设备吗？此操作不可恢复。`,
-      '批量删除确认',
+      t('device.confirmBatchDelete', { count: selectedRows.value.length }),
+      t('device.batchDeleteConfirm'),
       { type: 'warning' }
     );
     loading.value = true;
@@ -325,7 +325,7 @@ async function handleBatchDelete() {
         failCount++;
       }
     }
-    ElMessage.success(`删除完成：成功 ${successCount}，失败 ${failCount}`);
+    ElMessage.success(t('device.deleteResult', { success: successCount, fail: failCount }));
     selectedRows.value = [];
     loadData();
   } catch (e) {
@@ -341,24 +341,24 @@ async function handleBatchDelete() {
 
 function handleExport() {
   if (tableData.value.length === 0) {
-    ElMessage.warning('没有数据可导出');
+    ElMessage.warning(t('device.noDataToExport'));
     return;
   }
   const columns = [
-    { key: 'serial_number', label: '序列号' },
-    { key: 'device_name', label: '设备名称' },
-    { key: 'device_type', label: '设备类型' },
-    { key: 'generation', label: '代次' },
-    { key: 'product', label: '产品' },
-    { key: 'model_name', label: '型号' },
-    { key: 'device_ip', label: 'IP 地址' },
-    { key: 'software_version', label: '软件版本' },
-    { key: 'hardware_version', label: '硬件版本' },
-    { key: 'status', label: '状态' },
-    { key: 'site_id', label: '站点 ID' },
-    { key: 'longitude', label: '经度' },
-    { key: 'latitude', label: '纬度' },
-    { key: 'creation_time', label: '创建时间' },
+    { key: 'serial_number', label: t('device.sn') },
+    { key: 'device_name', label: t('device.name') },
+    { key: 'device_type', label: t('device.deviceType') },
+    { key: 'generation', label: t('device.generation') },
+    { key: 'product', label: t('device.product') },
+    { key: 'model_name', label: t('device.model') },
+    { key: 'device_ip', label: t('device.ip') },
+    { key: 'software_version', label: t('device.softwareVersion') },
+    { key: 'hardware_version', label: t('device.hardwareVersion') },
+    { key: 'status', label: t('device.status') },
+    { key: 'site_id', label: t('device.siteId') },
+    { key: 'longitude', label: t('device.longitude') },
+    { key: 'latitude', label: t('device.latitude') },
+    { key: 'creation_time', label: t('device.createTime') },
   ];
 
   const escapeCsv = (val: unknown): string => {
@@ -382,7 +382,7 @@ function handleExport() {
   link.download = `devices_${new Date().toISOString().slice(0, 10)}.csv`;
   link.click();
   URL.revokeObjectURL(url);
-  ElMessage.success('导出成功');
+  ElMessage.success(t('device.exportSuccess'));
 }
 
 // ============ 右键菜单 ============
@@ -450,8 +450,8 @@ function handleView(row: Device) {
 async function handleDelete(row: Device) {
   try {
     await ElMessageBox.confirm(
-      `确定要删除设备 "${row.device_name || row.serial_number}" 吗？`,
-      '删除确认',
+      t('device.confirmDeleteDevice', { name: row.device_name || row.serial_number }),
+      t('device.deleteConfirm'),
       { type: 'warning' }
     );
     await deleteDevice(row.ne_neid);
@@ -529,7 +529,7 @@ async function loadModelTree() {
 async function handleReloadModelTree() {
   try {
     await reloadModelTree(modelTreeElementId.value);
-    ElMessage.success('重载成功');
+    ElMessage.success(t('device.reloadSuccess'));
     loadModelTree();
   } catch (e) {
     console.error('[DeviceList] reload model tree failed:', e);
@@ -539,7 +539,7 @@ async function handleReloadModelTree() {
 async function handleRefreshModelTree() {
   try {
     await refreshModelTree(modelTreeElementId.value);
-    ElMessage.success('刷新成功');
+    ElMessage.success(t('device.refreshSuccess'));
     loadModelTree();
   } catch (e) {
     console.error('[DeviceList] refresh model tree failed:', e);
@@ -551,12 +551,12 @@ async function handleRefreshModelTree() {
 async function handleEmptyCommands(row: Device) {
   try {
     await ElMessageBox.confirm(
-      `确定要清空设备 "${row.device_name || row.serial_number}" 的命令队列吗？`,
-      '清空命令队列',
+      t('device.confirmClearQueue', { name: row.device_name || row.serial_number }),
+      t('device.clearCommands'),
       { type: 'warning' }
     );
     const result = await emptyDeviceCommands(row.ne_neid);
-    ElMessage.success(`已清空 ${result?.cleared ?? 0} 条命令`);
+    ElMessage.success(t('device.clearedCommands', { count: result?.cleared ?? 0 }));
   } catch (e) {
     if (e !== 'cancel') {
       console.error('[DeviceList] empty commands failed:', e);
@@ -569,12 +569,12 @@ async function handleEmptyCommands(row: Device) {
 async function handleFactoryReset(row: Device) {
   try {
     await ElMessageBox.confirm(
-      `确定要对设备 "${row.device_name || row.serial_number}" 执行恢复出厂设置吗？此操作不可撤销！`,
-      '恢复出厂设置',
+      t('device.factoryResetConfirm', { name: row.device_name || row.serial_number }),
+      t('device.factoryResetTitle'),
       { type: 'warning', confirmButtonClass: 'el-button--danger' }
     );
     await http.post(`/devices/${row.ne_neid}/factory-reset`);
-    ElMessage.success('恢复出厂设置命令已下发');
+    ElMessage.success(t('device.factoryResetSuccess'));
     loadData();
   } catch (e) {
     if (e !== 'cancel') {
@@ -588,12 +588,12 @@ async function handleFactoryReset(row: Device) {
 async function handleAlarmSync(row: Device) {
   try {
     await ElMessageBox.confirm(
-      `确定要同步设备 "${row.device_name || row.serial_number}" 的告警信息吗？`,
-      '告警同步',
+      t('device.alarmSyncConfirm', { name: row.device_name || row.serial_number }),
+      t('device.alarmSyncTitle'),
       { type: 'info' }
     );
     await http.post(`/devices/${row.ne_neid}/sync-alarm`);
-    ElMessage.success('告警同步命令已下发');
+    ElMessage.success(t('device.alarmSyncSuccess'));
   } catch (e) {
     if (e !== 'cancel') {
       console.error('[DeviceList] alarm sync failed:', e);
@@ -617,7 +617,7 @@ function getStatusType(status?: string | null): 'success' | 'danger' | 'info' {
 function getStatusText(status?: string | null): string {
   if (status === 'online') return t('device.online');
   if (status === 'offline') return t('device.offline');
-  return '未知';
+  return t('device.unknown');
 }
 
 /** 模型树节点渲染 */

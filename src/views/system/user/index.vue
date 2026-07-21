@@ -34,7 +34,7 @@ const queryParams = reactive<QueryParams>({
 
 // 弹窗状态
 const dialogVisible = ref(false);
-const dialogTitle = ref('新增用户');
+const dialogTitle = ref(t('user.add'));
 const isEdit = ref(false);
 
 // 密码显示弹窗
@@ -52,7 +52,7 @@ const formData = reactive({
 
 // 表单规则
 const formRules = {
-  username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  username: [{ required: true, message: t('user.usernameRequired'), trigger: 'blur' }],
 };
 
 // ============ 方法 ============
@@ -103,7 +103,7 @@ function handleSizeChange(size: number) {
 
 /** 打开新增弹窗 */
 function handleAdd() {
-  dialogTitle.value = '新增用户';
+  dialogTitle.value = t('user.add');
   isEdit.value = false;
   formData.id = 0;
   formData.username = '';
@@ -114,7 +114,7 @@ function handleAdd() {
 
 /** 打开编辑弹窗 */
 function handleEdit(row: UserDTO) {
-  dialogTitle.value = '编辑用户';
+  dialogTitle.value = t('user.edit');
   isEdit.value = true;
   formData.id = row.id;
   formData.username = row.username ?? '';
@@ -126,7 +126,7 @@ function handleEdit(row: UserDTO) {
 /** 保存用户 */
 async function handleSave() {
   if (!formData.username) {
-    ElMessage.warning('请输入用户名');
+    ElMessage.warning(t('user.usernameRequired'));
     return;
   }
   try {
@@ -136,7 +136,7 @@ async function handleSave() {
         email: formData.email,
         enable: formData.enable,
       });
-      ElMessage.success('更新成功');
+      ElMessage.success(t('user.updateSuccess'));
       dialogVisible.value = false;
     } else {
       // 创建用户成功后显示生成的密码
@@ -163,7 +163,7 @@ async function handleCopyPassword() {
   try {
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(generatedPassword.value);
-      ElMessage.success('密码已复制到剪贴板');
+      ElMessage.success(t('user.copySuccess'));
     } else {
       const textarea = document.createElement('textarea');
       textarea.value = generatedPassword.value;
@@ -174,14 +174,14 @@ async function handleCopyPassword() {
       const success = document.execCommand('copy');
       document.body.removeChild(textarea);
       if (success) {
-        ElMessage.success('密码已复制到剪贴板');
+        ElMessage.success(t('user.copySuccess'));
       } else {
-        ElMessage.error('复制失败，请手动复制');
+        ElMessage.error(t('user.copyFailed'));
       }
     }
   } catch (e) {
     console.error('[UserManagement] copy failed:', e);
-    ElMessage.error('复制失败，请手动复制');
+    ElMessage.error(t('user.copyFailed'));
   }
 }
 
@@ -196,12 +196,12 @@ function handleClosePasswordDialog() {
 async function handleDelete(row: UserDTO) {
   try {
     await ElMessageBox.confirm(
-      `确定要删除用户 "${row.username}" 吗？`,
-      '删除确认',
+      t('user.deleteConfirm', { name: row.username }),
+      t('user.deleteConfirmTitle'),
       { type: 'warning' }
     );
     await deleteUser(row.id);
-    ElMessage.success('删除成功');
+    ElMessage.success(t('common.deleteSuccess'));
     loadData();
   } catch (e) {
     if (e !== 'cancel') {
@@ -214,12 +214,12 @@ async function handleDelete(row: UserDTO) {
 async function handleUnlock(row: UserDTO) {
   try {
     await ElMessageBox.confirm(
-      `确定要解锁用户 "${row.username}" 吗？`,
-      '解锁确认',
+      t('user.unlockConfirm', { name: row.username }),
+      t('user.unlockConfirmTitle'),
       { type: 'warning' }
     );
     await unlockUser(row.id);
-    ElMessage.success('解锁成功');
+    ElMessage.success(t('user.unlockSuccess'));
     loadData();
   } catch (e) {
     if (e !== 'cancel') {
@@ -232,12 +232,12 @@ async function handleUnlock(row: UserDTO) {
 async function handleKickOut(row: UserDTO) {
   try {
     await ElMessageBox.confirm(
-      `确定要踢出用户 "${row.username}" 吗？该用户将被强制下线。`,
-      '踢出确认',
+      t('user.kickOutConfirm', { name: row.username }),
+      t('user.kickOutConfirmTitle'),
       { type: 'warning' }
     );
     await kickOutUser(row.id);
-    ElMessage.success('踢出成功');
+    ElMessage.success(t('user.kickOutSuccess'));
     loadData();
   } catch (e) {
     if (e !== 'cancel') {
@@ -265,7 +265,7 @@ async function handleAssignRole(row: UserDTO) {
 async function handleSaveRole() {
   try {
     await updateUser(roleForm.userId, { roleIds: roleForm.roleIds } as any);
-    ElMessage.success('角色分配成功');
+    ElMessage.success(t('user.roleAssignSuccess'));
     roleDialogVisible.value = false;
     loadData();
   } catch (e) {
@@ -286,7 +286,7 @@ function handleAssignTenancy(row: UserDTO) {
 async function handleSaveTenancy() {
   try {
     await setTenancyForUser({ userId: tenancyForm.userId, licenseId: tenancyForm.tenancyId });
-    ElMessage.success('租户分配成功');
+    ElMessage.success(t('user.tenancyAssignSuccess'));
     tenancyDialogVisible.value = false;
     loadData();
   } catch (e) {
@@ -298,7 +298,7 @@ async function handleSaveTenancy() {
 async function handleEnable(row: UserDTO) {
   try {
     await enableUser(row.id);
-    ElMessage.success('启用成功');
+    ElMessage.success(t('user.enableSuccess'));
     loadData();
   } catch (e) {
     console.error('[UserManagement] enable failed:', e);
@@ -309,7 +309,7 @@ async function handleEnable(row: UserDTO) {
 async function handleDisable(row: UserDTO) {
   try {
     await disableUser(row.id);
-    ElMessage.success('禁用成功');
+    ElMessage.success(t('user.disableSuccess'));
     loadData();
   } catch (e) {
     console.error('[UserManagement] disable failed:', e);
@@ -320,8 +320,8 @@ async function handleDisable(row: UserDTO) {
 async function handleResetPassword(row: UserDTO) {
   try {
     await ElMessageBox.confirm(
-      `确定要重置用户 "${row.username}" 的密码吗？`,
-      '重置密码',
+      t('user.resetPasswordConfirm', { name: row.username }),
+      t('user.resetPasswordTitle'),
       { type: 'warning' }
     );
     const result = await resetPassword(row.id);
@@ -344,7 +344,7 @@ function formatTime(time?: string | null): string {
 
 /** 获取在线状态文本 */
 function getLoginStateText(loginState: boolean): string {
-  return loginState ? '在线' : '离线';
+  return loginState ? t('user.online') : t('user.offline');
 }
 
 /** 获取在线状态类型 */
@@ -363,19 +363,19 @@ onMounted(() => {
     <!-- 搜索栏 -->
     <el-card shadow="never" :body-style="{ padding: '16px' }">
       <el-form :inline="true" @submit.prevent="handleSearch">
-        <el-form-item label="关键字">
+        <el-form-item :label="t('user.keyword')">
           <el-input
             v-model="queryParams.keyword"
-            placeholder="用户名"
+            :placeholder="t('user.usernamePlaceholder')"
             clearable
             style="width: 200px"
             @keyup.enter="handleSearch"
           />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
-          <el-button :icon="Refresh" @click="handleReset">重置</el-button>
-          <el-button type="success" :icon="Plus" @click="handleAdd">新增用户</el-button>
+          <el-button type="primary" :icon="Search" @click="handleSearch">{{ t('common.search') }}</el-button>
+          <el-button :icon="Refresh" @click="handleReset">{{ t('common.reset') }}</el-button>
+          <el-button type="success" :icon="Plus" @click="handleAdd">{{ t('user.add') }}</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -391,68 +391,68 @@ onMounted(() => {
         row-key="id"
       >
         <el-table-column type="index" label="#" width="60" />
-        <el-table-column prop="username" label="用户名" min-width="120" />
-        <el-table-column prop="createUsername" label="创建者" min-width="120" />
-        <el-table-column prop="tenancy" label="租户" min-width="120" />
-        <el-table-column prop="email" label="邮箱" min-width="180" />
-        <el-table-column prop="enable" label="启用" width="80" align="center">
+        <el-table-column prop="username" :label="t('user.username')" min-width="120" />
+        <el-table-column prop="createUsername" :label="t('user.creator')" min-width="120" />
+        <el-table-column prop="tenancy" :label="t('user.tenancy')" min-width="120" />
+        <el-table-column prop="email" :label="t('user.email')" min-width="180" />
+        <el-table-column prop="enable" :label="t('common.enabled')" width="80" align="center">
           <template #default="{ row }">
             <el-tag :type="row.enable ? 'success' : 'danger'" size="small">
-              {{ row.enable ? '是' : '否' }}
+              {{ row.enable ? t('common.yes') : t('common.no') }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="loginState" label="在线状态" width="90" align="center">
+        <el-table-column prop="loginState" :label="t('user.loginState')" width="90" align="center">
           <template #default="{ row }">
             <el-tag :type="getLoginStateType(row.loginState)" size="small">
               {{ getLoginStateText(row.loginState) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" min-width="160">
+        <el-table-column prop="createTime" :label="t('user.createTime')" min-width="160">
           <template #default="{ row }">
             {{ formatTime(row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column prop="updateTime" label="更新时间" min-width="160">
+        <el-table-column prop="updateTime" :label="t('user.updateTime')" min-width="160">
           <template #default="{ row }">
             {{ formatTime(row.updateTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column :label="t('common.actions')" width="280" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleEdit(row as UserDTO)">
               <Edit />
-              编辑
+              {{ t('common.edit') }}
             </el-button>
             <el-button link type="success" size="small" v-if="!(row.enable ?? true)" @click="handleEnable(row as UserDTO)">
               <Unlock />
-              启用
+              {{ t('common.enabled') }}
             </el-button>
             <el-button link type="warning" size="small" v-else @click="handleDisable(row as UserDTO)">
               <Lock />
-              禁用
+              {{ t('common.disabled') }}
             </el-button>
             <el-button link type="info" size="small" @click="handleResetPassword(row as UserDTO)">
               <Key />
-              重置密码
+              {{ t('user.resetPassword') }}
             </el-button>
             <el-button link size="small" @click="handleUnlock(row as UserDTO)">
               <Unlock />
-              解锁
+              {{ t('user.unlock') }}
             </el-button>
             <el-button link size="small" @click="handleKickOut(row as UserDTO)">
-              踢出
+              {{ t('user.kickOut') }}
             </el-button>
             <el-button link size="small" @click="handleAssignRole(row as UserDTO)">
-              分配角色
+              {{ t('user.assignRole') }}
             </el-button>
             <el-button link size="small" @click="handleAssignTenancy(row as UserDTO)">
-              分配租户
+              {{ t('user.assignTenancy') }}
             </el-button>
             <el-button link type="danger" size="small" @click="handleDelete(row as UserDTO)">
               <Delete />
-              删除
+              {{ t('common.delete') }}
             </el-button>
           </template>
         </el-table-column>
@@ -476,19 +476,19 @@ onMounted(() => {
     <!-- 用户表单弹窗 -->
     <ElDialog v-model="dialogVisible" :title="dialogTitle" width="500px" @close="dialogVisible = false">
       <ElForm :model="formData" :rules="formRules" label-width="100px">
-        <ElFormItem label="用户名" prop="username">
+        <ElFormItem :label="t('user.username')" prop="username">
           <ElInput v-model="formData.username" :disabled="isEdit" />
         </ElFormItem>
-        <ElFormItem label="邮箱">
+        <ElFormItem :label="t('user.email')">
           <ElInput v-model="formData.email" type="email" />
         </ElFormItem>
-        <ElFormItem label="启用">
+        <ElFormItem :label="t('common.enabled')">
           <ElSwitch v-model="formData.enable" />
         </ElFormItem>
       </ElForm>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSave">确定</el-button>
+        <el-button @click="dialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleSave">{{ t('common.confirm') }}</el-button>
       </template>
     </ElDialog>
 

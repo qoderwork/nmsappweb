@@ -100,6 +100,7 @@ async function handleLogout() {
       type: 'warning',
     });
     await authStore.logout();
+    appStore.reset();
     router.push('/login');
   } catch {
     // 用户取消，无需处理

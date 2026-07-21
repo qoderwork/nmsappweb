@@ -174,13 +174,13 @@ class HttpClient {
             if (!cfg.silent) {
               ElMessage.error(data?.message || '服务器异常，请稍后重试');
             }
-            return Promise.reject(new BusinessError(500, data?.message ?? '服务器异常'));
+            return Promise.reject(new BusinessError(500, data?.message ?? '服务器异常', data));
           default:
             if (!cfg.silent) {
               ElMessage.error(data?.message || `请求失败 (${status})`);
             }
             return Promise.reject(
-              new BusinessError(status, data?.message ?? `请求失败 (${status})`)
+              new BusinessError(status, data?.message ?? `请求失败 (${status})`, data)
             );
         }
       }

@@ -40,7 +40,7 @@ async function loadData() {
     device.value = data;
   } catch (e) {
     console.error('[DeviceDetail] load failed:', e);
-    ElMessage.error('加载设备详情失败');
+    ElMessage.error(t('device.loadDeviceDetailFailed'));
   } finally {
     loading.value = false;
   }
@@ -56,12 +56,12 @@ async function handleDelete() {
   if (!device.value) return;
   try {
     await ElMessageBox.confirm(
-      `确定要删除设备 "${device.value.device_name || device.value.serial_number}" 吗？`,
-      '删除确认',
+      t('device.deleteDeviceConfirm', { name: device.value.device_name || device.value.serial_number }),
+      t('device.deleteConfirm'),
       { type: 'warning' }
     );
     await deleteDevice(deviceId.value);
-    ElMessage.success('删除成功');
+    ElMessage.success(t('common.deleteSuccess'));
     router.push('/device/list');
   } catch (e) {
     if (e !== 'cancel') {
@@ -74,12 +74,12 @@ async function handleDelete() {
 async function handleEmptyCommands() {
   try {
     await ElMessageBox.confirm(
-      '确定要清空该设备的命令队列吗？',
-      '确认',
+      t('device.emptyCommandsConfirm'),
+      t('device.emptyCommandsTitle'),
       { type: 'warning' }
     );
     const result = await emptyDeviceCommands(deviceId.value);
-    ElMessage.success(`已清空 ${result.cleared} 条命令`);
+    ElMessage.success(t('device.clearedCommandsCount', { count: result.cleared }));
   } catch (e) {
     if (e !== 'cancel') {
       console.error('[DeviceDetail] empty commands failed:', e);
@@ -152,7 +152,7 @@ onMounted(() => {
       <template #header>
         <div class="card-header">
           <div class="header-info">
-            <span class="header-title">{{ device?.device_name || device?.serial_number || `设备 ${deviceId}` }}</span>
+            <span class="header-title">{{ device?.device_name || device?.serial_number || t('device.deviceTitle', { id: deviceId }) }}</span>
             <el-tag v-if="device?.status" :type="getStatusType(device.status)" size="small" style="margin-left: 12px">
               {{ getStatusText(device.status) }}
             </el-tag>

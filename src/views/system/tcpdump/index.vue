@@ -1,12 +1,12 @@
 <template>
   <div class="tcpdump-container">
     <el-tabs v-model="activeTab" type="border-card">
-      <el-tab-pane label="抓包管理" name="capture">
+      <el-tab-pane :label="t('tcpdump.captureManagement')" name="capture">
         <el-card>
-          <h3>开始抓包</h3>
+          <h3>{{ t('tcpdump.startCaptureBtn') }}</h3>
           <el-form :model="captureForm" label-width="120px" style="margin-top: 20px">
-            <el-form-item label="网卡" required>
-              <el-select v-model="captureForm.networkCard" placeholder="选择网卡">
+            <el-form-item :label="t('tcpdump.networkCard')" required>
+              <el-select v-model="captureForm.networkCard" :placeholder="t('tcpdump.selectNetworkCard')">
                 <el-option
                   v-for="card in networkCards"
                   :key="card.name"
@@ -15,50 +15,50 @@
                 />
               </el-select>
             </el-form-item>
-            <el-form-item label="抓包时长(秒)" required>
+            <el-form-item :label="t('tcpdump.captureDuration')" required>
               <el-input-number v-model="captureForm.duration" :min="10" :max="3600" />
             </el-form-item>
-            <el-form-item label="文件大小(MB)" required>
+            <el-form-item :label="t('tcpdump.fileSizeMB')" required>
               <el-input-number v-model="captureForm.fileSize" :min="1" :max="1000" />
             </el-form-item>
-            <el-form-item label="过滤条件">
-              <el-input v-model="captureForm.filter" placeholder="例如: tcp port 80" />
+            <el-form-item :label="t('tcpdump.filterCondition')">
+              <el-input v-model="captureForm.filter" :placeholder="t('tcpdump.filterPlaceholder')" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" @click="handleCapture" :loading="capturing">开始抓包</el-button>
+              <el-button type="primary" @click="handleCapture" :loading="capturing">{{ t('tcpdump.startCaptureBtn') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
         <el-card style="margin-top: 20px">
-          <h3>可用网卡</h3>
+          <h3>{{ t('tcpdump.availableNics') }}</h3>
           <el-table :data="networkCards" border style="margin-top: 10px">
-            <el-table-column prop="name" label="名称" />
-            <el-table-column prop="description" label="描述" />
-            <el-table-column prop="ipAddress" label="IP地址" />
-            <el-table-column prop="macAddress" label="MAC地址" />
+            <el-table-column prop="name" :label="t('tcpdump.name')" />
+            <el-table-column prop="description" :label="t('tcpdump.description')" />
+            <el-table-column prop="ipAddress" :label="t('tcpdump.ipAddress')" />
+            <el-table-column prop="macAddress" :label="t('tcpdump.macAddress')" />
           </el-table>
         </el-card>
       </el-tab-pane>
-      <el-tab-pane label="文件列表" name="files">
+      <el-tab-pane :label="t('tcpdump.fileList')" name="files">
         <div class="toolbar">
           <el-button type="danger" @click="handleBatchDelete" :disabled="selectedNames.length === 0">
-            批量删除
+            {{ t('tcpdump.batchDelete') }}
           </el-button>
         </div>
         <el-table :data="tcpdumpFiles" v-loading="loading" @selection-change="handleSelectionChange" border>
           <el-table-column type="selection" width="55" />
-          <el-table-column prop="name" label="文件名" min-width="200" />
-          <el-table-column prop="size" label="大小(KB)" width="100">
+          <el-table-column prop="name" :label="t('tcpdump.fileName')" min-width="200" />
+          <el-table-column prop="size" :label="t('tcpdump.sizeKB')" width="100">
             <template #default="{ row }">{{ ((row as TcpdumpFile).size / 1024).toFixed(2) }}</template>
           </el-table-column>
-          <el-table-column prop="createTime" label="创建时间" width="180" />
-          <el-table-column label="操作" width="150">
+          <el-table-column prop="createTime" :label="t('tcpdump.createTime')" width="180" />
+          <el-table-column :label="t('common.actions')" width="150">
             <template #default="{ row }">
               <el-button type="primary" size="small" @click="handleDownload((row as TcpdumpFile).name)">
-                下载
+                {{ t('common.download') }}
               </el-button>
               <el-button type="danger" size="small" @click="handleDelete((row as TcpdumpFile).name)">
-                删除
+                {{ t('common.delete') }}
               </el-button>
             </template>
           </el-table-column>
@@ -71,6 +71,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import { useI18n } from 'vue-i18n';
 import type { NetworkCard, CaptureRequest, TcpdumpFile } from '@/types/tcpdump';
 import {
   listNetworkCards,
@@ -80,6 +81,8 @@ import {
   deleteTcpdumpFile,
   batchDeleteTcpdumpFiles,
 } from '@/api/tcpdump';
+
+const { t } = useI18n();
 
 const activeTab = ref('capture');
 const loading = ref(false);
@@ -120,15 +123,15 @@ function handleSelectionChange(rows: unknown[]) {
 
 async function handleCapture() {
   if (!captureForm.networkCard) {
-    ElMessage.warning('请选择网卡');
+    ElMessage.warning(t('tcpdump.selectNetworkCardRequired'));
     return;
   }
   capturing.value = true;
   try {
     await doCapture(captureForm);
-    ElMessage.success('抓包任务已提交');
+    ElMessage.success(t('tcpdump.captureTaskSubmitted'));
   } catch (e: unknown) {
-    ElMessage.error('抓包失败');
+    ElMessage.error(t('tcpdump.captureFailed'));
   } finally {
     capturing.value = false;
   }
@@ -141,9 +144,9 @@ function handleDownload(name: string) {
 
 async function handleDelete(name: string) {
   try {
-    await ElMessageBox.confirm('确定要删除吗？', '提示', { type: 'warning' });
+    await ElMessageBox.confirm(t('tcpdump.deleteConfirm'), t('common.tip'), { type: 'warning' });
     await deleteTcpdumpFile(name);
-    ElMessage.success('删除成功');
+    ElMessage.success(t('tcpdump.deleteSuccess'));
     await loadTcpdumpFiles();
   } catch (e: unknown) {
     // cancelled
@@ -152,9 +155,9 @@ async function handleDelete(name: string) {
 
 async function handleBatchDelete() {
   try {
-    await ElMessageBox.confirm('确定要批量删除吗？', '提示', { type: 'warning' });
+    await ElMessageBox.confirm(t('tcpdump.batchDeleteConfirm'), t('common.tip'), { type: 'warning' });
     await batchDeleteTcpdumpFiles({ names: selectedNames.value });
-    ElMessage.success('批量删除成功');
+    ElMessage.success(t('tcpdump.batchDeleteSuccess'));
     selectedNames.value = [];
     await loadTcpdumpFiles();
   } catch (e: unknown) {

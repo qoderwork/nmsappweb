@@ -199,7 +199,7 @@ function getResultType(result?: number | null): 'success' | 'danger' | 'warning'
             <div class="topology-header">
               <div class="topology-header__info">
                 <el-icon size="20"><Folder /></el-icon>
-                <span class="topology-header__name">{{ lteBBU.deviceName || lteBBU.serialNumber || 'BBU' }}</span>
+                <span class="topology-header__name">{{ lteBBU.deviceName || lteBBU.serialNumber || t('topology.bbu') }}</span>
                 <span class="topology-header__sn">{{ lteBBU.serialNumber }}</span>
               </div>
             </div>
@@ -238,7 +238,7 @@ function getResultType(result?: number | null): 'success' | 'danger' | 'warning'
             <div class="topology-header">
               <div class="topology-header__info">
                 <el-icon size="20"><Folder /></el-icon>
-                <span class="topology-header__name">{{ nrBBU.deviceName || nrBBU.serialNumber || 'gNB' }}</span>
+                <span class="topology-header__name">{{ nrBBU.deviceName || nrBBU.serialNumber || t('topology.gnb') }}</span>
                 <span class="topology-header__sn">{{ nrBBU.serialNumber }}</span>
               </div>
             </div>

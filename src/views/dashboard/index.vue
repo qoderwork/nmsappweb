@@ -183,6 +183,7 @@ function buildPDCPOption(data: { plmn: string; down: number; up: number }[]): ec
 }
 
 function buildGaugeOption(title: string, value: number, color: string): echarts.EChartsOption {
+  const isDark = document.documentElement.classList.contains('dark');
   return {
     series: [{
       type: 'gauge',
@@ -198,21 +199,21 @@ function buildGaugeOption(title: string, value: number, color: string): echarts.
         width: 14,
         itemStyle: { color },
       },
-      axisLine: { lineStyle: { width: 14, color: [[1, '#e5e7eb']] } },
+      axisLine: { lineStyle: { width: 14, color: [[1, isDark ? '#334155' : '#e5e7eb']] } },
       axisTick: { show: false },
       splitLine: { show: false },
       axisLabel: { show: false },
       title: {
         offsetCenter: [0, '60%'],
         fontSize: 13,
-        color: '#6b7280',
+        color: isDark ? '#94a3b8' : '#6b7280',
       },
       detail: {
         offsetCenter: [0, '20%'],
         fontSize: 28,
         fontWeight: 700,
         formatter: '{value}%',
-        color: '#1f2937',
+        color: isDark ? '#f1f5f9' : '#1f2937',
       },
       data: [{ value, name: title }],
     }],
@@ -379,6 +380,18 @@ onUnmounted(() => {
   pdcpChart?.dispose();
   cpuGaugeChart?.dispose();
   memGaugeChart?.dispose();
+});
+
+// 主题切换时重绘仪表盘图表（颜色适配暗色/亮色）
+watch(() => settingsStore.isDark, () => {
+  nextTick(() => {
+    if (cpuGaugeChart) {
+      cpuGaugeChart.setOption(buildGaugeOption('CPU', cpuPercent.value, cpuPercent.value > 80 ? '#ef4444' : '#3b82f6'), true);
+    }
+    if (memGaugeChart) {
+      memGaugeChart.setOption(buildGaugeOption(t('dashboard.memory'), memPercent.value, memPercent.value > 80 ? '#ef4444' : '#10b981'), true);
+    }
+  });
 });
 
 // ============ Quick actions ============

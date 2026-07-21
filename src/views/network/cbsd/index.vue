@@ -427,10 +427,10 @@ onMounted(() => {
                 @keyup.enter="handleInfoSearch"
               />
             </el-form-item>
-            <el-form-item label="CBSD ID">
+            <el-form-item :label="t('cbsd.cbsdId')">
               <el-input
                 v-model="infoQueryParams.cbsdId"
-                :placeholder="'CBSD ID'"
+                :placeholder="t('cbsd.cbsdIdPlaceholder')"
                 clearable
                 style="width: 150px"
                 @keyup.enter="handleInfoSearch"
@@ -455,8 +455,8 @@ onMounted(() => {
           <el-table v-loading="infoLoading" :data="infoData" stripe border style="width: 100%" row-key="id">
             <el-table-column type="index" label="#" width="50" />
             <el-table-column prop="elementId" :label="t('device.deviceId')" width="90" />
-            <el-table-column prop="cbsdId" label="CBSD ID" min-width="130" />
-            <el-table-column prop="fccId" label="FCC ID" min-width="120" />
+            <el-table-column prop="cbsdId" :label="t('cbsd.cbsdId')" min-width="130" />
+            <el-table-column prop="fccId" :label="t('cbsd.fccId')" min-width="120" />
             <el-table-column prop="serialNumber" :label="t('device.serialNumber')" min-width="130" />
             <el-table-column prop="latitude" :label="t('device.latitude')" width="100" />
             <el-table-column prop="longitude" :label="t('device.longitude')" width="100" />
@@ -631,10 +631,10 @@ onMounted(() => {
     <!-- CBSD 信息编辑弹窗 -->
     <el-dialog v-model="editDialogVisible" :title="t('cbsd.editCbsd')" width="600px" @close="editDialogVisible = false">
       <el-form :model="editForm" label-width="100px">
-        <el-form-item label="CBSD ID">
+        <el-form-item :label="t('cbsd.cbsdId')">
           <el-input v-model="editForm.cbsdId" :placeholder="t('cbsd.cbsdIdPlaceholder')" />
         </el-form-item>
-        <el-form-item label="FCC ID">
+        <el-form-item :label="t('cbsd.fccId')">
           <el-input v-model="editForm.fccId" :placeholder="t('cbsd.fccIdPlaceholder')" />
         </el-form-item>
         <el-form-item :label="t('device.serialNumber')">

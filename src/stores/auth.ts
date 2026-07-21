@@ -158,6 +158,7 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.remove(StorageKeys.PERMISSIONS);
     localStorage.remove(StorageKeys.ROLES);
     localStorage.remove(StorageKeys.LICENSE_ID);
+    localStorage.remove(StorageKeys.TAGS_VIEW);
     sessionStorage.remove(StorageKeys.USER_INFO);
     disableMockMode();
   }

@@ -48,7 +48,7 @@ const sasSaving = ref(false);
 const entraList = ref<EntraEndpoint[]>([]);
 const entraLoading = ref(false);
 const entraDialogVisible = ref(false);
-const entraDialogTitle = ref('新增 Entra 端点');
+const entraDialogTitle = ref(t('license.addEntraEndpoint'));
 const isEntraEdit = ref(false);
 const entraForm = reactive<Partial<EntraEndpoint>>({
   id: undefined,
@@ -60,10 +60,10 @@ const entraForm = reactive<Partial<EntraEndpoint>>({
   nmsFqdn: '',
 });
 const entraFormRules = {
-  endpointName: [{ required: true, message: '请输入端点名称', trigger: 'blur' }],
-  tenancyId: [{ required: true, message: '请输入 Tenancy ID', trigger: 'blur' }],
-  clientId: [{ required: true, message: '请输入 Client ID', trigger: 'blur' }],
-  secretKey: [{ required: true, message: '请输入 Secret Key', trigger: 'blur' }],
+  endpointName: [{ required: true, message: t('license.enterEndpointName'), trigger: 'blur' }],
+  tenancyId: [{ required: true, message: t('license.enterTenancyId'), trigger: 'blur' }],
+  clientId: [{ required: true, message: t('license.enterClientId'), trigger: 'blur' }],
+  secretKey: [{ required: true, message: t('license.enterSecretKey'), trigger: 'blur' }],
 };
 
 // License 详情弹窗
@@ -104,7 +104,7 @@ async function handleSaveSAS() {
   sasSaving.value = true;
   try {
     await saveSASConfig({ autoRegister: sasForm.autoRegister });
-    ElMessage.success('SAS 配置保存成功');
+    ElMessage.success(t('license.sasConfigSaveSuccess'));
   } catch (e) {
     console.error('[LicenseManagement] save SAS config failed:', e);
   } finally {
@@ -127,7 +127,7 @@ async function loadEntraEndpoints() {
 
 /** 打开新增 Entra 端点弹窗 */
 function handleAddEntra() {
-  entraDialogTitle.value = '新增 Entra 端点';
+  entraDialogTitle.value = t('license.addEntraEndpoint');
   isEntraEdit.value = false;
   entraForm.id = undefined;
   entraForm.tenancyId = '';
@@ -141,7 +141,7 @@ function handleAddEntra() {
 
 /** 打开编辑 Entra 端点弹窗 */
 function handleEditEntra(row: EntraEndpoint) {
-  entraDialogTitle.value = '编辑 Entra 端点';
+  entraDialogTitle.value = t('license.editEntraEndpoint');
   isEntraEdit.value = true;
   entraForm.id = row.id;
   entraForm.tenancyId = row.tenancyId ?? '';
@@ -156,28 +156,28 @@ function handleEditEntra(row: EntraEndpoint) {
 /** 保存 Entra 端点 */
 async function handleSaveEntra() {
   if (!entraForm.endpointName) {
-    ElMessage.warning('请输入端点名称');
+    ElMessage.warning(t('license.enterEndpointName'));
     return;
   }
   if (!entraForm.tenancyId) {
-    ElMessage.warning('请输入 Tenancy ID');
+    ElMessage.warning(t('license.enterTenancyId'));
     return;
   }
   if (!entraForm.clientId) {
-    ElMessage.warning('请输入 Client ID');
+    ElMessage.warning(t('license.enterClientId'));
     return;
   }
   if (!entraForm.secretKey) {
-    ElMessage.warning('请输入 Secret Key');
+    ElMessage.warning(t('license.enterSecretKey'));
     return;
   }
   try {
     if (isEntraEdit.value && entraForm.id) {
       await updateEntraEndpoint(entraForm.id, { ...entraForm });
-      ElMessage.success('更新成功');
+      ElMessage.success(t('license.updateSuccess'));
     } else {
       await createEntraEndpoint({ ...entraForm });
-      ElMessage.success('创建成功');
+      ElMessage.success(t('license.createSuccess'));
     }
     entraDialogVisible.value = false;
     loadEntraEndpoints();
@@ -190,12 +190,12 @@ async function handleSaveEntra() {
 async function handleDeleteEntra(row: EntraEndpoint) {
   try {
     await ElMessageBox.confirm(
-      `确定要删除 Entra 端点 "${row.endpointName || row.id}" 吗？`,
-      '删除确认',
+      t('license.deleteEntraConfirm', { name: row.endpointName || row.id }),
+      t('license.deleteConfirm'),
       { type: 'warning' }
     );
     await deleteEntraEndpoint(row.id);
-    ElMessage.success('删除成功');
+    ElMessage.success(t('license.deleteSuccess'));
     loadEntraEndpoints();
   } catch (e) {
     if (e !== 'cancel') {
@@ -231,7 +231,7 @@ async function handleFileChange(e: Event) {
 
   try {
     const result = await uploadLicenseFile(file);
-    ElMessage.success('License 文件上传成功');
+    ElMessage.success(t('license.licenseUploadSuccess'));
     loadLicenses();
     if (result) {
       detailData.value = result;
@@ -252,20 +252,20 @@ function formatTimestamp(ts?: number | null): string {
 
 /** 获取状态标签类型 */
 function getLicenseStatusType(status?: string | null): 'success' | 'warning' | 'danger' | 'info' {
-  if (status === 'active' || status === '生效') return 'success';
-  if (status === 'expired' || status === '过期') return 'danger';
-  if (status === 'pending' || status === '待验证') return 'warning';
+  if (status === 'active' || status === t('license.licenseStatusActive')) return 'success';
+  if (status === 'expired' || status === t('license.licenseStatusExpired')) return 'danger';
+  if (status === 'pending' || status === t('license.licenseStatusPending')) return 'warning';
   return 'info';
 }
 
 /** 获取状态文本 */
 function getLicenseStatusText(status?: string | null): string {
-  if (!status) return '未知';
+  if (!status) return t('license.licenseStatusUnknown');
   const map: Record<string, string> = {
-    active: '生效',
-    expired: '过期',
-    pending: '待验证',
-    invalid: '无效',
+    active: t('license.licenseStatusActive'),
+    expired: t('license.licenseStatusExpired'),
+    pending: t('license.licenseStatusPending'),
+    invalid: t('license.licenseStatusInvalid'),
   };
   return map[status] || status;
 }
@@ -291,13 +291,13 @@ onMounted(() => {
   <div class="license-management-page">
     <el-tabs v-model="activeTab" type="border-card" @tab-change="handleTabChange">
       <!-- Tab1: License 列表 -->
-      <el-tab-pane label="License 列表" name="list">
+      <el-tab-pane :label="t('license.licenseList')" name="list">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <div style="margin-bottom: 16px;">
             <el-button type="primary" :icon="Upload" @click="handleUploadClick">
-              上传 License
+              {{ t('license.uploadLicense') }}
             </el-button>
-            <el-button :icon="Refresh" @click="loadLicenses">刷新</el-button>
+            <el-button :icon="Refresh" @click="loadLicenses">{{ t('license.refresh') }}</el-button>
           </div>
 
           <el-table
@@ -308,34 +308,34 @@ onMounted(() => {
             style="width: 100%"
             row-key="id"
           >
-            <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="licenseName" label="授权名称" min-width="160" />
-            <el-table-column prop="licenseId" label="授权 ID" min-width="160" show-overflow-tooltip />
-            <el-table-column prop="licenseType" label="授权类型" width="120" />
-            <el-table-column prop="status" label="状态" width="100" align="center">
+            <el-table-column type="index" :label="t('license.index')" width="60" />
+            <el-table-column prop="licenseName" :label="t('license.licenseName')" min-width="160" />
+            <el-table-column prop="licenseId" :label="t('license.licenseId')" min-width="160" show-overflow-tooltip />
+            <el-table-column prop="licenseType" :label="t('license.licenseType')" width="120" />
+            <el-table-column prop="status" :label="t('common.status')" width="100" align="center">
               <template #default="{ row }">
                 <el-tag :type="getLicenseStatusType(row.status)" size="small">
                   {{ getLicenseStatusText(row.status) }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="expiryDate" label="过期时间" min-width="160">
+            <el-table-column prop="expiryDate" :label="t('license.expiryDate')" min-width="160">
               <template #default="{ row }">
                 {{ formatTimestamp(row.expiryDate) }}
               </template>
             </el-table-column>
-            <el-table-column prop="enbQuantity" label="eNB 数量" width="100" align="center" />
-            <el-table-column prop="gnbQuantity" label="gNB 数量" width="100" align="center" />
-            <el-table-column prop="cpeQuantity" label="CPE 数量" width="100" align="center" />
-            <el-table-column prop="userQuantity" label="用户数量" width="100" align="center" />
-            <el-table-column prop="omcName" label="OMC 名称" min-width="120" />
-            <el-table-column prop="provinceAbbreviation" label="省份" width="100" />
-            <el-table-column prop="vendorCode" label="厂商代码" width="100" />
-            <el-table-column label="操作" width="120" fixed="right">
+            <el-table-column prop="enbQuantity" :label="t('license.enbQuantity')" width="100" align="center" />
+            <el-table-column prop="gnbQuantity" :label="t('license.gnbQuantity')" width="100" align="center" />
+            <el-table-column prop="cpeQuantity" :label="t('license.cpeQuantity')" width="100" align="center" />
+            <el-table-column prop="userQuantity" :label="t('license.userQuantity')" width="100" align="center" />
+            <el-table-column prop="omcName" :label="t('license.omcName')" min-width="120" />
+            <el-table-column prop="provinceAbbreviation" :label="t('license.province')" width="100" />
+            <el-table-column prop="vendorCode" :label="t('license.vendorCode')" width="100" />
+            <el-table-column :label="t('common.actions')" width="120" fixed="right">
               <template #default="{ row }">
                 <el-button link type="primary" size="small" @click="handleViewLicense(row as License)">
                   <View />
-                  详情
+                  {{ t('common.detail') }}
                 </el-button>
               </template>
             </el-table-column>
@@ -344,25 +344,25 @@ onMounted(() => {
       </el-tab-pane>
 
       <!-- Tab2: SAS 配置 -->
-      <el-tab-pane label="SAS 配置" name="sas">
+      <el-tab-pane :label="t('license.sasConfig')" name="sas">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :model="sasForm" label-width="160px" style="max-width: 500px">
-            <el-form-item label="自动注册">
+            <el-form-item :label="t('license.autoRegister')">
               <el-switch v-model="sasForm.autoRegister" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :loading="sasSaving" @click="handleSaveSAS">保存</el-button>
+              <el-button type="primary" :loading="sasSaving" @click="handleSaveSAS">{{ t('license.save') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
       </el-tab-pane>
 
       <!-- Tab3: Entra 端点管理 -->
-      <el-tab-pane label="Entra 端点" name="entra">
+      <el-tab-pane :label="t('license.entraEndpoints')" name="entra">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <div style="margin-bottom: 16px;">
-            <el-button type="primary" :icon="Plus" @click="handleAddEntra">新增端点</el-button>
-            <el-button :icon="Refresh" @click="loadEntraEndpoints">刷新</el-button>
+            <el-button type="primary" :icon="Plus" @click="handleAddEntra">{{ t('license.addEndpoint') }}</el-button>
+            <el-button :icon="Refresh" @click="loadEntraEndpoints">{{ t('license.refresh') }}</el-button>
           </div>
 
           <el-table
@@ -373,21 +373,21 @@ onMounted(() => {
             style="width: 100%"
             row-key="id"
           >
-            <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="endpointName" label="端点名称" min-width="140" />
-            <el-table-column prop="tenancyId" label="Tenancy ID" min-width="160" show-overflow-tooltip />
-            <el-table-column prop="clientId" label="Client ID" min-width="160" show-overflow-tooltip />
-            <el-table-column prop="tenancyIdInNms" label="NMS Tenancy ID" min-width="160" show-overflow-tooltip />
-            <el-table-column prop="nmsFqdn" label="NMS FQDN" min-width="160" show-overflow-tooltip />
-            <el-table-column label="操作" width="180" fixed="right">
+            <el-table-column type="index" :label="t('license.index')" width="60" />
+            <el-table-column prop="endpointName" :label="t('license.endpointName')" min-width="140" />
+            <el-table-column prop="tenancyId" :label="t('license.tenancyId')" min-width="160" show-overflow-tooltip />
+            <el-table-column prop="clientId" :label="t('license.clientId')" min-width="160" show-overflow-tooltip />
+            <el-table-column prop="tenancyIdInNms" :label="t('license.nmsTenancyId')" min-width="160" show-overflow-tooltip />
+            <el-table-column prop="nmsFqdn" :label="t('license.nmsFqdn')" min-width="160" show-overflow-tooltip />
+            <el-table-column :label="t('common.actions')" width="180" fixed="right">
               <template #default="{ row }">
                 <el-button link type="primary" size="small" @click="handleEditEntra(row as EntraEndpoint)">
                   <Edit />
-                  编辑
+                  {{ t('common.edit') }}
                 </el-button>
                 <el-button link type="danger" size="small" @click="handleDeleteEntra(row as EntraEndpoint)">
                   <Delete />
-                  删除
+                  {{ t('common.delete') }}
                 </el-button>
               </template>
             </el-table-column>
@@ -408,62 +408,62 @@ onMounted(() => {
     <!-- Entra 端点表单弹窗 -->
     <el-dialog v-model="entraDialogVisible" :title="entraDialogTitle" width="560px">
       <el-form :model="entraForm" :rules="entraFormRules" label-width="140px">
-        <el-form-item label="端点名称" prop="endpointName">
-          <el-input v-model="entraForm.endpointName" placeholder="请输入端点名称" />
+        <el-form-item :label="t('license.endpointName')" prop="endpointName">
+          <el-input v-model="entraForm.endpointName" :placeholder="t('license.enterEndpointName')" />
         </el-form-item>
-        <el-form-item label="Tenancy ID" prop="tenancyId">
-          <el-input v-model="entraForm.tenancyId" placeholder="请输入 Tenancy ID" />
+        <el-form-item :label="t('license.tenancyId')" prop="tenancyId">
+          <el-input v-model="entraForm.tenancyId" :placeholder="t('license.enterTenancyId')" />
         </el-form-item>
-        <el-form-item label="Client ID" prop="clientId">
-          <el-input v-model="entraForm.clientId" placeholder="请输入 Client ID" />
+        <el-form-item :label="t('license.clientId')" prop="clientId">
+          <el-input v-model="entraForm.clientId" :placeholder="t('license.enterClientId')" />
         </el-form-item>
-        <el-form-item label="Secret Key" prop="secretKey">
-          <el-input v-model="entraForm.secretKey" type="password" show-password placeholder="请输入 Secret Key" />
+        <el-form-item :label="t('license.secretKey')" prop="secretKey">
+          <el-input v-model="entraForm.secretKey" type="password" show-password :placeholder="t('license.enterSecretKey')" />
         </el-form-item>
-        <el-form-item label="NMS Tenancy ID">
-          <el-input v-model="entraForm.tenancyIdInNms" placeholder="请输入 NMS Tenancy ID" />
+        <el-form-item :label="t('license.nmsTenancyId')">
+          <el-input v-model="entraForm.tenancyIdInNms" :placeholder="t('license.enterNmsTenancyId')" />
         </el-form-item>
-        <el-form-item label="NMS FQDN">
-          <el-input v-model="entraForm.nmsFqdn" placeholder="请输入 NMS FQDN" />
+        <el-form-item :label="t('license.nmsFqdn')">
+          <el-input v-model="entraForm.nmsFqdn" :placeholder="t('license.enterNmsFqdn')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="entraDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveEntra">确定</el-button>
+        <el-button @click="entraDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleSaveEntra">{{ t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- License 详情弹窗 -->
-    <el-dialog v-model="detailDialogVisible" title="License 详情" width="700px">
+    <el-dialog v-model="detailDialogVisible" :title="t('license.licenseDetail')" width="700px">
       <el-descriptions v-loading="detailLoading" :column="2" border>
-        <el-descriptions-item label="授权名称">{{ detailData?.licenseName || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="授权 ID">{{ detailData?.licenseId || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="授权类型">{{ detailData?.licenseType || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
+        <el-descriptions-item :label="t('license.licenseName')">{{ detailData?.licenseName || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.licenseId')">{{ detailData?.licenseId || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.licenseType')">{{ detailData?.licenseType || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('common.status')">
           <el-tag :type="getLicenseStatusType(detailData?.status)" size="small">
             {{ getLicenseStatusText(detailData?.status) }}
           </el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="过期时间">{{ formatTimestamp(detailData?.expiryDate) }}</el-descriptions-item>
-        <el-descriptions-item label="生效时间">{{ formatTimestamp(detailData?.notBefore) }}</el-descriptions-item>
-        <el-descriptions-item label="eNB 数量">{{ detailData?.enbQuantity ?? '-' }}</el-descriptions-item>
-        <el-descriptions-item label="gNB 数量">{{ detailData?.gnbQuantity ?? '-' }}</el-descriptions-item>
-        <el-descriptions-item label="CPE 数量">{{ detailData?.cpeQuantity ?? '-' }}</el-descriptions-item>
-        <el-descriptions-item label="用户数量">{{ detailData?.userQuantity ?? '-' }}</el-descriptions-item>
-        <el-descriptions-item label="容量">{{ detailData?.capacity ?? '-' }}</el-descriptions-item>
-        <el-descriptions-item label="OMC 名称">{{ detailData?.omcName || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="省份">{{ detailData?.provinceAbbreviation || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="厂商代码">{{ detailData?.vendorCode || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="时区">{{ detailData?.timezone || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="ACS URL">{{ detailData?.acsUrl || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="Subject">{{ detailData?.subject || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="Issuer">{{ detailData?.issuer || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="机器指纹">{{ detailData?.machineFingerprint || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="验证时间">{{ formatTimestamp(detailData?.verifiedAt) }}</el-descriptions-item>
-        <el-descriptions-item label="特性" :span="2">{{ detailData?.features || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.expiryDate')">{{ formatTimestamp(detailData?.expiryDate) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.notBefore')">{{ formatTimestamp(detailData?.notBefore) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.enbQuantity')">{{ detailData?.enbQuantity ?? '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.gnbQuantity')">{{ detailData?.gnbQuantity ?? '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.cpeQuantity')">{{ detailData?.cpeQuantity ?? '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.userQuantity')">{{ detailData?.userQuantity ?? '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.capacity')">{{ detailData?.capacity ?? '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.omcName')">{{ detailData?.omcName || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.province')">{{ detailData?.provinceAbbreviation || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.vendorCode')">{{ detailData?.vendorCode || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.timezone')">{{ detailData?.timezone || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.acsUrl')">{{ detailData?.acsUrl || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.subject')">{{ detailData?.subject || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.issuer')">{{ detailData?.issuer || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.machineFingerprint')">{{ detailData?.machineFingerprint || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.verifiedAt')">{{ formatTimestamp(detailData?.verifiedAt) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.features')" :span="2">{{ detailData?.features || '-' }}</el-descriptions-item>
       </el-descriptions>
       <template #footer>
-        <el-button @click="detailDialogVisible = false">关闭</el-button>
+        <el-button @click="detailDialogVisible = false">{{ t('common.close') }}</el-button>
       </template>
     </el-dialog>
   </div>

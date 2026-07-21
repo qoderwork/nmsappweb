@@ -149,17 +149,17 @@ async function openEditTemplateDialog(tpl: AlarmTemplate) {
 
 async function handleSaveTemplate() {
   if (!templateForm.name?.trim()) {
-    ElMessage.warning('请输入模板名称');
+    ElMessage.warning(t('alarm.enterTemplateName'));
     return;
   }
   templateFormLoading.value = true;
   try {
     if (templateDialogMode.value === 'add') {
       await createAlarmTemplate(templateForm);
-      ElMessage.success('模板创建成功');
+      ElMessage.success(t('alarm.templateCreateSuccess'));
     } else {
       await updateAlarmTemplate(templateForm.id!, templateForm);
-      ElMessage.success('模板更新成功');
+      ElMessage.success(t('alarm.templateUpdateSuccess'));
     }
     templateDialogVisible.value = false;
     loadTemplates();
@@ -172,9 +172,9 @@ async function handleSaveTemplate() {
 
 async function handleDeleteTemplate(tpl: AlarmTemplate) {
   try {
-    await ElMessageBox.confirm(`确定要删除模板「${tpl.name}」吗？`, '删除确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('alarm.deleteTemplateConfirm', { name: tpl.name }), t('alarm.deleteConfirmTitle'), { type: 'warning' });
     await deleteAlarmTemplate(tpl.id);
-    ElMessage.success('模板删除成功');
+    ElMessage.success(t('alarm.templateDeleteSuccess'));
     if (selectedTemplateId.value === tpl.id) {
       selectedTemplateId.value = null;
     }
@@ -190,7 +190,7 @@ async function handleToggleTemplateEmail(tpl: AlarmTemplate) {
     const newVal = !tpl.enableEmailNotification;
     await updateAlarmTemplateEmailNotification(tpl.id, { enableEmailNotification: newVal });
     tpl.enableEmailNotification = newVal;
-    ElMessage.success(newVal ? '已开启邮件通知' : '已关闭邮件通知');
+    ElMessage.success(newVal ? t('alarm.emailNotifyEnabledSuccess') : t('alarm.emailNotifyDisabledSuccess'));
   } catch (e) {
     console.error('[Alarm] toggle template email failed:', e);
   }
@@ -307,7 +307,7 @@ function handleSelectionChange(selection: Alarm[]) {
 async function handleConfirm(row: Alarm) {
   try {
     await confirmAlarm(row.id);
-    ElMessage.success('确认成功');
+    ElMessage.success(t('alarm.confirmSuccess'));
     loadData();
   } catch (e) {
     console.error('[Alarm] confirm failed:', e);
@@ -317,7 +317,7 @@ async function handleConfirm(row: Alarm) {
 async function handleUnconfirm(row: Alarm) {
   try {
     await unconfirmAlarm(row.id);
-    ElMessage.success('取消确认成功');
+    ElMessage.success(t('alarm.unconfirmSuccess'));
     loadData();
   } catch (e) {
     console.error('[Alarm] unconfirm failed:', e);
@@ -327,7 +327,7 @@ async function handleUnconfirm(row: Alarm) {
 async function handleClear(row: Alarm) {
   try {
     await clearAlarm(row.id);
-    ElMessage.success('清除成功');
+    ElMessage.success(t('alarm.clearSuccess'));
     loadData();
   } catch (e) {
     console.error('[Alarm] clear failed:', e);
@@ -336,9 +336,9 @@ async function handleClear(row: Alarm) {
 
 async function handleDeleteAlarm(row: Alarm) {
   try {
-    await ElMessageBox.confirm('确定要删除此告警吗？', '删除确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('alarm.deleteAlarmConfirm'), t('alarm.deleteConfirmTitle'), { type: 'warning' });
     await deleteAlarm(row.id);
-    ElMessage.success('删除成功');
+    ElMessage.success(t('common.deleteSuccess'));
     loadData();
   } catch (e) {
     if (e !== 'cancel') console.error('[Alarm] delete failed:', e);
@@ -347,17 +347,17 @@ async function handleDeleteAlarm(row: Alarm) {
 
 async function handleBatchClear() {
   if (selectedIds.value.length === 0) {
-    ElMessage.warning('请选择要清除的告警');
+    ElMessage.warning(t('alarm.selectAlarmsToClear'));
     return;
   }
   try {
     await ElMessageBox.confirm(
-      `确定要清除选中的 ${selectedIds.value.length} 条告警吗？`,
-      '批量清除确认',
+      t('alarm.batchClearConfirm', { count: selectedIds.value.length }),
+      t('alarm.batchClearTitle'),
       { type: 'warning' },
     );
     await batchClearAlarms(selectedIds.value);
-    ElMessage.success('批量清除成功');
+    ElMessage.success(t('alarm.batchClearSuccess'));
     selectedIds.value = [];
     loadData();
   } catch (e) {
@@ -371,7 +371,7 @@ async function handleManualSync() {
   syncing.value = true;
   try {
     await http.post('/alarms/sync');
-    ElMessage.success('同步请求已发送');
+    ElMessage.success(t('alarm.syncRequestSent'));
     loadData();
   } catch (e) {
     console.error('[Alarm] manual sync failed:', e);
@@ -382,7 +382,18 @@ async function handleManualSync() {
 
 // ============ 导出 CSV ============
 function handleExportCSV() {
-  const headers = ['告警标识', '严重级别', '可能原因', '告警源', '网元', '告警状态', '事件时间', '清除时间', '确认人', '评论'];
+  const headers = [
+    t('alarm.csvHeaders.alarmIdentifier'),
+    t('alarm.csvHeaders.severity'),
+    t('alarm.csvHeaders.probableCause'),
+    t('alarm.csvHeaders.alarmSource'),
+    t('alarm.csvHeaders.networkElement'),
+    t('alarm.csvHeaders.alarmStatus'),
+    t('alarm.csvHeaders.eventTime'),
+    t('alarm.csvHeaders.clearTime'),
+    t('alarm.csvHeaders.clearUser'),
+    t('alarm.csvHeaders.comment'),
+  ];
   const rows = tableData.value.map(a => [
     a.alarmIdentifier ?? '',
     getSeverityText(a.severity),
@@ -435,12 +446,12 @@ function handleOpenComment(row: Alarm) {
 
 async function handleSaveComment() {
   if (!commentForm.comment.trim()) {
-    ElMessage.warning('请输入评论内容');
+    ElMessage.warning(t('alarm.enterCommentContent'));
     return;
   }
   try {
     await addCommentForAlarm(commentForm.alarmId, { comment: commentForm.comment });
-    ElMessage.success('评论保存成功');
+    ElMessage.success(t('alarm.commentSaved'));
     commentDialogVisible.value = false;
     loadData();
   } catch (e) {
@@ -473,7 +484,7 @@ async function openSyncConfigDialog() {
 async function handleSaveSyncConfig() {
   try {
     await updateAlarmSyncConfig({ ...syncConfig });
-    ElMessage.success('同步配置已保存');
+    ElMessage.success(t('alarm.syncConfigSaved'));
     syncConfigDialogVisible.value = false;
   } catch (e) {
     console.error('[Alarm] save sync config failed:', e);
@@ -511,7 +522,7 @@ async function handleSaveEmailConfig() {
   try {
     emailConfig.recipients = emailRecipientsStr.value.split(',').map(s => s.trim()).filter(Boolean);
     await updateEmailNotificationConfig({ ...emailConfig });
-    ElMessage.success('邮件配置已保存');
+    ElMessage.success(t('alarm.emailConfigSaved'));
     emailConfigDialogVisible.value = false;
   } catch (e) {
     console.error('[Alarm] save email config failed:', e);
@@ -597,16 +608,16 @@ function openEditFilterDialog(filter: AlarmFilter) {
 
 async function handleSaveFilter() {
   if (!filterForm.filterRuleName?.trim()) {
-    ElMessage.warning('请输入过滤器名称');
+    ElMessage.warning(t('alarm.enterFilterName'));
     return;
   }
   try {
     if (filterEditMode.value === 'add') {
       await createAlarmFilter(filterForm);
-      ElMessage.success('过滤器创建成功');
+      ElMessage.success(t('alarm.filterCreateSuccess'));
     } else {
       await updateAlarmFilter(filterForm.id!, filterForm);
-      ElMessage.success('过滤器更新成功');
+      ElMessage.success(t('alarm.filterUpdateSuccess'));
     }
     filterEditDialogVisible.value = false;
     loadFilters();
@@ -617,9 +628,9 @@ async function handleSaveFilter() {
 
 async function handleDeleteFilter(filter: AlarmFilter) {
   try {
-    await ElMessageBox.confirm(`确定要删除过滤器「${filter.filterRuleName}」吗？`, '删除确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('alarm.deleteFilterConfirm', { name: filter.filterRuleName }), t('alarm.deleteConfirmTitle'), { type: 'warning' });
     await deleteAlarmFilter(filter.id);
-    ElMessage.success('过滤器删除成功');
+    ElMessage.success(t('alarm.filterDeleteSuccess'));
     loadFilters();
   } catch (e) {
     if (e !== 'cancel') console.error('[Alarm] delete filter failed:', e);
@@ -630,7 +641,7 @@ async function handleToggleFilter(filter: AlarmFilter) {
   try {
     await toggleAlarmFilterEnable(filter.id);
     filter.enable = !filter.enable;
-    ElMessage.success(filter.enable ? '已启用' : '已禁用');
+    ElMessage.success(filter.enable ? t('alarm.enabledSuccess') : t('alarm.disabledSuccess'));
   } catch (e) {
     console.error('[Alarm] toggle filter failed:', e);
   }
@@ -658,20 +669,20 @@ async function openChartDialog() {
       value: item.alarmCount,
     }));
     const colorMap: Record<string, string> = {
-      '严重': '#F56C6C',
-      '主要': '#E6A23C',
-      '次要': '#F0C020',
-      '警告': '#E6A23C',
-      '信息': '#909399',
+      [t('alarm.critical')]: '#F56C6C',
+      [t('alarm.major')]: '#E6A23C',
+      [t('alarm.minor')]: '#F0C020',
+      [t('alarm.warning')]: '#E6A23C',
+      [t('alarm.info')]: '#909399',
     };
     chartInstance.setOption({
-      title: { text: '告警严重级别分布', left: 'center' },
+      title: { text: t('alarm.chartTitle'), left: 'center' },
       tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
       legend: { orient: 'vertical', left: 'left', top: 'middle' },
       color: pieData.map(d => colorMap[d.name] || '#409EFF'),
       series: [
         {
-          name: '告警级别',
+          name: t('alarm.chartSeriesName'),
           type: 'pie',
           radius: '60%',
           data: pieData,
@@ -715,9 +726,9 @@ async function loadLibrary() {
 
 async function handleDeleteLibrary(row: AlarmLibraryType) {
   try {
-    await ElMessageBox.confirm('确定要删除此告警库条目吗？', '删除确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('alarm.deleteLibraryConfirm'), t('alarm.deleteLibraryConfirmTitle'), { type: 'warning' });
     await deleteAlarmLibrary(row.id);
-    ElMessage.success('删除成功');
+    ElMessage.success(t('common.deleteSuccess'));
     loadLibrary();
   } catch (e) {
     if (e !== 'cancel') console.error('[Alarm] delete library failed:', e);
@@ -728,7 +739,7 @@ async function handleImportLibrary(uploadFile: UploadFile) {
   if (!uploadFile.raw) return;
   try {
     await importAlarmLibrary(uploadFile.raw);
-    ElMessage.success('导入成功');
+    ElMessage.success(t('alarm.importSuccess'));
     loadLibrary();
   } catch (e) {
     console.error('[Alarm] import library failed:', e);
@@ -738,7 +749,7 @@ async function handleImportLibrary(uploadFile: UploadFile) {
 async function handleDownloadTemplate() {
   try {
     await downloadAlarmLibraryTemplate();
-    ElMessage.success('模板下载成功');
+    ElMessage.success(t('alarm.downloadTemplateSuccess'));
   } catch (e) {
     console.error('[Alarm] download template failed:', e);
   }
@@ -772,19 +783,23 @@ function getSeverityColor(severity?: AlarmSeverity | null): string {
 }
 
 function getSeverityText(severity?: AlarmSeverity | null): string {
-  if (!severity) return '未知';
+  if (!severity) return t('alarm.unknown');
   const map: Record<string, string> = {
-    Critical: '严重', Major: '主要', Minor: '次要', Warning: '警告', Info: '信息',
+    Critical: t('alarm.critical'),
+    Major: t('alarm.major'),
+    Minor: t('alarm.minor'),
+    Warning: t('alarm.warning'),
+    Info: t('alarm.info'),
   };
   return map[severity] || severity;
 }
 
 function getAlarmStatusText(status?: AlarmStatus | null): string {
-  if (status === AlarmStatus.ActiveUnconfirmed) return '活动未确认';
-  if (status === AlarmStatus.HistoryUnconfirmed) return '历史未确认';
-  if (status === AlarmStatus.ActiveConfirmed) return '活动已确认';
-  if (status === AlarmStatus.HistoryConfirmed) return '历史已确认';
-  return '未知';
+  if (status === AlarmStatus.ActiveUnconfirmed) return t('alarm.activeUnconfirmed');
+  if (status === AlarmStatus.HistoryUnconfirmed) return t('alarm.historyUnconfirmed');
+  if (status === AlarmStatus.ActiveConfirmed) return t('alarm.activeConfirmed');
+  if (status === AlarmStatus.HistoryConfirmed) return t('alarm.historyConfirmed');
+  return t('alarm.unknown');
 }
 
 function getAlarmStatusType(status?: AlarmStatus | null): 'danger' | 'warning' | 'success' | 'info' {

@@ -4,34 +4,34 @@
       <div class="toolbar">
         <el-input
           v-model="searchText"
-          placeholder="搜索消息内容"
+          :placeholder="t('northinterfacelog.searchMessage')"
           style="width: 200px"
           clearable
           @keyup.enter="loadLogs"
         />
-        <el-select v-model="searchStatus" placeholder="状态" style="width: 120px">
-          <el-option label="成功" value="SUCCESS" />
-          <el-option label="失败" value="FAILURE" />
+        <el-select v-model="searchStatus" :placeholder="t('common.status')" style="width: 120px">
+          <el-option :label="t('northinterfacelog.success')" value="SUCCESS" />
+          <el-option :label="t('northinterfacelog.failure')" value="FAILURE" />
         </el-select>
-        <el-select v-model="searchType" placeholder="接口类型" style="width: 150px">
+        <el-select v-model="searchType" :placeholder="t('northinterfacelog.interfaceType')" style="width: 150px">
           <el-option label="RADIUS" value="RADIUS" />
           <el-option label="SFTP" value="SFTP" />
           <el-option label="HEC" value="HEC" />
         </el-select>
       </div>
       <el-table :data="logs" v-loading="loading" border style="margin-top: 20px">
-        <el-table-column prop="id" label="ID" width="80" />
-        <el-table-column prop="interfaceType" label="接口类型" width="120" />
-        <el-table-column prop="message" label="消息" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="id" :label="t('northinterfacelog.id')" width="80" />
+        <el-table-column prop="interfaceType" :label="t('northinterfacelog.interfaceType')" width="120" />
+        <el-table-column prop="message" :label="t('northinterfacelog.message')" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="status" :label="t('common.status')" width="100">
           <template #default="{ row }">
             <el-tag :type="(row as NorthInterfaceLog).status === 'SUCCESS' ? 'success' : 'danger'">
-              {{ (row as NorthInterfaceLog).status === 'SUCCESS' ? '成功' : '失败' }}
+              {{ (row as NorthInterfaceLog).status === 'SUCCESS' ? t('northinterfacelog.success') : t('northinterfacelog.failure') }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="operator" label="操作人" width="120" />
-        <el-table-column prop="createTime" label="创建时间" width="180" />
+        <el-table-column prop="operator" :label="t('northinterfacelog.operator')" width="120" />
+        <el-table-column prop="createTime" :label="t('northinterfacelog.createTime')" width="180" />
       </el-table>
       <el-pagination
         :current-page="page"
@@ -48,8 +48,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import type { NorthInterfaceLog } from '@/types/northinterfacelog';
 import { listNorthInterfaceLogs } from '@/api/northinterfacelog';
+
+const { t } = useI18n();
 
 const loading = ref(false);
 const logs = ref<NorthInterfaceLog[]>([]);

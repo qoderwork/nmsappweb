@@ -26,6 +26,9 @@ const settingsStore = useSettingsStore();
 /** 标签列表 */
 const tags = computed(() => appStore.tagsView);
 
+/** 强制重渲染 key（语言切换时递增，触发 v-for 全部重渲染） */
+const forceRenderKey = ref(0);
+
 /** 右键菜单状态 */
 const contextMenu = ref<{
   visible: boolean;
@@ -102,12 +105,15 @@ function updateAllTagTitles() {
     }
   });
 
+  const titleMap = new Map<string, string>();
   appStore.tagsView.forEach((tag) => {
     const titleKey = routesMap.get(tag.path);
     if (titleKey) {
-      tag.title = t(titleKey);
+      titleMap.set(tag.path, t(titleKey));
     }
   });
+
+  appStore.refreshTagTitles(titleMap);
 }
 
 /** 跳转到最后一个标签或首页 */
@@ -256,6 +262,7 @@ watch(
   () => settingsStore.locale,
   () => {
     updateAllTagTitles();
+    forceRenderKey.value++;
   }
 );
 
@@ -278,7 +285,7 @@ onBeforeUnmount(() => {
       <div class="nms-tagsview__list">
         <div
           v-for="tag in tags"
-          :key="tag.path"
+          :key="forceRenderKey + '-' + tag.path"
           class="nms-tagsview__item"
           :class="{ 'is-active': isActive(tag) }"
           @click="handleClick(tag)"

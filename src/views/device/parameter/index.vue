@@ -50,7 +50,7 @@ const templateList = ref<ParameterTemplate[]>([]);
 const templateTotal = ref(0);
 const templateQuery = reactive({ page: 1, pageSize: 20, keyword: '' });
 const templateDialogVisible = ref(false);
-const templateDialogTitle = ref('新增参数模板');
+const templateDialogTitle = ref(t('parameter.addTemplate'));
 const isEditTemplate = ref(false);
 const templateForm = reactive<Partial<ParameterTemplate>>({
   id: undefined,
@@ -99,7 +99,7 @@ function handleTemplateReset() {
 }
 
 function handleAddTemplate() {
-  templateDialogTitle.value = '新增参数模板';
+  templateDialogTitle.value = t('parameter.addTemplate');
   isEditTemplate.value = false;
   templateForm.id = undefined;
   templateForm.name = '';
@@ -111,7 +111,7 @@ function handleAddTemplate() {
 }
 
 function handleEditTemplate(row: ParameterTemplate) {
-  templateDialogTitle.value = '编辑参数模板';
+  templateDialogTitle.value = t('parameter.editTemplate');
   isEditTemplate.value = true;
   templateForm.id = row.id;
   templateForm.name = row.name ?? '';
@@ -124,17 +124,17 @@ function handleEditTemplate(row: ParameterTemplate) {
 
 async function handleSaveTemplate() {
   if (!templateForm.name) {
-    ElMessage.warning('请输入模板名称');
+    ElMessage.warning(t('parameter.pleaseEnterTemplateName'));
     return;
   }
   try {
     const data = { ...templateForm };
     if (isEditTemplate.value && templateForm.id) {
       await updateParameterTemplate(templateForm.id, data);
-      ElMessage.success('更新成功');
+      ElMessage.success(t('parameter.updateSuccess'));
     } else {
       await createParameterTemplate(data);
-      ElMessage.success('创建成功');
+      ElMessage.success(t('parameter.createSuccess'));
     }
     templateDialogVisible.value = false;
     loadTemplates();
@@ -145,9 +145,9 @@ async function handleSaveTemplate() {
 
 async function handleDeleteTemplate(row: ParameterTemplate) {
   try {
-    await ElMessageBox.confirm(`确定删除模板 "${row.name}" 吗？`, '删除确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('parameter.deleteTemplateConfirm', { name: row.name }), t('parameter.deleteConfirm'), { type: 'warning' });
     await deleteParameterTemplate(row.id);
-    ElMessage.success('删除成功');
+    ElMessage.success(t('parameter.deleteSuccess'));
     loadTemplates();
   } catch (e) {
     if (e !== 'cancel') console.error('[ParameterManagement] delete template failed:', e);
@@ -162,12 +162,12 @@ function handleDeployTemplate(row: ParameterTemplate) {
 
 async function handleConfirmDeploy() {
   if (!deployElementIds.value.length) {
-    ElMessage.warning('请选择设备');
+    ElMessage.warning(t('parameter.pleaseSelectDevice'));
     return;
   }
   try {
     await deployParameterTemplate(deployTemplateId.value, { element_ids: deployElementIds.value });
-    ElMessage.success('部署成功');
+    ElMessage.success(t('parameter.deploySuccess'));
     deployDialogVisible.value = false;
   } catch (e) {
     console.error('[ParameterManagement] deploy template failed:', e);
@@ -200,7 +200,7 @@ const setList = ref<ParameterSet[]>([]);
 const setTotal = ref(0);
 const setQuery = reactive({ page: 1, pageSize: 20, keyword: '' });
 const setDialogVisible = ref(false);
-const setDialogTitle = ref('新增参数集');
+const setDialogTitle = ref(t('parameter.addSet'));
 const isEditSet = ref(false);
 const setForm = reactive<Partial<ParameterSet>>({
   id: undefined,
@@ -238,7 +238,7 @@ function handleSetReset() {
 }
 
 function handleAddSet() {
-  setDialogTitle.value = '新增参数集';
+  setDialogTitle.value = t('parameter.addSet');
   isEditSet.value = false;
   setForm.id = undefined;
   setForm.name = '';
@@ -248,7 +248,7 @@ function handleAddSet() {
 }
 
 function handleEditSet(row: ParameterSet) {
-  setDialogTitle.value = '编辑参数集';
+  setDialogTitle.value = t('parameter.editSet');
   isEditSet.value = true;
   setForm.id = row.id;
   setForm.name = row.name ?? '';
@@ -259,17 +259,17 @@ function handleEditSet(row: ParameterSet) {
 
 async function handleSaveSet() {
   if (!setForm.name) {
-    ElMessage.warning('请输入参数集名称');
+    ElMessage.warning(t('parameter.pleaseEnterSetName'));
     return;
   }
   try {
     const data = { ...setForm };
     if (isEditSet.value && setForm.id) {
       await updateParameterSet(setForm.id, data);
-      ElMessage.success('更新成功');
+      ElMessage.success(t('parameter.updateSuccess'));
     } else {
       await createParameterSet(data);
-      ElMessage.success('创建成功');
+      ElMessage.success(t('parameter.createSuccess'));
     }
     setDialogVisible.value = false;
     loadSets();
@@ -280,9 +280,9 @@ async function handleSaveSet() {
 
 async function handleDeleteSet(row: ParameterSet) {
   try {
-    await ElMessageBox.confirm(`确定删除参数集 "${row.name}" 吗？`, '删除确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('parameter.deleteSetConfirm', { name: row.name }), t('parameter.deleteConfirm'), { type: 'warning' });
     await deleteParameterSet(row.id);
-    ElMessage.success('删除成功');
+    ElMessage.success(t('parameter.deleteSuccess'));
     loadSets();
   } catch (e) {
     if (e !== 'cancel') console.error('[ParameterManagement] delete set failed:', e);
@@ -361,12 +361,12 @@ function handleBackupReset() {
 
 async function handleTriggerBackup() {
   if (!backupElementId.value) {
-    ElMessage.warning('请输入设备 ID');
+    ElMessage.warning(t('parameter.pleaseEnterDeviceId'));
     return;
   }
   try {
     await triggerParameterBackup(backupElementId.value);
-    ElMessage.success('备份触发成功');
+    ElMessage.success(t('parameter.backupTriggeredSuccess'));
     loadBackups();
   } catch (e) {
     console.error('[ParameterManagement] trigger backup failed:', e);
@@ -441,16 +441,16 @@ onMounted(() => {
   <div class="parameter-management-page">
     <el-tabs v-model="activeTab" type="border-card">
       <!-- Tab1: 参数模板 -->
-      <el-tab-pane label="参数模板" name="template">
+      <el-tab-pane :label="t('parameter.parameterTemplate')" name="template">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true" @submit.prevent="handleTemplateSearch">
-            <el-form-item label="关键字">
-              <el-input v-model="templateQuery.keyword" placeholder="模板名称" clearable style="width: 200px" @keyup.enter="handleTemplateSearch" />
+            <el-form-item :label="t('parameter.keyword')">
+              <el-input v-model="templateQuery.keyword" :placeholder="t('parameter.templateNamePlaceholder')" clearable style="width: 200px" @keyup.enter="handleTemplateSearch" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Search" @click="handleTemplateSearch">搜索</el-button>
-              <el-button :icon="Refresh" @click="handleTemplateReset">重置</el-button>
-              <el-button type="success" :icon="Plus" @click="handleAddTemplate">新增模板</el-button>
+              <el-button type="primary" :icon="Search" @click="handleTemplateSearch">{{ t('parameter.search') }}</el-button>
+              <el-button :icon="Refresh" @click="handleTemplateReset">{{ t('parameter.reset') }}</el-button>
+              <el-button type="success" :icon="Plus" @click="handleAddTemplate">{{ t('parameter.addTemplate') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -458,19 +458,19 @@ onMounted(() => {
         <el-card shadow="never" :body-style="{ padding: '0' }">
           <el-table v-loading="templateLoading" :data="templateList" stripe border style="width: 100%" row-key="id">
             <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="name" label="名称" min-width="140" />
-            <el-table-column prop="description" label="描述" min-width="180" />
-            <el-table-column prop="scope" label="范围" width="100">
+            <el-table-column prop="name" :label="t('parameter.name')" min-width="140" />
+            <el-table-column prop="description" :label="t('parameter.description')" min-width="180" />
+            <el-table-column prop="scope" :label="t('parameter.scope')" width="100">
               <template #default="{ row }">
-                <el-tag size="small">{{ row.scope === 'deviceGroup' ? '设备组' : '设备' }}</el-tag>
+                <el-tag size="small">{{ row.scope === 'deviceGroup' ? t('parameter.deviceGroup') : t('parameter.device') }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="260" fixed="right">
+            <el-table-column :label="t('parameter.operations')" width="260" fixed="right">
               <template #default="{ row }">
-                <el-button link type="primary" size="small" :icon="Edit" @click="handleEditTemplate(row as ParameterTemplate)">编辑</el-button>
-                <el-button link type="success" size="small" @click="handleDeployTemplate(row as ParameterTemplate)">部署</el-button>
-                <el-button link type="info" size="small" :icon="Document" @click="handleViewDeployLogs(row as ParameterTemplate)">部署日志</el-button>
-                <el-button link type="danger" size="small" :icon="Delete" @click="handleDeleteTemplate(row as ParameterTemplate)">删除</el-button>
+                <el-button link type="primary" size="small" :icon="Edit" @click="handleEditTemplate(row as ParameterTemplate)">{{ t('parameter.edit') }}</el-button>
+                <el-button link type="success" size="small" @click="handleDeployTemplate(row as ParameterTemplate)">{{ t('parameter.deploy') }}</el-button>
+                <el-button link type="info" size="small" :icon="Document" @click="handleViewDeployLogs(row as ParameterTemplate)">{{ t('parameter.deployLog') }}</el-button>
+                <el-button link type="danger" size="small" :icon="Delete" @click="handleDeleteTemplate(row as ParameterTemplate)">{{ t('parameter.delete') }}</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -481,16 +481,16 @@ onMounted(() => {
       </el-tab-pane>
 
       <!-- Tab2: 参数集 -->
-      <el-tab-pane label="参数集" name="set">
+      <el-tab-pane :label="t('parameter.parameterSet')" name="set">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true" @submit.prevent="handleSetSearch">
-            <el-form-item label="关键字">
-              <el-input v-model="setQuery.keyword" placeholder="参数集名称" clearable style="width: 200px" @keyup.enter="handleSetSearch" />
+            <el-form-item :label="t('parameter.keyword')">
+              <el-input v-model="setQuery.keyword" :placeholder="t('parameter.parameterSetNamePlaceholder')" clearable style="width: 200px" @keyup.enter="handleSetSearch" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Search" @click="handleSetSearch">搜索</el-button>
-              <el-button :icon="Refresh" @click="handleSetReset">重置</el-button>
-              <el-button type="success" :icon="Plus" @click="handleAddSet">新增参数集</el-button>
+              <el-button type="primary" :icon="Search" @click="handleSetSearch">{{ t('parameter.search') }}</el-button>
+              <el-button :icon="Refresh" @click="handleSetReset">{{ t('parameter.reset') }}</el-button>
+              <el-button type="success" :icon="Plus" @click="handleAddSet">{{ t('parameter.addSet') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -498,12 +498,12 @@ onMounted(() => {
         <el-card shadow="never" :body-style="{ padding: '0' }">
           <el-table v-loading="setLoading" :data="setList" stripe border style="width: 100%" row-key="id">
             <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="name" label="名称" min-width="140" />
-            <el-table-column prop="description" label="描述" min-width="200" />
-            <el-table-column label="操作" width="180" fixed="right">
+            <el-table-column prop="name" :label="t('parameter.name')" min-width="140" />
+            <el-table-column prop="description" :label="t('parameter.description')" min-width="200" />
+            <el-table-column :label="t('parameter.operations')" width="180" fixed="right">
               <template #default="{ row }">
-                <el-button link type="primary" size="small" :icon="Edit" @click="handleEditSet(row as ParameterSet)">编辑</el-button>
-                <el-button link type="danger" size="small" :icon="Delete" @click="handleDeleteSet(row as ParameterSet)">删除</el-button>
+                <el-button link type="primary" size="small" :icon="Edit" @click="handleEditSet(row as ParameterSet)">{{ t('parameter.edit') }}</el-button>
+                <el-button link type="danger" size="small" :icon="Delete" @click="handleDeleteSet(row as ParameterSet)">{{ t('parameter.delete') }}</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -514,15 +514,15 @@ onMounted(() => {
       </el-tab-pane>
 
       <!-- Tab3: 参数日志 -->
-      <el-tab-pane label="参数日志" name="log">
+      <el-tab-pane :label="t('parameter.parameterLog')" name="log">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true" @submit.prevent="handleLogSearch">
-            <el-form-item label="关键字">
-              <el-input v-model="logQuery.keyword" placeholder="参数名/操作人" clearable style="width: 200px" @keyup.enter="handleLogSearch" />
+            <el-form-item :label="t('parameter.keyword')">
+              <el-input v-model="logQuery.keyword" :placeholder="t('parameter.parameterNameOperatorPlaceholder')" clearable style="width: 200px" @keyup.enter="handleLogSearch" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Search" @click="handleLogSearch">搜索</el-button>
-              <el-button :icon="Refresh" @click="handleLogReset">重置</el-button>
+              <el-button type="primary" :icon="Search" @click="handleLogSearch">{{ t('parameter.search') }}</el-button>
+              <el-button :icon="Refresh" @click="handleLogReset">{{ t('parameter.reset') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -530,13 +530,13 @@ onMounted(() => {
         <el-card shadow="never" :body-style="{ padding: '0' }">
           <el-table v-loading="logLoading" :data="logList" stripe border style="width: 100%" row-key="id">
             <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="element_id" label="设备 ID" width="100" />
-            <el-table-column prop="parameter_name" label="参数名" min-width="160" />
-            <el-table-column prop="old_value" label="旧值" min-width="120" />
-            <el-table-column prop="new_value" label="新值" min-width="120" />
-            <el-table-column prop="operation_type" label="操作类型" width="100" />
-            <el-table-column prop="user" label="操作人" width="120" />
-            <el-table-column prop="operation_time" label="操作时间" min-width="160">
+            <el-table-column prop="element_id" :label="t('parameter.deviceId')" width="100" />
+            <el-table-column prop="parameter_name" :label="t('parameter.parameterName')" min-width="160" />
+            <el-table-column prop="old_value" :label="t('parameter.oldValue')" min-width="120" />
+            <el-table-column prop="new_value" :label="t('parameter.newValue')" min-width="120" />
+            <el-table-column prop="operation_type" :label="t('parameter.operationType')" width="100" />
+            <el-table-column prop="user" :label="t('parameter.operator')" width="120" />
+            <el-table-column prop="operation_time" :label="t('parameter.operationTime')" min-width="160">
               <template #default="{ row }">
                 {{ formatTime(row.operation_time) }}
               </template>
@@ -549,19 +549,19 @@ onMounted(() => {
       </el-tab-pane>
 
       <!-- Tab4: 备份日志 -->
-      <el-tab-pane label="备份日志" name="backup">
+      <el-tab-pane :label="t('parameter.backupLog')" name="backup">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true" @submit.prevent="handleBackupSearch">
-            <el-form-item label="关键字">
-              <el-input v-model="backupQuery.keyword" placeholder="设备 ID" clearable style="width: 200px" @keyup.enter="handleBackupSearch" />
+            <el-form-item :label="t('parameter.keyword')">
+              <el-input v-model="backupQuery.keyword" :placeholder="t('parameter.deviceIdPlaceholder')" clearable style="width: 200px" @keyup.enter="handleBackupSearch" />
             </el-form-item>
-            <el-form-item label="设备 ID">
-              <el-input-number v-model="backupElementId" :min="1" placeholder="设备 ID" style="width: 160px" />
+            <el-form-item :label="t('parameter.deviceId')">
+              <el-input-number v-model="backupElementId" :min="1" :placeholder="t('parameter.deviceIdPlaceholder')" style="width: 160px" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Search" @click="handleBackupSearch">搜索</el-button>
-              <el-button :icon="Refresh" @click="handleBackupReset">重置</el-button>
-              <el-button type="warning" @click="handleTriggerBackup">触发备份</el-button>
+              <el-button type="primary" :icon="Search" @click="handleBackupSearch">{{ t('parameter.search') }}</el-button>
+              <el-button :icon="Refresh" @click="handleBackupReset">{{ t('parameter.reset') }}</el-button>
+              <el-button type="warning" @click="handleTriggerBackup">{{ t('parameter.triggerBackup') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -569,14 +569,14 @@ onMounted(() => {
         <el-card shadow="never" :body-style="{ padding: '0' }">
           <el-table v-loading="backupLoading" :data="backupList" stripe border style="width: 100%" row-key="id">
             <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="element_id" label="设备 ID" width="100" />
-            <el-table-column prop="backup_time" label="备份时间" min-width="160">
+            <el-table-column prop="element_id" :label="t('parameter.deviceId')" width="100" />
+            <el-table-column prop="backup_time" :label="t('parameter.backupTime')" min-width="160">
               <template #default="{ row }">
                 {{ formatTime(row.backup_time) }}
               </template>
             </el-table-column>
-            <el-table-column prop="file_path" label="文件路径" min-width="260" />
-            <el-table-column prop="status" label="状态" width="100">
+            <el-table-column prop="file_path" :label="t('parameter.filePath')" min-width="260" />
+            <el-table-column prop="status" :label="t('common.status')" width="100">
               <template #default="{ row }">
                 <el-tag :type="row.status === 'success' ? 'success' : 'danger'" size="small">{{ row.status ?? '-' }}</el-tag>
               </template>
@@ -589,15 +589,15 @@ onMounted(() => {
       </el-tab-pane>
 
       <!-- Tab5: 批量配置 -->
-      <el-tab-pane label="批量配置" name="batch">
+      <el-tab-pane :label="t('parameter.batchConfig')" name="batch">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true" @submit.prevent="handleBatchSearch">
-            <el-form-item label="关键字">
-              <el-input v-model="batchQuery.keyword" placeholder="任务名称" clearable style="width: 200px" @keyup.enter="handleBatchSearch" />
+            <el-form-item :label="t('parameter.keyword')">
+              <el-input v-model="batchQuery.keyword" :placeholder="t('parameter.taskNamePlaceholder')" clearable style="width: 200px" @keyup.enter="handleBatchSearch" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Search" @click="handleBatchSearch">搜索</el-button>
-              <el-button :icon="Refresh" @click="handleBatchReset">重置</el-button>
+              <el-button type="primary" :icon="Search" @click="handleBatchSearch">{{ t('parameter.search') }}</el-button>
+              <el-button :icon="Refresh" @click="handleBatchReset">{{ t('parameter.reset') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -605,23 +605,23 @@ onMounted(() => {
         <el-card shadow="never" :body-style="{ padding: '0' }">
           <el-table v-loading="batchLoading" :data="batchList" stripe border style="width: 100%" row-key="id">
             <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="name" label="任务名称" min-width="160" />
-            <el-table-column prop="status" label="状态" width="100">
+            <el-table-column prop="name" :label="t('parameter.taskName')" min-width="160" />
+            <el-table-column prop="status" :label="t('common.status')" width="100">
               <template #default="{ row }">
                 <el-tag :type="row.status === 'completed' ? 'success' : row.status === 'failed' ? 'danger' : 'info'" size="small">{{ row.status ?? '-' }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="total_count" label="总数" width="80" />
-            <el-table-column prop="success_count" label="成功" width="80" />
-            <el-table-column prop="fail_count" label="失败" width="80" />
-            <el-table-column prop="create_time" label="创建时间" min-width="160">
+            <el-table-column prop="total_count" :label="t('parameter.totalCount')" width="80" />
+            <el-table-column prop="success_count" :label="t('parameter.successCount')" width="80" />
+            <el-table-column prop="fail_count" :label="t('parameter.failCount')" width="80" />
+            <el-table-column prop="create_time" :label="t('device.createTime')" min-width="160">
               <template #default="{ row }">
                 {{ formatTime(row.create_time) }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="120" fixed="right">
+            <el-table-column :label="t('parameter.operations')" width="120" fixed="right">
               <template #default="{ row }">
-                <el-button link type="primary" size="small" :icon="View" @click="handleViewBatchDetail(row as BatchConfigTaskVo)">详情</el-button>
+                <el-button link type="primary" size="small" :icon="View" @click="handleViewBatchDetail(row as BatchConfigTaskVo)">{{ t('parameter.detail') }}</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -635,52 +635,52 @@ onMounted(() => {
     <!-- 参数模板弹窗 -->
     <el-dialog v-model="templateDialogVisible" :title="templateDialogTitle" width="600px">
       <el-form :model="templateForm" label-width="100px">
-        <el-form-item label="名称" required>
-          <el-input v-model="templateForm.name" placeholder="请输入模板名称" />
+        <el-form-item :label="t('parameter.name')" required>
+          <el-input v-model="templateForm.name" :placeholder="t('parameter.pleaseEnterTemplateName')" />
         </el-form-item>
-        <el-form-item label="描述">
-          <el-input v-model="templateForm.description" type="textarea" :rows="2" placeholder="请输入描述" />
+        <el-form-item :label="t('parameter.description')">
+          <el-input v-model="templateForm.description" type="textarea" :rows="2" :placeholder="t('common.inputPlaceholder')" />
         </el-form-item>
-        <el-form-item label="范围">
-          <el-select v-model="templateForm.scope" placeholder="请选择范围" style="width: 100%">
-            <el-option label="设备" value="device" />
-            <el-option label="设备组" value="deviceGroup" />
+        <el-form-item :label="t('parameter.scope')">
+          <el-select v-model="templateForm.scope" :placeholder="t('common.selectPlaceholder')" style="width: 100%">
+            <el-option :label="t('parameter.device')" value="device" />
+            <el-option :label="t('parameter.deviceGroup')" value="deviceGroup" />
           </el-select>
         </el-form-item>
-        <el-form-item label="设备组 IDs" v-if="templateForm.scope === 'deviceGroup'">
-          <el-input v-model="templateForm.device_group_ids" type="textarea" :rows="2" placeholder="JSON 格式，如 [1,2,3]" />
+        <el-form-item :label="t('parameter.deviceGroupIds')" v-if="templateForm.scope === 'deviceGroup'">
+          <el-input v-model="templateForm.device_group_ids" type="textarea" :rows="2" :placeholder="t('parameter.deviceGroupIdsPlaceholder')" />
         </el-form-item>
-        <el-form-item label="参数 JSON">
-          <el-input v-model="templateForm.parameter_json" type="textarea" :rows="6" placeholder='JSON 格式参数，如 {"param1":"value1"}' />
+        <el-form-item :label="t('parameter.parameterJson')">
+          <el-input v-model="templateForm.parameter_json" type="textarea" :rows="6" :placeholder="t('parameter.parameterJsonPlaceholder')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="templateDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveTemplate">确定</el-button>
+        <el-button @click="templateDialogVisible = false">{{ t('parameter.cancel') }}</el-button>
+        <el-button type="primary" @click="handleSaveTemplate">{{ t('parameter.confirm') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 部署弹窗 -->
-    <el-dialog v-model="deployDialogVisible" title="部署模板" width="500px">
+    <el-dialog v-model="deployDialogVisible" :title="t('parameter.deployTemplate')" width="500px">
       <el-form label-width="100px">
-        <el-form-item label="设备 IDs">
-          <el-select-v2 v-model="deployElementIds" :options="[]" multiple clearable placeholder="请选择或输入设备 ID" allow-create filterable style="width: 100%" />
+        <el-form-item :label="t('parameter.deviceId')">
+          <el-select-v2 v-model="deployElementIds" :options="[]" multiple clearable :placeholder="t('parameter.deviceIdsPlaceholder')" allow-create filterable style="width: 100%" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="deployDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleConfirmDeploy">部署</el-button>
+        <el-button @click="deployDialogVisible = false">{{ t('parameter.cancel') }}</el-button>
+        <el-button type="primary" @click="handleConfirmDeploy">{{ t('parameter.deploy') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 部署日志弹窗 -->
-    <el-dialog v-model="deployLogDialogVisible" title="部署日志" width="800px">
+    <el-dialog v-model="deployLogDialogVisible" :title="t('parameter.deployLog')" width="800px">
       <el-table :data="deployLogList" stripe border style="width: 100%" max-height="400">
-        <el-table-column prop="parameter_name" label="参数名" min-width="140" />
-        <el-table-column prop="old_value" label="旧值" min-width="120" />
-        <el-table-column prop="new_value" label="新值" min-width="120" />
-        <el-table-column prop="operation_type" label="操作类型" width="100" />
-        <el-table-column prop="operation_time" label="操作时间" min-width="160">
+        <el-table-column prop="parameter_name" :label="t('parameter.parameterName')" min-width="140" />
+        <el-table-column prop="old_value" :label="t('parameter.oldValue')" min-width="120" />
+        <el-table-column prop="new_value" :label="t('parameter.newValue')" min-width="120" />
+        <el-table-column prop="operation_type" :label="t('parameter.operationType')" width="100" />
+        <el-table-column prop="operation_time" :label="t('parameter.operationTime')" min-width="160">
           <template #default="{ row }">
             {{ formatTime(row.operation_time) }}
           </template>
@@ -694,33 +694,33 @@ onMounted(() => {
     <!-- 参数集弹窗 -->
     <el-dialog v-model="setDialogVisible" :title="setDialogTitle" width="600px">
       <el-form :model="setForm" label-width="100px">
-        <el-form-item label="名称" required>
-          <el-input v-model="setForm.name" placeholder="请输入参数集名称" />
+        <el-form-item :label="t('parameter.name')" required>
+          <el-input v-model="setForm.name" :placeholder="t('parameter.pleaseEnterSetName')" />
         </el-form-item>
-        <el-form-item label="描述">
-          <el-input v-model="setForm.description" type="textarea" :rows="2" placeholder="请输入描述" />
+        <el-form-item :label="t('parameter.description')">
+          <el-input v-model="setForm.description" type="textarea" :rows="2" :placeholder="t('common.inputPlaceholder')" />
         </el-form-item>
-        <el-form-item label="参数 JSON">
-          <el-input v-model="setForm.parameters" type="textarea" :rows="6" placeholder='JSON 格式参数，如 {"param1":"value1"}' />
+        <el-form-item :label="t('parameter.parameterJson')">
+          <el-input v-model="setForm.parameters" type="textarea" :rows="6" :placeholder="t('parameter.parameterJsonPlaceholder')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="setDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveSet">确定</el-button>
+        <el-button @click="setDialogVisible = false">{{ t('parameter.cancel') }}</el-button>
+        <el-button type="primary" @click="handleSaveSet">{{ t('parameter.confirm') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 批量配置详情弹窗 -->
-    <el-dialog v-model="batchDetailDialogVisible" title="批量配置详情" width="700px">
+    <el-dialog v-model="batchDetailDialogVisible" :title="t('parameter.batchConfigDetail')" width="700px">
       <el-table :data="batchDetailList" stripe border style="width: 100%" max-height="400">
-        <el-table-column prop="element_id" label="设备 ID" width="100" />
-        <el-table-column prop="element_name" label="设备名称" min-width="140" />
-        <el-table-column prop="status" label="状态" width="100">
+        <el-table-column prop="element_id" :label="t('parameter.deviceId')" width="100" />
+        <el-table-column prop="element_name" :label="t('parameter.deviceName')" min-width="140" />
+        <el-table-column prop="status" :label="t('common.status')" width="100">
           <template #default="{ row }">
             <el-tag :type="row.status === 'success' ? 'success' : 'danger'" size="small">{{ row.status ?? '-' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="message" label="消息" min-width="200" />
+        <el-table-column prop="message" :label="t('parameter.message')" min-width="200" />
       </el-table>
     </el-dialog>
   </div>

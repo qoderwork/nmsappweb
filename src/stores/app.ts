@@ -119,6 +119,17 @@ export const useAppStore = defineStore('app', () => {
     cachedViews.value = cachedViews.value.filter((n) => !removedNames.includes(n));
   }
 
+  /** 刷新所有标签页标题（语言切换时调用） */
+  function refreshTagTitles(titleMap: Map<string, string>) {
+    tagsView.value = tagsView.value.map((tag) => {
+      const newTitle = titleMap.get(tag.path);
+      if (newTitle) {
+        return { ...tag, title: newTitle };
+      }
+      return tag;
+    });
+  }
+
   /** 重置 */
   function reset() {
     tagsView.value = [];
@@ -160,6 +171,7 @@ export const useAppStore = defineStore('app', () => {
     closeAllViews,
     closeLeftViews,
     closeRightViews,
+    refreshTagTitles,
     reset,
   };
 });

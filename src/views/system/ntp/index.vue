@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
+import { useI18n } from 'vue-i18n';
 import { Refresh, Timer } from '@element-plus/icons-vue';
 
 import { getNtpConfig, updateNtpConfig, getNtpStatus } from '@/api/ntp';
+
+const { t } = useI18n();
 
 const loading = ref(false);
 const saving = ref(false);
@@ -37,13 +40,13 @@ async function loadStatus() {
 
 async function saveConfig() {
   if (config.enable && !config.ntpServer) {
-    ElMessage.warning('启用 NTP 时必须填写服务器地址');
+    ElMessage.warning(t('ntp.ntpServerRequired'));
     return;
   }
   saving.value = true;
   try {
     await updateNtpConfig(config);
-    ElMessage.success('保存成功');
+    ElMessage.success(t('ntp.saveSuccess'));
     loadStatus();
   } catch (e) {
     console.error('[NTP] save config failed:', e);
@@ -64,23 +67,23 @@ onMounted(() => {
       <template #header>
         <div class="card-header">
           <el-icon><Timer /></el-icon>
-          <span>NTP 配置</span>
-          <el-button size="small" :icon="Refresh" @click="loadConfig" style="margin-left: auto;">刷新</el-button>
+          <span>{{ t('ntp.ntpConfig') }}</span>
+          <el-button size="small" :icon="Refresh" @click="loadConfig" style="margin-left: auto;">{{ t('common.refresh') }}</el-button>
         </div>
       </template>
 
       <el-form :model="config" label-width="160px" style="max-width: 600px;">
-        <el-form-item label="NTP 服务器">
-          <el-input v-model="config.ntpServer" placeholder="如 ntp.aliyun.com" />
+        <el-form-item :label="t('ntp.ntpServer')">
+          <el-input v-model="config.ntpServer" :placeholder="t('ntp.ntpServerPlaceholder')" />
         </el-form-item>
-        <el-form-item label="启用 NTP 同步">
+        <el-form-item :label="t('ntp.enableNtpSync')">
           <el-switch v-model="config.enable" />
         </el-form-item>
-        <el-form-item label="同步状态">
+        <el-form-item :label="t('ntp.syncStatus')">
           <el-tag :type="status === 'synchronized' ? 'success' : 'info'">{{ status || '-' }}</el-tag>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="saving" @click="saveConfig">保存配置</el-button>
+          <el-button type="primary" :loading="saving" @click="saveConfig">{{ t('ntp.saveConfig') }}</el-button>
         </el-form-item>
       </el-form>
     </el-card>

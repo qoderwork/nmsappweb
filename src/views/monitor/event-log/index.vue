@@ -10,9 +10,12 @@
 import { reactive, ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Search, Refresh, View } from '@element-plus/icons-vue';
+import { useI18n } from 'vue-i18n';
 
 import { getEventLogs } from '@/api/event-log';
 import type { EventLog } from '@/types/event-log';
+
+const { t } = useI18n();
 
 // ============ 状态 ============
 const loading = ref(false);
@@ -90,11 +93,11 @@ function formatTime(time?: string | null): string {
 }
 
 function getStatusText(status?: number | null): string {
-  if (status === 0) return '待执行';
-  if (status === 1) return '执行中';
-  if (status === 2) return '已完成';
-  if (status === 3) return '失败';
-  return '未知';
+  if (status === 0) return t('eventLog.pending');
+  if (status === 1) return t('eventLog.executing');
+  if (status === 2) return t('eventLog.completed');
+  if (status === 3) return t('eventLog.failed');
+  return t('eventLog.unknown');
 }
 
 function getStatusType(status?: number | null): 'success' | 'warning' | 'danger' | 'info' {
@@ -114,15 +117,15 @@ onMounted(() => {
     <!-- 搜索栏 -->
     <el-card shadow="never" :body-style="{ padding: '16px' }">
       <el-form :inline="true" @submit.prevent="handleSearch">
-        <el-form-item label="设备 ID">
-          <el-input v-model="queryParams.elementId" placeholder="设备 ID" clearable style="width: 120px" @keyup.enter="handleSearch" />
+        <el-form-item :label="t('eventLog.deviceId')">
+          <el-input v-model="queryParams.elementId" :placeholder="t('eventLog.deviceId')" clearable style="width: 120px" @keyup.enter="handleSearch" />
         </el-form-item>
-        <el-form-item label="事件类型">
-          <el-input v-model="queryParams.eventType" placeholder="事件类型" clearable style="width: 150px" @keyup.enter="handleSearch" />
+        <el-form-item :label="t('eventLog.eventType')">
+          <el-input v-model="queryParams.eventType" :placeholder="t('eventLog.eventType')" clearable style="width: 150px" @keyup.enter="handleSearch" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
-          <el-button :icon="Refresh" @click="handleReset">重置</el-button>
+          <el-button type="primary" :icon="Search" @click="handleSearch">{{ t('common.search') }}</el-button>
+          <el-button :icon="Refresh" @click="handleReset">{{ t('common.reset') }}</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -131,25 +134,25 @@ onMounted(() => {
     <el-card shadow="never" :body-style="{ padding: '0' }">
       <el-table v-loading="loading" :data="tableData" stripe border style="width: 100%" row-key="id">
         <el-table-column type="index" label="#" width="60" />
-        <el-table-column prop="event_type" label="事件类型" min-width="140" />
-        <el-table-column prop="element_id" label="设备 ID" width="100" />
-        <el-table-column prop="user" label="操作用户" width="120" />
-        <el-table-column prop="status" label="状态" width="90" align="center">
+        <el-table-column prop="event_type" :label="t('eventLog.eventType')" min-width="140" />
+        <el-table-column prop="element_id" :label="t('eventLog.deviceId')" width="100" />
+        <el-table-column prop="user" :label="t('eventLog.operationUser')" width="120" />
+        <el-table-column prop="status" :label="t('eventLog.status')" width="90" align="center">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)" size="small">{{ getStatusText(row.status) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="operation_time" label="操作时间" min-width="160">
+        <el-table-column prop="operation_time" :label="t('eventLog.operationTime')" min-width="160">
           <template #default="{ row }">{{ formatTime(row.operation_time) }}</template>
         </el-table-column>
-        <el-table-column prop="command_issue_time" label="命令下发时间" min-width="160">
+        <el-table-column prop="command_issue_time" :label="t('eventLog.commandIssueTime')" min-width="160">
           <template #default="{ row }">{{ formatTime(row.command_issue_time) }}</template>
         </el-table-column>
-        <el-table-column prop="fault_info" label="故障信息" min-width="200" show-overflow-tooltip />
-        <el-table-column label="操作" width="80" fixed="right">
+        <el-table-column prop="fault_info" :label="t('eventLog.faultInfo')" min-width="200" show-overflow-tooltip />
+        <el-table-column :label="t('common.actions')" width="80" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="handleViewDetail(row as EventLog)">
-              <View /> 详情
+              <View /> {{ t('eventLog.detail') }}
             </el-button>
           </template>
         </el-table-column>
@@ -170,25 +173,25 @@ onMounted(() => {
     </el-card>
 
     <!-- 详情弹窗 -->
-    <el-dialog v-model="detailDialogVisible" title="事件日志详情" width="700px">
+    <el-dialog v-model="detailDialogVisible" :title="t('eventLog.eventLogDetail')" width="700px">
       <el-descriptions v-if="detailData" :column="2" border>
-        <el-descriptions-item label="ID">{{ detailData.id }}</el-descriptions-item>
-        <el-descriptions-item label="事件类型">{{ detailData.event_type || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="设备 ID">{{ detailData.element_id || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="操作用户">{{ detailData.user || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="状态">
+        <el-descriptions-item :label="t('eventLog.id')">{{ detailData.id }}</el-descriptions-item>
+        <el-descriptions-item :label="t('eventLog.eventType')">{{ detailData.event_type || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('eventLog.deviceId')">{{ detailData.element_id || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('eventLog.operationUser')">{{ detailData.user || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('eventLog.status')">
           <el-tag :type="getStatusType(detailData.status)" size="small">{{ getStatusText(detailData.status) }}</el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="操作时间">{{ formatTime(detailData.operation_time) }}</el-descriptions-item>
-        <el-descriptions-item label="命令下发时间">{{ formatTime(detailData.command_issue_time) }}</el-descriptions-item>
-        <el-descriptions-item label="命令响应时间">{{ formatTime(detailData.command_response_time) }}</el-descriptions-item>
-        <el-descriptions-item label="故障信息" :span="2">{{ detailData.fault_info || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="命令跟踪数据" :span="2">
+        <el-descriptions-item :label="t('eventLog.operationTime')">{{ formatTime(detailData.operation_time) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('eventLog.commandIssueTime')">{{ formatTime(detailData.command_issue_time) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('eventLog.commandResponseTime')">{{ formatTime(detailData.command_response_time) }}</el-descriptions-item>
+        <el-descriptions-item :label="t('eventLog.faultInfo')" :span="2">{{ detailData.fault_info || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('eventLog.commandTrackData')" :span="2">
           <pre class="track-data-pre">{{ detailData.command_track_data || '-' }}</pre>
         </el-descriptions-item>
       </el-descriptions>
       <template #footer>
-        <el-button @click="detailDialogVisible = false">关闭</el-button>
+        <el-button @click="detailDialogVisible = false">{{ t('common.close') }}</el-button>
       </template>
     </el-dialog>
   </div>
