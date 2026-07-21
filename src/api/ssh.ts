@@ -40,7 +40,7 @@ export function deleteSSHLabel(data: DeleteSSHLabelRequest) {
 
 /** 获取 SSH 访问定时器列表 */
 export function listSSHAccessTimers(params: ListSSHAccessTimerRequest) {
-  return http.post<SSHAccessTimerVO[]>('/ssh-access-timer', params);
+  return http.post<SSHAccessTimerVO[]>('/ssh-access-timer/list', params);
 }
 
 /** 设置 SSH 访问定时器 */

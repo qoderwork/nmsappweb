@@ -6,7 +6,7 @@ import type {
   ThresholdConfig,
 } from '@/types/resources';
 
-const BASE = '/api/v1';
+const BASE = '';
 
 // 获取 CPU/内存使用率
 export function getCpuAndMemUsage() {

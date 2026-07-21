@@ -5,24 +5,43 @@
  * 通过路由 meta.permissionsOr/permissionsAnd/isAdmin 控制可见性。
  *
  * 菜单项与 router/modules/static.ts 中的路由对应。
+ *
+ * 菜单 name 通过 i18n key 动态转换：
+ *   - 若 i18n key 存在，使用 t(key)
+ *   - 否则回退到 fallbackName
  */
 
 import type { MenuItem } from '@/types';
 
-/**
- * 静态菜单树（用于侧边栏渲染）
- *
- * 说明：
- *  - permissionsOr：任一权限满足即显示
- *  - permissionsAnd：所有权限都满足才显示
- *  - isAdmin：仅管理员可见
- *  - 无权限配置的菜单所有人可见
- */
-export const staticMenus: MenuItem[] = [
+export interface MenuConfig {
+  id: number;
+  parentId: number;
+  /** 菜单 i18n key（如 menu.dashboard） */
+  i18nKey: string;
+  /** 菜单 i18n 缺失时的兜底名称（兼容旧版本） */
+  fallbackName: string;
+  code: string;
+  type: MenuItem['type'];
+  path: string;
+  component?: string;
+  icon?: string;
+  permission?: string;
+  permissionsOr?: string[];
+  permissionsAnd?: string[];
+  isAdmin?: boolean;
+  sort: number;
+  visible: MenuItem['visible'];
+  keepAlive?: boolean;
+  isExternal?: boolean;
+  children?: MenuConfig[];
+}
+
+export const staticMenuConfigs: MenuConfig[] = [
   {
     id: 1,
     parentId: 0,
-    name: '仪表盘',
+    i18nKey: 'menu.dashboard',
+    fallbackName: '仪表盘',
     code: 'dashboard',
     type: 'menu',
     path: '/dashboard',
@@ -35,7 +54,8 @@ export const staticMenus: MenuItem[] = [
   {
     id: 2,
     parentId: 0,
-    name: '设备管理',
+    i18nKey: 'menu.device',
+    fallbackName: '设备管理',
     code: 'device',
     type: 'directory',
     path: '/device',
@@ -47,7 +67,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 21,
         parentId: 2,
-        name: '设备列表',
+        i18nKey: 'menu.deviceList',
+        fallbackName: '设备列表',
         code: 'device-list',
         type: 'menu',
         path: '/device/list',
@@ -58,9 +79,24 @@ export const staticMenus: MenuItem[] = [
         keepAlive: true,
       },
       {
+        id: 26,
+        parentId: 2,
+        i18nKey: 'menu.deviceGroup',
+        fallbackName: '设备分组',
+        code: 'device-group',
+        type: 'menu',
+        path: '/device/group',
+        component: 'device/group',
+        icon: 'Grid',
+        sort: 2,
+        visible: 'visible',
+        keepAlive: true,
+      },
+      {
         id: 25,
         parentId: 2,
-        name: '设备运维',
+        i18nKey: 'menu.deviceOps',
+        fallbackName: '设备运维',
         code: 'device-ops',
         type: 'menu',
         path: '/device/ops',
@@ -73,7 +109,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 22,
         parentId: 2,
-        name: '参数管理',
+        i18nKey: 'menu.parameterManage',
+        fallbackName: '参数管理',
         code: 'parameter-management',
         type: 'menu',
         path: '/device/parameter',
@@ -86,7 +123,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 23,
         parentId: 2,
-        name: '参数监控',
+        i18nKey: 'menu.paramMonitor',
+        fallbackName: '参数监控',
         code: 'param-monitor',
         type: 'menu',
         path: '/device/param-monitor',
@@ -99,7 +137,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 24,
         parentId: 2,
-        name: '参数对比',
+        i18nKey: 'menu.paramCompare',
+        fallbackName: '参数对比',
         code: 'param-compare',
         type: 'menu',
         path: '/device/param-compare',
@@ -114,7 +153,8 @@ export const staticMenus: MenuItem[] = [
   {
     id: 3,
     parentId: 0,
-    name: '监控告警',
+    i18nKey: 'menu.monitor',
+    fallbackName: '监控告警',
     code: 'monitor',
     type: 'directory',
     path: '/monitor',
@@ -127,7 +167,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 31,
         parentId: 3,
-        name: '告警列表',
+        i18nKey: 'menu.alarmList',
+        fallbackName: '告警列表',
         code: 'alarm-list',
         type: 'menu',
         path: '/monitor/alarm',
@@ -140,7 +181,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 32,
         parentId: 3,
-        name: '事件日志',
+        i18nKey: 'menu.eventLog',
+        fallbackName: '事件日志',
         code: 'event-log',
         type: 'menu',
         path: '/monitor/event-log',
@@ -152,7 +194,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 33,
         parentId: 3,
-        name: '设备日志',
+        i18nKey: 'menu.deviceLog',
+        fallbackName: '设备日志',
         code: 'device-log',
         type: 'menu',
         path: '/monitor/device-log',
@@ -164,7 +207,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 34,
         parentId: 3,
-        name: '监控任务',
+        i18nKey: 'menu.monitorTask',
+        fallbackName: '监控任务',
         code: 'monitor-task',
         type: 'menu',
         path: '/monitor/monitor-task',
@@ -178,7 +222,8 @@ export const staticMenus: MenuItem[] = [
   {
     id: 6,
     parentId: 0,
-    name: '网络管理',
+    i18nKey: 'menu.network',
+    fallbackName: '网络管理',
     code: 'network',
     type: 'directory',
     path: '/network',
@@ -190,7 +235,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 61,
         parentId: 6,
-        name: '站点管理',
+        i18nKey: 'menu.siteManage',
+        fallbackName: '站点管理',
         code: 'site-manage',
         type: 'menu',
         path: '/network/site',
@@ -202,7 +248,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 62,
         parentId: 6,
-        name: '拓扑管理',
+        i18nKey: 'menu.topology',
+        fallbackName: '拓扑管理',
         code: 'topology-manage',
         type: 'menu',
         path: '/network/topology',
@@ -214,7 +261,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 63,
         parentId: 6,
-        name: 'CBSD 管理',
+        i18nKey: 'menu.cbsd',
+        fallbackName: 'CBSD 管理',
         code: 'cbsd-manage',
         type: 'menu',
         path: '/network/cbsd',
@@ -226,7 +274,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 64,
         parentId: 6,
-        name: '核心网',
+        i18nKey: 'menu.coreNetwork',
+        fallbackName: '核心网',
         code: 'core-network',
         type: 'menu',
         path: '/network/core-network',
@@ -240,7 +289,8 @@ export const staticMenus: MenuItem[] = [
   {
     id: 4,
     parentId: 0,
-    name: '系统设置',
+    i18nKey: 'menu.system',
+    fallbackName: '系统设置',
     code: 'system',
     type: 'directory',
     path: '/system',
@@ -253,7 +303,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 41,
         parentId: 4,
-        name: '用户管理',
+        i18nKey: 'menu.userManage',
+        fallbackName: '用户管理',
         code: 'user-manage',
         type: 'menu',
         path: '/system/user',
@@ -266,7 +317,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 42,
         parentId: 4,
-        name: '角色管理',
+        i18nKey: 'menu.roleManage',
+        fallbackName: '角色管理',
         code: 'role-manage',
         type: 'menu',
         path: '/system/role',
@@ -279,7 +331,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 43,
         parentId: 4,
-        name: '升级管理',
+        i18nKey: 'menu.upgrade',
+        fallbackName: '升级管理',
         code: 'upgrade-manage',
         type: 'menu',
         path: '/system/upgrade',
@@ -291,7 +344,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 44,
         parentId: 4,
-        name: '系统配置',
+        i18nKey: 'menu.systemSettings',
+        fallbackName: '系统配置',
         code: 'system-settings',
         type: 'menu',
         path: '/system/settings',
@@ -303,7 +357,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 45,
         parentId: 4,
-        name: 'SSH 终端',
+        i18nKey: 'menu.ssh',
+        fallbackName: 'SSH 终端',
         code: 'ssh-manage',
         type: 'menu',
         path: '/system/ssh',
@@ -315,7 +370,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 46,
         parentId: 4,
-        name: '备份恢复',
+        i18nKey: 'menu.backup',
+        fallbackName: '备份恢复',
         code: 'backup-manage',
         type: 'menu',
         path: '/system/backup',
@@ -327,7 +383,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 47,
         parentId: 4,
-        name: 'MML命令',
+        i18nKey: 'menu.mml',
+        fallbackName: 'MML命令',
         code: 'mml-manage',
         type: 'menu',
         path: '/system/mml',
@@ -339,7 +396,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 48,
         parentId: 4,
-        name: '安全策略',
+        i18nKey: 'menu.security',
+        fallbackName: '安全策略',
         code: 'security-manage',
         type: 'menu',
         path: '/system/security',
@@ -351,7 +409,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 49,
         parentId: 4,
-        name: '邮件配置',
+        i18nKey: 'menu.mailConfig',
+        fallbackName: '邮件配置',
         code: 'mail-config',
         type: 'menu',
         path: '/system/mail',
@@ -363,7 +422,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 50,
         parentId: 4,
-        name: 'NTP 配置',
+        i18nKey: 'menu.ntpConfig',
+        fallbackName: 'NTP 配置',
         code: 'ntp-config',
         type: 'menu',
         path: '/system/ntp',
@@ -375,7 +435,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 51,
         parentId: 4,
-        name: '资源监控',
+        i18nKey: 'menu.resources',
+        fallbackName: '资源监控',
         code: 'resources-monitor',
         type: 'menu',
         path: '/system/resources',
@@ -387,7 +448,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 52,
         parentId: 4,
-        name: '平台设置',
+        i18nKey: 'menu.platform',
+        fallbackName: '平台设置',
         code: 'platform-settings',
         type: 'menu',
         path: '/system/platform',
@@ -399,7 +461,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 53,
         parentId: 4,
-        name: '健康检查',
+        i18nKey: 'menu.healthCheck',
+        fallbackName: '健康检查',
         code: 'health-check',
         type: 'menu',
         path: '/system/health',
@@ -411,7 +474,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 54,
         parentId: 4,
-        name: 'CA 证书',
+        i18nKey: 'menu.cacert',
+        fallbackName: 'CA 证书',
         code: 'cacert-management',
         type: 'menu',
         path: '/system/cacert',
@@ -423,7 +487,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 55,
         parentId: 4,
-        name: '设备黑名单',
+        i18nKey: 'menu.blacklist',
+        fallbackName: '设备黑名单',
         code: 'black-list',
         type: 'menu',
         path: '/system/blacklist',
@@ -435,7 +500,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 56,
         parentId: 4,
-        name: '抓包管理',
+        i18nKey: 'menu.tcpdump',
+        fallbackName: '抓包管理',
         code: 'tcpdump',
         type: 'menu',
         path: '/system/tcpdump',
@@ -447,7 +513,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 57,
         parentId: 4,
-        name: 'PM 文件',
+        i18nKey: 'menu.pmfile',
+        fallbackName: 'PM 文件',
         code: 'pmfile',
         type: 'menu',
         path: '/system/pmfile',
@@ -459,7 +526,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 58,
         parentId: 4,
-        name: '心跳管理',
+        i18nKey: 'menu.heartbeat',
+        fallbackName: '心跳管理',
         code: 'heartbeat',
         type: 'menu',
         path: '/system/heartbeat',
@@ -471,7 +539,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 59,
         parentId: 4,
-        name: '设备认证',
+        i18nKey: 'menu.deviceAuth',
+        fallbackName: '设备认证',
         code: 'device-auth',
         type: 'menu',
         path: '/system/deviceauth',
@@ -483,7 +552,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 60,
         parentId: 4,
-        name: '北向接口日志',
+        i18nKey: 'menu.northInterfaceLog',
+        fallbackName: '北向接口日志',
         code: 'north-interface-log',
         type: 'menu',
         path: '/system/northinterfacelog',
@@ -497,7 +567,8 @@ export const staticMenus: MenuItem[] = [
   {
     id: 7,
     parentId: 0,
-    name: '统计报表',
+    i18nKey: 'menu.report',
+    fallbackName: '统计报表',
     code: 'report',
     type: 'directory',
     path: '/report',
@@ -509,7 +580,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 71,
         parentId: 7,
-        name: 'MR 报表',
+        i18nKey: 'menu.mrReport',
+        fallbackName: 'MR 报表',
         code: 'mr-report',
         type: 'menu',
         path: '/report/mr',
@@ -521,7 +593,8 @@ export const staticMenus: MenuItem[] = [
       {
         id: 72,
         parentId: 7,
-        name: 'PM 性能管理',
+        i18nKey: 'menu.pm',
+        fallbackName: 'PM 性能管理',
         code: 'pm-management',
         type: 'menu',
         path: '/report/pm',
@@ -535,7 +608,8 @@ export const staticMenus: MenuItem[] = [
   {
     id: 5,
     parentId: 0,
-    name: '个人中心',
+    i18nKey: 'menu.profile',
+    fallbackName: '个人中心',
     code: 'profile',
     type: 'menu',
     path: '/profile',
@@ -545,3 +619,38 @@ export const staticMenus: MenuItem[] = [
     visible: 'hidden',
   },
 ];
+
+/**
+ * 将 MenuConfig 转换为 MenuItem（运行时根据 locale 解析 name）
+ */
+export function resolveMenuItems(configs: MenuConfig[], t: (key: string) => string): MenuItem[] {
+  return configs.map((c) => ({
+    id: c.id,
+    parentId: c.parentId,
+    name: safeT(t, c.i18nKey, c.fallbackName),
+    code: c.code,
+    type: c.type,
+    path: c.path,
+    component: c.component,
+    icon: c.icon,
+    permission: c.permission,
+    permissionsOr: c.permissionsOr,
+    permissionsAnd: c.permissionsAnd,
+    isAdmin: c.isAdmin,
+    sort: c.sort,
+    visible: c.visible,
+    keepAlive: c.keepAlive,
+    isExternal: c.isExternal,
+    children: c.children ? resolveMenuItems(c.children, t) : undefined,
+  }));
+}
+
+function safeT(t: (key: string) => string, key: string, fallback: string): string {
+  try {
+    const v = t(key);
+    if (v && v !== key) return v;
+  } catch {
+    // ignore
+  }
+  return fallback;
+}

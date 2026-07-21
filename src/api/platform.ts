@@ -8,7 +8,8 @@ import type {
   NMSSecret,
 } from '@/types/platform';
 
-const BASE = '/api/v1';
+const BASE = '';
+const DOWNLOAD_BASE = '/api/v1';
 
 // 系统日期
 export function getDate() {
@@ -63,15 +64,15 @@ export function updateNMSSecret(data: NMSSecret) {
 
 // 下载 RSA 公钥
 export function downloadRSAPublicKey() {
-  return `${BASE}/platform/downloads/rsa-public-key`;
+  return `${DOWNLOAD_BASE}/platform/downloads/rsa-public-key`;
 }
 
 // 下载平台日志（POST，返回 zip 流）
 export function downloadPlatformLogsURL() {
-  return `${BASE}/platform/downloads/logs`;
+  return `${DOWNLOAD_BASE}/platform/downloads/logs`;
 }
 
 // 下载 NMS 操作手册
 export function downloadManualURL() {
-  return `${BASE}/platform/downloads/manual`;
+  return `${DOWNLOAD_BASE}/platform/downloads/manual`;
 }

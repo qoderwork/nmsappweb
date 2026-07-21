@@ -18,7 +18,7 @@ import type {
   DeleteShutdownTaskRequest,
 } from '@/types/device-ops';
 
-const BASE = '/api/v1';
+const BASE = '';
 
 interface PagedResult<T> {
   list: T[];

@@ -6,7 +6,7 @@ import type {
   HAComponentStatus,
 } from '@/types/health';
 
-const BASE = '/api/v1';
+const BASE = '';
 
 // MySQL 健康
 export function getMysqlInfo() {

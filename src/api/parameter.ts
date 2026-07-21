@@ -95,9 +95,9 @@ export function getParameterTemplateDeployLogs(id: number, params?: Record<strin
 
 /* ============ 备份日志 ============ */
 
-/** 备份日志列表 */
-export function getParameterBackupLogs(params?: Record<string, unknown>) {
-  return http.getPage<ParameterBackupLog>('/parameter-backup-logs', params);
+/** 参数备份日志列表 */
+export function getParameterBackupLogs(data?: { page?: number; pageSize?: number; elementId?: number; keyword?: string }) {
+  return http.post<{ list: ParameterBackupLog[]; total: number; page: number; page_size: number }, { page?: number; pageSize?: number; elementId?: number; keyword?: string }>('/parameter-backup-logs/list', data);
 }
 
 /** 触发备份 */

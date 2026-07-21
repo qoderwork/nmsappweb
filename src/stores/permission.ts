@@ -14,8 +14,9 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
 import { getPermissionIdsForUser } from '@/api/permission';
-import { staticMenus } from '@/router/menus';
-import type { MenuItem } from '@/types';
+import { staticMenuConfigs, resolveMenuItems } from '@/router/menus';
+import { i18n } from '@/locales';
+import type { MenuItem } from '@/types/permission';
 import {
   isAdmin,
   hasPermission as hasPermissionUtil,
@@ -51,7 +52,12 @@ export const usePermissionStore = defineStore('permission', () => {
    *  - 无权限配置的菜单所有人可见
    *  - 父菜单无可见子菜单时自动隐藏（仅对 directory 类型）
    */
-  const menus = computed<MenuItem[]>(() => filterMenus(staticMenus));
+  const menus = computed<MenuItem[]>(() => {
+    // 使用全局 i18n 实例（Pinia store 中不能用 useI18n()）
+    // 显式读取 locale.value 让 computed 追踪语言变化
+    void i18n.global.locale.value;
+    return filterMenus(resolveMenuItems(staticMenuConfigs, i18n.global.t));
+  });
 
   /** 过滤菜单树 */
   function filterMenus(items: MenuItem[]): MenuItem[] {

@@ -56,6 +56,17 @@ export const staticRoutes: RouteRecordRaw[] = [
         },
       },
       {
+        path: 'device/group',
+        name: 'DeviceGroup',
+        component: () => import('@/views/device/group/index.vue'),
+        meta: {
+          title: 'menu.deviceGroup',
+          icon: 'Grid',
+          requiresAuth: true,
+          keepAlive: true,
+        },
+      },
+      {
         path: 'device/ops',
         name: 'DeviceOps',
         component: () => import('@/views/device/ops/index.vue'),
@@ -115,7 +126,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'SiteManagement',
         component: () => import('@/views/network/site/index.vue'),
         meta: {
-          title: 'menu.siteManagement',
+          title: 'menu.siteManage',
           icon: 'MapLocation',
           requiresAuth: true,
           keepAlive: true,
@@ -126,7 +137,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'TopologyManagement',
         component: () => import('@/views/network/topology/index.vue'),
         meta: {
-          title: 'menu.topologyManagement',
+          title: 'menu.topology',
           icon: 'Share',
           requiresAuth: true,
           keepAlive: true,
@@ -137,7 +148,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'CBSDManagement',
         component: () => import('@/views/network/cbsd/index.vue'),
         meta: {
-          title: 'menu.cbsdManagement',
+          title: 'menu.cbsd',
           icon: 'Connection',
           requiresAuth: true,
           keepAlive: true,
@@ -204,7 +215,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'UserManagement',
         component: () => import('@/views/system/user/index.vue'),
         meta: {
-          title: 'menu.userManagement',
+          title: 'menu.userManage',
           icon: 'User',
           requiresAuth: true,
           keepAlive: true,
@@ -216,7 +227,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'RoleManagement',
         component: () => import('@/views/system/role/index.vue'),
         meta: {
-          title: 'menu.roleManagement',
+          title: 'menu.roleManage',
           icon: 'UserFilled',
           requiresAuth: true,
           keepAlive: true,
@@ -228,7 +239,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'UpgradeManagement',
         component: () => import('@/views/system/upgrade/index.vue'),
         meta: {
-          title: 'menu.upgradeManagement',
+          title: 'menu.upgrade',
           icon: 'UploadFilled',
           requiresAuth: true,
           keepAlive: true,
@@ -250,7 +261,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'SSHManagement',
         component: () => import('@/views/system/ssh/index.vue'),
         meta: {
-          title: 'menu.sshManagement',
+          title: 'menu.ssh',
           icon: 'Terminal',
           requiresAuth: true,
           keepAlive: true,
@@ -261,7 +272,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'BackupManagement',
         component: () => import('@/views/system/backup/index.vue'),
         meta: {
-          title: 'menu.backupManagement',
+          title: 'menu.backup',
           icon: 'DataBackup',
           requiresAuth: true,
           keepAlive: true,
@@ -272,7 +283,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'MMLManagement',
         component: () => import('@/views/system/mml/index.vue'),
         meta: {
-          title: 'menu.mmlManagement',
+          title: 'menu.mml',
           icon: 'List',
           requiresAuth: true,
           keepAlive: true,
@@ -283,7 +294,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'SecurityManagement',
         component: () => import('@/views/system/security/index.vue'),
         meta: {
-          title: 'menu.securityManagement',
+          title: 'menu.security',
           icon: 'Lock',
           requiresAuth: true,
           keepAlive: true,
@@ -316,7 +327,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'ResourcesMonitor',
         component: () => import('@/views/system/resources/index.vue'),
         meta: {
-          title: 'menu.resourcesMonitor',
+          title: 'menu.resources',
           icon: 'Cpu',
           requiresAuth: true,
           keepAlive: true,
@@ -327,7 +338,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'PlatformSettings',
         component: () => import('@/views/system/platform/index.vue'),
         meta: {
-          title: 'menu.platformSettings',
+          title: 'menu.platform',
           icon: 'Platform',
           requiresAuth: true,
           keepAlive: true,
@@ -349,7 +360,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'CACertManagement',
         component: () => import('@/views/system/cacert/index.vue'),
         meta: {
-          title: 'menu.cacertManagement',
+          title: 'menu.cacert',
           icon: 'Key',
           requiresAuth: true,
           keepAlive: true,
@@ -360,7 +371,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'BlackList',
         component: () => import('@/views/system/blacklist/index.vue'),
         meta: {
-          title: 'menu.blacklistManagement',
+          title: 'menu.blacklist',
           icon: 'UserFilled',
           requiresAuth: true,
           keepAlive: true,
@@ -371,7 +382,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'Tcpdump',
         component: () => import('@/views/system/tcpdump/index.vue'),
         meta: {
-          title: 'menu.tcpdumpManagement',
+          title: 'menu.tcpdump',
           icon: 'Monitor',
           requiresAuth: true,
           keepAlive: true,
@@ -382,7 +393,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'PMFile',
         component: () => import('@/views/system/pmfile/index.vue'),
         meta: {
-          title: 'menu.pmfileManagement',
+          title: 'menu.pmfile',
           icon: 'Document',
           requiresAuth: true,
           keepAlive: true,
@@ -393,7 +404,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'Heartbeat',
         component: () => import('@/views/system/heartbeat/index.vue'),
         meta: {
-          title: 'menu.heartbeatManagement',
+          title: 'menu.heartbeat',
           icon: 'Connection',
           requiresAuth: true,
           keepAlive: true,
@@ -448,7 +459,7 @@ export const staticRoutes: RouteRecordRaw[] = [
         name: 'PMManagement',
         component: () => import('@/views/report/pm/index.vue'),
         meta: {
-          title: 'menu.pmManagement',
+          title: 'menu.pm',
           icon: 'DataAnalysis',
           requiresAuth: true,
           keepAlive: true,

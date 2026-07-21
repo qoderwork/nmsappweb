@@ -20,8 +20,8 @@ export function addMonitorConfig(data: Partial<ParameterMonitorConfig>) {
 }
 
 /** 监控配置列表 */
-export function getMonitorConfigs(params?: Record<string, unknown>) {
-  return http.getPage<MonitorConfigVo>('/param-monitor/configs', params);
+export function getMonitorConfigs(data?: { page?: number; pageSize?: number; keyword?: string }) {
+  return http.post<{ list: MonitorConfigVo[]; total: number; page: number; page_size: number }, { page?: number; pageSize?: number; keyword?: string }>('/param-monitor/configs/list', data);
 }
 
 /** 更新监控配置 */

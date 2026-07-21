@@ -55,7 +55,7 @@ const kpiQueryParams = reactive<KpiQueryParams>({
 
 // KPI 弹窗
 const kpiDialogVisible = ref(false);
-const kpiDialogTitle = ref('新增 KPI');
+const kpiDialogTitle = ref(t('pm.addKpi'));
 const kpiIsEdit = ref(false);
 const kpiForm = reactive<Partial<PMKpi>>({
   id: undefined,
@@ -108,7 +108,7 @@ function handleKpiSizeChange(size: number) {
 }
 
 function handleKpiAdd() {
-  kpiDialogTitle.value = '新增 KPI';
+  kpiDialogTitle.value = t('pm.addKpi');
   kpiIsEdit.value = false;
   Object.assign(kpiForm, {
     id: undefined, name: '', description: '', type: '',
@@ -118,7 +118,7 @@ function handleKpiAdd() {
 }
 
 function handleKpiEdit(row: PMKpi) {
-  kpiDialogTitle.value = '编辑 KPI';
+  kpiDialogTitle.value = t('pm.editKpi');
   kpiIsEdit.value = true;
   Object.assign(kpiForm, {
     id: row.id, name: row.name, description: row.description,
@@ -130,16 +130,16 @@ function handleKpiEdit(row: PMKpi) {
 
 async function handleKpiSave() {
   if (!kpiForm.name) {
-    ElMessage.warning('请输入 KPI 名称');
+    ElMessage.warning(t('pm.kpiNamePlaceholder'));
     return;
   }
   try {
     if (kpiIsEdit.value && kpiForm.id) {
       await updateKpi(kpiForm.id, kpiForm);
-      ElMessage.success('更新成功');
+      ElMessage.success(t('common.editSuccess'));
     } else {
       await createKpi(kpiForm);
-      ElMessage.success('创建成功');
+      ElMessage.success(t('common.addSuccess'));
     }
     kpiDialogVisible.value = false;
     loadKpiList();
@@ -150,13 +150,10 @@ async function handleKpiSave() {
 
 async function handleKpiDelete(row: PMKpi) {
   try {
-    await ElMessageBox.confirm(
-      `确定要删除 KPI "${row.name}" 吗？`,
-      '删除确认',
-      { type: 'warning' }
-    );
+    const confirmMsg = t('pm.confirmDeleteKpi').replace('{name}', row.name || '');
+    await ElMessageBox.confirm(confirmMsg, t('pm.deleteConfirm'), { type: 'warning' });
     await deleteKpi(row.id);
-    ElMessage.success('删除成功');
+    ElMessage.success(t('common.deleteSuccess'));
     loadKpiList();
   } catch (e) {
     if (e !== 'cancel') {
@@ -183,7 +180,7 @@ const tplQueryParams = reactive<TplQueryParams>({
 
 // 模板弹窗
 const tplDialogVisible = ref(false);
-const tplDialogTitle = ref('新增 PM 模板');
+const tplDialogTitle = ref(t('pm.addTemplate'));
 const tplIsEdit = ref(false);
 const tplForm = reactive<Partial<PMTemplate>>({
   id: undefined,
@@ -237,7 +234,7 @@ function handleTplSizeChange(size: number) {
 }
 
 function handleTplAdd() {
-  tplDialogTitle.value = '新增 PM 模板';
+  tplDialogTitle.value = t('pm.addTemplate');
   tplIsEdit.value = false;
   Object.assign(tplForm, {
     id: undefined, name: '', description: '',
@@ -248,7 +245,7 @@ function handleTplAdd() {
 }
 
 function handleTplEdit(row: PMTemplate) {
-  tplDialogTitle.value = '编辑 PM 模板';
+  tplDialogTitle.value = t('pm.editTemplate');
   tplIsEdit.value = true;
   Object.assign(tplForm, {
     id: row.id, name: row.name, description: row.description,
@@ -260,7 +257,7 @@ function handleTplEdit(row: PMTemplate) {
 
 async function handleTplSave() {
   if (!tplForm.name) {
-    ElMessage.warning('请输入模板名称');
+    ElMessage.warning(t('pm.templateNamePlaceholder'));
     return;
   }
   // 将字符串转为 number[]
@@ -271,10 +268,10 @@ async function handleTplSave() {
     const saveData = { ...tplForm, kpiIds };
     if (tplIsEdit.value && tplForm.id) {
       await updateTemplate(tplForm.id, saveData);
-      ElMessage.success('更新成功');
+      ElMessage.success(t('common.editSuccess'));
     } else {
       await createTemplate(saveData);
-      ElMessage.success('创建成功');
+      ElMessage.success(t('common.addSuccess'));
     }
     tplDialogVisible.value = false;
     loadTemplateList();
@@ -285,13 +282,10 @@ async function handleTplSave() {
 
 async function handleTplDelete(row: PMTemplate) {
   try {
-    await ElMessageBox.confirm(
-      `确定要删除模板 "${row.name}" 吗？`,
-      '删除确认',
-      { type: 'warning' }
-    );
+    const confirmMsg = t('pm.confirmDeleteTemplate').replace('{name}', row.name || '');
+    await ElMessageBox.confirm(confirmMsg, t('pm.deleteConfirm'), { type: 'warning' });
     await deleteTemplate(row.id);
-    ElMessage.success('删除成功');
+    ElMessage.success(t('common.deleteSuccess'));
     loadTemplateList();
   } catch (e) {
     if (e !== 'cancel') {
@@ -373,10 +367,10 @@ async function handleDownloadFile(row: PMFileLog) {
     link.download = row.fileName || `pm_files_${row.elementId}.zip`;
     link.click();
     URL.revokeObjectURL(url);
-    ElMessage.success('下载成功');
+    ElMessage.success(t('pm.downloadSuccess'));
   } catch (e) {
     console.error('[PMManagement] download file failed:', e);
-    ElMessage.error('下载失败');
+    ElMessage.error(t('pm.downloadFailed'));
   }
 }
 
@@ -397,22 +391,22 @@ onMounted(() => {
   <div class="pm-management-page">
     <el-tabs v-model="activeTab" type="border-card" @tab-change="handleTabChange">
       <!-- Tab1: KPI 管理 -->
-      <el-tab-pane label="KPI 管理" name="kpi">
+      <el-tab-pane :label="t('pm.kpiManagement')" name="kpi">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true" @submit.prevent="handleKpiSearch">
-            <el-form-item label="关键字">
+            <el-form-item :label="t('pm.keyword')">
               <el-input
                 v-model="kpiQueryParams.keyword"
-                placeholder="KPI 名称"
+                :placeholder="t('pm.kpiNamePlaceholder')"
                 clearable
                 style="width: 200px"
                 @keyup.enter="handleKpiSearch"
               />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Search" @click="handleKpiSearch">搜索</el-button>
-              <el-button :icon="Refresh" @click="handleKpiReset">重置</el-button>
-              <el-button type="success" :icon="Plus" @click="handleKpiAdd">新增 KPI</el-button>
+              <el-button type="primary" :icon="Search" @click="handleKpiSearch">{{ t('common.search') }}</el-button>
+              <el-button :icon="Refresh" @click="handleKpiReset">{{ t('common.reset') }}</el-button>
+              <el-button type="success" :icon="Plus" @click="handleKpiAdd">{{ t('pm.addKpi') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -420,31 +414,31 @@ onMounted(() => {
         <el-card shadow="never" :body-style="{ padding: '0' }">
           <el-table v-loading="kpiLoading" :data="kpiData" stripe border style="width: 100%" row-key="id">
             <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="name" label="名称" min-width="140" />
-            <el-table-column prop="description" label="描述" min-width="180" />
-            <el-table-column prop="type" label="类型" width="100" />
-            <el-table-column prop="formula" label="公式" min-width="160" />
-            <el-table-column prop="unit" label="单位" width="80" />
-            <el-table-column prop="granularity" label="粒度" width="100" />
-            <el-table-column prop="status" label="状态" width="80">
+            <el-table-column prop="name" :label="t('pm.name')" min-width="140" />
+            <el-table-column prop="description" :label="t('pm.description')" min-width="180" />
+            <el-table-column prop="type" :label="t('pm.type')" width="100" />
+            <el-table-column prop="formula" :label="t('pm.formula')" min-width="160" />
+            <el-table-column prop="unit" :label="t('pm.unit')" width="80" />
+            <el-table-column prop="granularity" :label="t('pm.granularity')" width="100" />
+            <el-table-column prop="status" :label="t('pm.status')" width="80">
               <template #default="{ row }">
                 <el-tag :type="row.status ? 'success' : 'info'" size="small">
-                  {{ row.status ? '启用' : '禁用' }}
+                  {{ row.status ? t('pm.enabled') : t('pm.disabled') }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="createTime" label="创建时间" min-width="160">
+            <el-table-column prop="createTime" :label="t('pm.createTime')" min-width="160">
               <template #default="{ row }">
                 {{ formatTime(row.createTime) }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="180" fixed="right">
+            <el-table-column :label="t('common.actions')" width="180" fixed="right">
               <template #default="{ row }">
                 <el-button link type="primary" size="small" @click="handleKpiEdit(row as PMKpi)">
-                  <Edit /> 编辑
+                  <Edit /> {{ t('common.edit') }}
                 </el-button>
                 <el-button link type="danger" size="small" @click="handleKpiDelete(row as PMKpi)">
-                  <Delete /> 删除
+                  <Delete /> {{ t('common.delete') }}
                 </el-button>
               </template>
             </el-table-column>
@@ -466,22 +460,22 @@ onMounted(() => {
       </el-tab-pane>
 
       <!-- Tab2: PM 模板 -->
-      <el-tab-pane label="PM 模板" name="template">
+      <el-tab-pane :label="t('pm.pmTemplate')" name="template">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true" @submit.prevent="handleTplSearch">
-            <el-form-item label="关键字">
+            <el-form-item :label="t('pm.keyword')">
               <el-input
                 v-model="tplQueryParams.keyword"
-                placeholder="模板名称"
+                :placeholder="t('pm.templateNamePlaceholder')"
                 clearable
                 style="width: 200px"
                 @keyup.enter="handleTplSearch"
               />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Search" @click="handleTplSearch">搜索</el-button>
-              <el-button :icon="Refresh" @click="handleTplReset">重置</el-button>
-              <el-button type="success" :icon="Plus" @click="handleTplAdd">新增模板</el-button>
+              <el-button type="primary" :icon="Search" @click="handleTplSearch">{{ t('common.search') }}</el-button>
+              <el-button :icon="Refresh" @click="handleTplReset">{{ t('common.reset') }}</el-button>
+              <el-button type="success" :icon="Plus" @click="handleTplAdd">{{ t('pm.addTemplate') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -489,33 +483,33 @@ onMounted(() => {
         <el-card shadow="never" :body-style="{ padding: '0' }">
           <el-table v-loading="tplLoading" :data="tplData" stripe border style="width: 100%" row-key="id">
             <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="name" label="模板名称" min-width="140" />
-            <el-table-column prop="description" label="描述" min-width="180" />
-            <el-table-column prop="kpiIds" label="KPI IDs" min-width="160">
+            <el-table-column prop="name" :label="t('pm.name')" min-width="140" />
+            <el-table-column prop="description" :label="t('pm.description')" min-width="180" />
+            <el-table-column prop="kpiIds" :label="t('pm.kpiIds')" min-width="160">
               <template #default="{ row }">
                 {{ row.kpiIds ? (Array.isArray(row.kpiIds) ? row.kpiIds.join(', ') : row.kpiIds) : '-' }}
               </template>
             </el-table-column>
-            <el-table-column prop="granularity" label="粒度" width="100" />
-            <el-table-column prop="status" label="状态" width="80">
+            <el-table-column prop="granularity" :label="t('pm.granularity')" width="100" />
+            <el-table-column prop="status" :label="t('pm.status')" width="80">
               <template #default="{ row }">
                 <el-tag :type="row.status ? 'success' : 'info'" size="small">
-                  {{ row.status ? '启用' : '禁用' }}
+                  {{ row.status ? t('pm.enabled') : t('pm.disabled') }}
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column prop="createTime" label="创建时间" min-width="160">
+            <el-table-column prop="createTime" :label="t('pm.createTime')" min-width="160">
               <template #default="{ row }">
                 {{ formatTime(row.createTime) }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="180" fixed="right">
+            <el-table-column :label="t('common.actions')" width="180" fixed="right">
               <template #default="{ row }">
                 <el-button link type="primary" size="small" @click="handleTplEdit(row as PMTemplate)">
-                  <Edit /> 编辑
+                  <Edit /> {{ t('common.edit') }}
                 </el-button>
                 <el-button link type="danger" size="small" @click="handleTplDelete(row as PMTemplate)">
-                  <Delete /> 删除
+                  <Delete /> {{ t('common.delete') }}
                 </el-button>
               </template>
             </el-table-column>
@@ -537,21 +531,21 @@ onMounted(() => {
       </el-tab-pane>
 
       <!-- Tab3: PM 文件日志 -->
-      <el-tab-pane label="PM 文件日志" name="log">
+      <el-tab-pane :label="t('pm.pmFileLogs')" name="log">
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true" @submit.prevent="handleLogSearch">
-            <el-form-item label="设备 ID">
+            <el-form-item :label="t('pm.deviceId')">
               <el-input
                 v-model="logQueryParams.elementId"
-                placeholder="设备 ID"
+                :placeholder="t('pm.deviceIdPlaceholder')"
                 clearable
                 style="width: 150px"
                 @keyup.enter="handleLogSearch"
               />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Search" @click="handleLogSearch">搜索</el-button>
-              <el-button :icon="Refresh" @click="handleLogReset">重置</el-button>
+              <el-button type="primary" :icon="Search" @click="handleLogSearch">{{ t('common.search') }}</el-button>
+              <el-button :icon="Refresh" @click="handleLogReset">{{ t('common.reset') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
@@ -559,23 +553,23 @@ onMounted(() => {
         <el-card shadow="never" :body-style="{ padding: '0' }">
           <el-table v-loading="logLoading" :data="logData" stripe border style="width: 100%" row-key="id">
             <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="elementId" label="设备 ID" width="100" />
-            <el-table-column prop="fileName" label="文件名" min-width="240" />
-            <el-table-column prop="fileType" label="文件类型" width="100" />
-            <el-table-column prop="fileSize" label="文件大小" width="100">
+            <el-table-column prop="elementId" :label="t('pm.deviceId')" width="100" />
+            <el-table-column prop="fileName" :label="t('pm.fileName')" min-width="240" />
+            <el-table-column prop="fileType" :label="t('pm.fileType')" width="100" />
+            <el-table-column prop="fileSize" :label="t('pm.fileSize')" width="100">
               <template #default="{ row }">
                 {{ formatFileSize(row.fileSize) }}
               </template>
             </el-table-column>
-            <el-table-column prop="uploadTime" label="上传时间" min-width="160">
+            <el-table-column prop="uploadTime" :label="t('pm.uploadTime')" min-width="160">
               <template #default="{ row }">
                 {{ formatTime(row.uploadTime) }}
               </template>
             </el-table-column>
-            <el-table-column prop="status" label="状态" width="100" />
-            <el-table-column label="操作" width="100" fixed="right">
+            <el-table-column prop="status" :label="t('pm.status')" width="100" />
+            <el-table-column :label="t('common.actions')" width="100" fixed="right">
               <template #default="{ row }">
-                <el-button link type="primary" size="small" :icon="Download" @click="handleDownloadFile(row as PMFileLog)">下载</el-button>
+                <el-button link type="primary" size="small" :icon="Download" @click="handleDownloadFile(row as PMFileLog)">{{ t('pm.download') }}</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -599,56 +593,56 @@ onMounted(() => {
     <!-- KPI 编辑弹窗 -->
     <el-dialog v-model="kpiDialogVisible" :title="kpiDialogTitle" width="560px" @close="kpiDialogVisible = false">
       <el-form :model="kpiForm" label-width="80px">
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="kpiForm.name" placeholder="请输入 KPI 名称" />
+        <el-form-item :label="t('pm.name')" prop="name">
+          <el-input v-model="kpiForm.name" :placeholder="t('pm.kpiNamePlaceholder')" />
         </el-form-item>
-        <el-form-item label="描述">
-          <el-input v-model="kpiForm.description" type="textarea" :rows="2" placeholder="请输入描述" />
+        <el-form-item :label="t('pm.description')">
+          <el-input v-model="kpiForm.description" type="textarea" :rows="2" :placeholder="t('pm.descriptionPlaceholder')" />
         </el-form-item>
-        <el-form-item label="类型">
-          <el-input v-model="kpiForm.type" placeholder="请输入类型" />
+        <el-form-item :label="t('pm.type')">
+          <el-input v-model="kpiForm.type" :placeholder="t('pm.typePlaceholder')" />
         </el-form-item>
-        <el-form-item label="公式">
-          <el-input v-model="kpiForm.formula" placeholder="请输入计算公式" />
+        <el-form-item :label="t('pm.formula')">
+          <el-input v-model="kpiForm.formula" :placeholder="t('pm.formulaPlaceholder')" />
         </el-form-item>
-        <el-form-item label="单位">
-          <el-input v-model="kpiForm.unit" placeholder="请输入单位" />
+        <el-form-item :label="t('pm.unit')">
+          <el-input v-model="kpiForm.unit" :placeholder="t('pm.unitPlaceholder')" />
         </el-form-item>
-        <el-form-item label="粒度">
-          <el-input v-model="kpiForm.granularity" placeholder="请输入粒度" />
+        <el-form-item :label="t('pm.granularity')">
+          <el-input v-model="kpiForm.granularity" :placeholder="t('pm.granularityPlaceholder')" />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item :label="t('pm.status')">
           <el-switch v-model="kpiForm.status" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="kpiDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleKpiSave">确定</el-button>
+        <el-button @click="kpiDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleKpiSave">{{ t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- PM 模板编辑弹窗 -->
     <el-dialog v-model="tplDialogVisible" :title="tplDialogTitle" width="560px" @close="tplDialogVisible = false">
       <el-form :model="tplForm" label-width="80px">
-        <el-form-item label="名称" prop="name">
-          <el-input v-model="tplForm.name" placeholder="请输入模板名称" />
+        <el-form-item :label="t('pm.name')" prop="name">
+          <el-input v-model="tplForm.name" :placeholder="t('pm.templateNamePlaceholder')" />
         </el-form-item>
-        <el-form-item label="描述">
-          <el-input v-model="tplForm.description" type="textarea" :rows="2" placeholder="请输入描述" />
+        <el-form-item :label="t('pm.description')">
+          <el-input v-model="tplForm.description" type="textarea" :rows="2" :placeholder="t('pm.descriptionPlaceholder')" />
         </el-form-item>
-        <el-form-item label="KPI IDs">
-          <el-input v-model="tplKpiIdsStr" placeholder="如: 1,2,3" />
+        <el-form-item :label="t('pm.kpiIds')">
+          <el-input v-model="tplKpiIdsStr" :placeholder="t('pm.kpiIdsPlaceholder')" />
         </el-form-item>
-        <el-form-item label="粒度">
-          <el-input v-model="tplForm.granularity" placeholder="请输入粒度" />
+        <el-form-item :label="t('pm.granularity')">
+          <el-input v-model="tplForm.granularity" :placeholder="t('pm.granularityPlaceholder')" />
         </el-form-item>
-        <el-form-item label="状态">
+        <el-form-item :label="t('pm.status')">
           <el-switch v-model="tplForm.status" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="tplDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleTplSave">确定</el-button>
+        <el-button @click="tplDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleTplSave">{{ t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
   </div>

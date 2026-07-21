@@ -95,7 +95,7 @@ async function handleDownloadReport() {
       startTime: queryParams.startTime || undefined,
       endTime: queryParams.endTime || undefined,
     });
-    ElMessage.success('开始下载报告');
+    ElMessage.success(t('mr.downloadSuccess'));
   } catch (e) {
     console.error('[MRManagement] download report failed:', e);
   }
@@ -108,7 +108,7 @@ async function handleDownloadFile(row: MRFileLog) {
       fileName: row.fileName,
       elementId: row.elementId,
     });
-    ElMessage.success('开始下载文件');
+    ElMessage.success(t('mr.fileDownloadSuccess'));
   } catch (e) {
     console.error('[MRManagement] download file failed:', e);
   }
@@ -130,42 +130,42 @@ onMounted(() => {
   <div class="mr-management-page">
     <el-tabs v-model="activeTab" type="border-card">
       <!-- MR 日志 -->
-      <el-tab-pane label="MR 日志" name="log">
+      <el-tab-pane :label="t('mr.mrLogs')" name="log">
         <!-- 搜索栏 -->
         <el-card shadow="never" :body-style="{ padding: '16px' }">
           <el-form :inline="true" @submit.prevent="handleSearch">
-            <el-form-item label="设备 ID">
+            <el-form-item :label="t('mr.deviceId')">
               <el-input
                 v-model="queryParams.elementId"
-                placeholder="设备 ID"
+                :placeholder="t('mr.deviceIdPlaceholder')"
                 clearable
                 style="width: 120px"
                 @keyup.enter="handleSearch"
               />
             </el-form-item>
-            <el-form-item label="开始时间">
+            <el-form-item :label="t('mr.startTime')">
               <el-date-picker
                 v-model="queryParams.startTime"
                 type="datetime"
-                placeholder="开始时间"
+                :placeholder="t('mr.startTime')"
                 value-format="YYYY-MM-DD HH:mm:ss"
                 style="width: 180px"
               />
             </el-form-item>
-            <el-form-item label="结束时间">
+            <el-form-item :label="t('mr.endTime')">
               <el-date-picker
                 v-model="queryParams.endTime"
                 type="datetime"
-                placeholder="结束时间"
+                :placeholder="t('mr.endTime')"
                 value-format="YYYY-MM-DD HH:mm:ss"
                 style="width: 180px"
               />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
-              <el-button :icon="Refresh" @click="handleReset">重置</el-button>
+              <el-button type="primary" :icon="Search" @click="handleSearch">{{ t('common.search') }}</el-button>
+              <el-button :icon="Refresh" @click="handleReset">{{ t('common.reset') }}</el-button>
               <el-button type="success" :icon="Download" @click="handleDownloadReport">
-                下载报告
+                {{ t('mr.downloadReport') }}
               </el-button>
             </el-form-item>
           </el-form>
@@ -182,18 +182,18 @@ onMounted(() => {
             row-key="id"
           >
             <el-table-column type="index" label="#" width="60" />
-            <el-table-column prop="elementId" label="设备 ID" width="100" />
-            <el-table-column prop="fileName" label="文件名" min-width="280" />
-            <el-table-column prop="uploadTime" label="上传时间" min-width="160">
+            <el-table-column prop="elementId" :label="t('mr.deviceId')" width="100" />
+            <el-table-column prop="fileName" :label="t('mr.fileName')" min-width="280" />
+            <el-table-column prop="uploadTime" :label="t('mr.uploadTime')" min-width="160">
               <template #default="{ row }">
                 {{ formatTime(row.uploadTime) }}
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="120" fixed="right">
+            <el-table-column :label="t('common.actions')" width="120" fixed="right">
               <template #default="{ row }">
                 <el-button link type="primary" size="small" @click="handleDownloadFile(row as MRFileLog)">
                   <Download />
-                  下载
+                  {{ t('mr.downloadFile') }}
                 </el-button>
               </template>
             </el-table-column>

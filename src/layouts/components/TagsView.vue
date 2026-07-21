@@ -15,11 +15,13 @@ import { Close, RefreshRight } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
 
 import { useAppStore, type TagView } from '@/stores/app';
+import { useSettingsStore } from '@/stores/settings';
 
 const appStore = useAppStore();
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
+const settingsStore = useSettingsStore();
 
 /** 标签列表 */
 const tags = computed(() => appStore.tagsView);
@@ -88,6 +90,23 @@ function initAffixTags() {
       affix: true,
       keepAlive: r.meta?.keepAlive,
     });
+  });
+}
+
+/** 更新所有标签页标题（语言切换时调用） */
+function updateAllTagTitles() {
+  const routesMap = new Map<string, any>();
+  router.getRoutes().forEach((r) => {
+    if (r.meta?.title) {
+      routesMap.set(r.path, r.meta.title);
+    }
+  });
+
+  appStore.tagsView.forEach((tag) => {
+    const titleKey = routesMap.get(tag.path);
+    if (titleKey) {
+      tag.title = t(titleKey);
+    }
   });
 }
 
@@ -229,6 +248,14 @@ watch(
   () => appStore.tagsView.length,
   () => {
     requestAnimationFrame(scrollToActiveTag);
+  }
+);
+
+// 监听语言变化，更新所有标签页标题
+watch(
+  () => settingsStore.locale,
+  () => {
+    updateAllTagTitles();
   }
 );
 

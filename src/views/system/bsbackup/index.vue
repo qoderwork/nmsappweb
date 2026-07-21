@@ -57,6 +57,9 @@ import type {
 
 import { getDevices } from '@/api/device';
 import type { Device } from '@/types/device';
+import { useI18n } from 'vue-i18n';
+
+const { t } = useI18n();
 
 /* ============ Tab State ============ */
 const activeTab = ref('deviceConfig');
@@ -129,16 +132,16 @@ function handleImportFileChange(uploadFile: { raw?: File }) {
 
 async function handleImportConfig() {
   if (!importFileRef.value || !importTargetDevice.value) {
-    ElMessage.warning('请选择配置文件');
+    ElMessage.warning(t('bsbackup.selectConfigFile'));
     return;
   }
   importLoading.value = true;
   try {
     const result = await importBSConfigFile(importFileRef.value, importTargetDevice.value.elementId);
     if (result.success) {
-      ElMessage.success('配置文件导入成功');
+      ElMessage.success(t('bsbackup.importSuccess'));
     } else {
-      ElMessage.error(result.message || '配置文件导入失败');
+      ElMessage.error(result.message || t('bsbackup.importFailed'));
     }
     importDialogVisible.value = false;
     loadDeviceConfigList();
@@ -152,13 +155,13 @@ async function handleImportConfig() {
 // --- Export Config ---
 async function handleExportConfig() {
   if (selectedDevices.value.length === 0) {
-    ElMessage.warning('请先选择要导出的设备');
+    ElMessage.warning(t('bsbackup.selectDevices'));
     return;
   }
   try {
     const elementIds = selectedDevices.value.map((d) => d.elementId);
     await exportBSConfigFile(elementIds);
-    ElMessage.success('配置文件导出成功');
+    ElMessage.success(t('bsbackup.exportSuccess'));
   } catch (e) {
     console.error('[BSBackup] export config failed:', e);
   }
@@ -206,22 +209,23 @@ function openCreateTaskDialog(type: 'backup' | 'restore') {
 
 async function handleCreateTask() {
   if (!taskForm.name) {
-    ElMessage.warning('请输入任务名称');
+    ElMessage.warning(t('bsbackup.enterTaskName'));
     return;
   }
   if (!taskForm.executeOnAllDevice && (!taskForm.elementIds || taskForm.elementIds.length === 0)) {
-    ElMessage.warning('请选择目标设备或勾选全部设备');
+    ElMessage.warning(t('bsbackup.selectTargetDevices'));
     return;
   }
   if (taskForm.executeMode === 3 && !taskForm.triggerTime) {
-    ElMessage.warning('请选择定时执行时间');
+    ElMessage.warning(t('bsbackup.selectScheduleTime'));
     return;
   }
   taskCreateLoading.value = true;
   try {
     const fn = taskCreateType.value === 'backup' ? addBSBackupTask : addBSRestoreTask;
     await fn(taskForm);
-    ElMessage.success(`${taskCreateType.value === 'backup' ? '备份' : '恢复'}任务创建成功`);
+    const typeText = taskCreateType.value === 'backup' ? t('bsbackup.taskTypeBackup') : t('bsbackup.taskTypeRestore');
+    ElMessage.success(t('bsbackup.taskCreatedSuccess').replace('{type}', typeText));
     taskCreateDialogVisible.value = false;
     activeTab.value = 'tasks';
     loadTaskList();
@@ -267,13 +271,13 @@ function handleTaskSizeChange(size: number) {
 
 function getTaskStatusText(status: number): string {
   const map: Record<number, string> = {
-    0: '等待中',
-    1: '运行中',
-    2: '已完成',
-    3: '已取消',
-    4: '失败',
+    0: t('bsbackup.statusWaiting'),
+    1: t('bsbackup.statusRunning'),
+    2: t('bsbackup.statusCompleted'),
+    3: t('bsbackup.statusCancelled'),
+    4: t('bsbackup.statusFailed'),
   };
-  return map[status] || '未知';
+  return map[status] || t('bsbackup.statusUnknown');
 }
 
 function getTaskStatusType(status: number): 'primary' | 'success' | 'warning' | 'info' | 'danger' | undefined {
@@ -288,19 +292,19 @@ function getTaskStatusType(status: number): 'primary' | 'success' | 'warning' | 
 }
 
 function getTaskTypeText(type: string): string {
-  return type === 'backup' ? '备份' : type === 'restore' ? '恢复' : type;
+  return type === 'backup' ? t('bsbackup.taskTypeBackup') : type === 'restore' ? t('bsbackup.taskTypeRestore') : type;
 }
 
 function getExecuteModeText(mode: number): string {
-  const map: Record<number, string> = { 1: '立即执行', 2: '等待执行', 3: '定时执行' };
-  return map[mode] || '未知';
+  const map: Record<number, string> = { 1: t('bsbackup.executeModeImmediate'), 2: t('bsbackup.executeModeWait'), 3: t('bsbackup.executeModeScheduled') };
+  return map[mode] || t('bsbackup.statusUnknown');
 }
 
 async function handleStartTask(row: BSBackupTaskVo) {
   try {
-    await ElMessageBox.confirm(`确定要启动任务 "${row.name}" 吗？`, '启动确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('bsbackup.startConfirm').replace('{name}', row.name), t('bsbackup.startConfirmTitle'), { type: 'warning' });
     await startBSBackupTask(row.id);
-    ElMessage.success('任务已启动');
+    ElMessage.success(t('bsbackup.taskStarted'));
     loadTaskList();
   } catch (e) {
     if (e !== 'cancel') console.error('[BSBackup] start task failed:', e);
@@ -309,10 +313,10 @@ async function handleStartTask(row: BSBackupTaskVo) {
 
 async function handleCancelTask(row: BSBackupTaskVo) {
   try {
-    await ElMessageBox.confirm(`确定要取消任务 "${row.name}" 吗？`, '取消确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('bsbackup.cancelConfirm').replace('{name}', row.name), t('bsbackup.cancelConfirmTitle'), { type: 'warning' });
     const fn = row.type === 'backup' ? cancelBSBackupTask : cancelBSRestoreTask;
     await fn(row.id);
-    ElMessage.success('任务已取消');
+    ElMessage.success(t('bsbackup.taskCancelled'));
     loadTaskList();
   } catch (e) {
     if (e !== 'cancel') console.error('[BSBackup] cancel task failed:', e);
@@ -368,7 +372,7 @@ function handleResultSizeChange(size: number) {
 }
 
 function getResultText(result: number): string {
-  return result === 0 ? '成功' : '失败';
+  return result === 0 ? t('bsbackup.success') : t('bsbackup.failed');
 }
 
 function getResultType(result: number): 'success' | 'danger' {
@@ -377,12 +381,12 @@ function getResultType(result: number): 'success' | 'danger' {
 
 async function handleDownloadConfig(row: DeviceBackupResultVo) {
   if (!row.configurationFile) {
-    ElMessage.warning('无配置文件可下载');
+    ElMessage.warning(t('bsbackup.noConfigFile'));
     return;
   }
   try {
     await downloadBSConfigFile(row.elementId);
-    ElMessage.success('配置文件下载成功');
+    ElMessage.success(t('bsbackup.downloadSuccess'));
   } catch (e) {
     console.error('[BSBackup] download config failed:', e);
   }
@@ -413,11 +417,11 @@ onMounted(() => {
   <div class="bsbackup-management-page">
     <el-tabs v-model="activeTab" type="border-card">
       <!-- ========== 设备配置 Tab ========== -->
-      <el-tab-pane label="设备配置" name="deviceConfig">
+      <el-tab-pane :label="t('bsbackup.deviceConfig')" name="deviceConfig">
         <div class="page-header">
           <el-input
             v-model="deviceQuery.searchText"
-            placeholder="搜索设备名称/序列号"
+            :placeholder="t('bsbackup.selectDevicesPlaceholder')"
             clearable
             style="width: 260px"
             @keyup.enter="handleSearchDevice"
@@ -426,20 +430,20 @@ onMounted(() => {
               <el-button :icon="Search" @click="handleSearchDevice" />
             </template>
           </el-input>
-          <el-button :icon="Refresh" @click="loadDeviceConfigList">刷新</el-button>
+          <el-button :icon="Refresh" @click="loadDeviceConfigList">{{ t('bsbackup.refresh') }}</el-button>
           <el-button
             type="success"
             :icon="Download"
             :disabled="selectedDevices.length === 0"
             @click="handleExportConfig"
           >
-            导出配置
+            {{ t('bsbackup.exportConfig') }}
           </el-button>
           <el-button type="primary" :icon="Plus" @click="openCreateTaskDialog('backup')">
-            创建备份任务
+            {{ t('bsbackup.createBackupTask') }}
           </el-button>
           <el-button type="warning" :icon="Refresh" @click="openCreateTaskDialog('restore')">
-            创建恢复任务
+            {{ t('bsbackup.createRestoreTask') }}
           </el-button>
         </div>
 
@@ -452,34 +456,34 @@ onMounted(() => {
         >
           <el-table-column type="selection" width="50" />
           <el-table-column prop="elementId" label="Element ID" width="110" />
-          <el-table-column prop="deviceName" label="设备名称" min-width="140" />
-          <el-table-column prop="serialNumber" label="序列号" min-width="140" />
-          <el-table-column prop="configFile" label="配置文件" min-width="160">
+          <el-table-column prop="deviceName" :label="t('bsbackup.deviceName')" min-width="140" />
+          <el-table-column prop="serialNumber" :label="t('bsbackup.serialNumber')" min-width="140" />
+          <el-table-column prop="configFile" :label="t('bsbackup.configFile')" min-width="160">
             <template #default="{ row }">
               {{ row.configFile || '-' }}
             </template>
           </el-table-column>
-          <el-table-column prop="configFileTime" label="配置文件时间" width="180">
+          <el-table-column prop="configFileTime" :label="t('bsbackup.configFileTime')" width="180">
             <template #default="{ row }">
               {{ formatTime(row.configFileTime) }}
             </template>
           </el-table-column>
-          <el-table-column prop="hasBackup" label="已备份" width="90" align="center">
+          <el-table-column prop="hasBackup" :label="t('bsbackup.hasBackup')" width="90" align="center">
             <template #default="{ row }">
               <el-tag :type="row.hasBackup ? 'success' : 'info'" size="small">
-                {{ row.hasBackup ? '是' : '否' }}
+                {{ row.hasBackup ? t('bsbackup.yes') : t('bsbackup.no') }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="latestBackupTime" label="最新备份时间" width="180">
+          <el-table-column prop="latestBackupTime" :label="t('bsbackup.latestBackupTime')" width="180">
             <template #default="{ row }">
               {{ formatTime(row.latestBackupTime) }}
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="120" fixed="right">
+          <el-table-column :label="t('bsbackup.operation')" width="120" fixed="right">
             <template #default="{ row }">
               <el-button size="small" :icon="Upload" @click="openImportDialog(row as BaseStationBackupInfoVo)">
-                导入
+                {{ t('bsbackup.import') }}
               </el-button>
             </template>
           </el-table-column>
@@ -499,54 +503,54 @@ onMounted(() => {
       </el-tab-pane>
 
       <!-- ========== 备份任务 Tab ========== -->
-      <el-tab-pane label="备份任务" name="tasks">
+      <el-tab-pane :label="t('bsbackup.backupTasks')" name="tasks">
         <div class="page-header">
           <el-button type="primary" :icon="Plus" @click="openCreateTaskDialog('backup')">
-            创建备份任务
+            {{ t('bsbackup.createBackupTask') }}
           </el-button>
           <el-button type="warning" :icon="Refresh" @click="openCreateTaskDialog('restore')">
-            创建恢复任务
+            {{ t('bsbackup.createRestoreTask') }}
           </el-button>
-          <el-button :icon="Refresh" @click="loadTaskList">刷新</el-button>
+          <el-button :icon="Refresh" @click="loadTaskList">{{ t('bsbackup.refresh') }}</el-button>
         </div>
 
         <el-table :data="taskList" :loading="taskLoading" border stripe>
           <el-table-column prop="id" label="ID" width="80" />
-          <el-table-column prop="name" label="任务名称" min-width="160" />
-          <el-table-column prop="type" label="任务类型" width="100">
+          <el-table-column prop="name" :label="t('bsbackup.taskName')" min-width="160" />
+          <el-table-column prop="type" :label="t('bsbackup.taskType')" width="100">
             <template #default="{ row }">
               {{ getTaskTypeText(row.type) }}
             </template>
           </el-table-column>
-          <el-table-column prop="executeMode" label="执行方式" width="120">
+          <el-table-column prop="executeMode" :label="t('bsbackup.executeMode')" width="120">
             <template #default="{ row }">
               {{ getExecuteModeText(row.executeMode) }}
             </template>
           </el-table-column>
-          <el-table-column prop="status" label="状态" width="100">
+          <el-table-column prop="status" :label="t('bsbackup.status')" width="100">
             <template #default="{ row }">
               <el-tag :type="getTaskStatusType(row.status)" size="small">
                 {{ getTaskStatusText(row.status) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="进度" width="160">
+          <el-table-column :label="t('bsbackup.progress')" width="160">
             <template #default="{ row }">
               <span v-if="row.totalDevices">
-                {{ row.successDevices || 0 }}/{{ row.totalDevices }} 成功
+                {{ row.successDevices || 0 }}/{{ row.totalDevices }} {{ t('bsbackup.success') }}
                 <span v-if="row.failedDevices" style="color: var(--el-color-danger); margin-left: 4px;">
-                  ({{ row.failedDevices }} 失败)
+                  ({{ row.failedDevices }} {{ t('bsbackup.failed') }})
                 </span>
               </span>
               <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column prop="createTime" label="创建时间" width="180">
+          <el-table-column prop="createTime" :label="t('bsbackup.createTime')" width="180">
             <template #default="{ row }">
               {{ formatTime(row.createTime) }}
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="240" fixed="right">
+          <el-table-column :label="t('bsbackup.operation')" width="240" fixed="right">
             <template #default="{ row }">
               <el-button
                 v-if="row.status === 0 || row.status === 2"
@@ -555,7 +559,7 @@ onMounted(() => {
                 :icon="VideoPlay"
                 @click="handleStartTask(row as BSBackupTaskVo)"
               >
-                启动
+                {{ t('bsbackup.start') }}
               </el-button>
               <el-button
                 v-if="row.status === 0 || row.status === 1"
@@ -564,14 +568,14 @@ onMounted(() => {
                 :icon="Close"
                 @click="handleCancelTask(row as BSBackupTaskVo)"
               >
-                取消
+                {{ t('bsbackup.cancel') }}
               </el-button>
               <el-button
                 size="small"
                 :icon="View"
                 @click="handleViewResults(row as BSBackupTaskVo)"
               >
-                结果
+                {{ t('bsbackup.results') }}
               </el-button>
             </template>
           </el-table-column>
@@ -591,44 +595,44 @@ onMounted(() => {
       </el-tab-pane>
 
       <!-- ========== 任务结果 Tab ========== -->
-      <el-tab-pane label="任务结果" name="results">
+      <el-tab-pane :label="t('bsbackup.taskResults')" name="results">
         <div class="page-header">
           <span v-if="selectedTaskName" class="result-task-label">
-            当前任务：<strong>{{ selectedTaskName }}</strong>
+            {{ t('bsbackup.currentTask') }}：<strong>{{ selectedTaskName }}</strong>
           </span>
           <span v-else class="result-task-label" style="color: var(--el-text-color-secondary);">
-            请从"备份任务"页选择一个任务查看结果
+            {{ t('bsbackup.selectTaskToView') }}
           </span>
-          <el-button :icon="Refresh" :disabled="!selectedTaskId" @click="loadResultList">刷新</el-button>
+          <el-button :icon="Refresh" :disabled="!selectedTaskId" @click="loadResultList">{{ t('bsbackup.refresh') }}</el-button>
         </div>
 
         <el-table :data="resultList" :loading="resultLoading" border stripe>
           <el-table-column prop="elementId" label="Element ID" width="110" />
-          <el-table-column prop="deviceName" label="设备名称" min-width="140" />
-          <el-table-column prop="serialNumber" label="序列号" min-width="130" />
-          <el-table-column prop="result" label="结果" width="90" align="center">
+          <el-table-column prop="deviceName" :label="t('bsbackup.deviceName')" min-width="140" />
+          <el-table-column prop="serialNumber" :label="t('bsbackup.serialNumber')" min-width="130" />
+          <el-table-column prop="result" :label="t('bsbackup.result')" width="90" align="center">
             <template #default="{ row }">
               <el-tag :type="getResultType(row.result)" size="small">
                 {{ getResultText(row.result) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="failureReason" label="失败原因" min-width="180">
+          <el-table-column prop="failureReason" :label="t('bsbackup.failureReason')" min-width="180">
             <template #default="{ row }">
               {{ row.failureReason || '-' }}
             </template>
           </el-table-column>
-          <el-table-column prop="startTime" label="开始时间" width="180">
+          <el-table-column prop="startTime" :label="t('bsbackup.startTime')" width="180">
             <template #default="{ row }">
               {{ formatTime(row.startTime) }}
             </template>
           </el-table-column>
-          <el-table-column prop="endTime" label="结束时间" width="180">
+          <el-table-column prop="endTime" :label="t('bsbackup.endTime')" width="180">
             <template #default="{ row }">
               {{ formatTime(row.endTime) }}
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="100" fixed="right">
+          <el-table-column :label="t('bsbackup.operation')" width="100" fixed="right">
             <template #default="{ row }">
               <el-button
                 size="small"
@@ -636,7 +640,7 @@ onMounted(() => {
                 :disabled="!row.configurationFile"
                 @click="handleDownloadConfig(row as DeviceBackupResultVo)"
               >
-                下载
+                {{ t('bsbackup.download') }}
               </el-button>
             </template>
           </el-table-column>
@@ -657,11 +661,11 @@ onMounted(() => {
     </el-tabs>
 
     <!-- ========== 导入配置文件对话框 ========== -->
-    <el-dialog title="导入配置文件" v-model="importDialogVisible" width="480px">
+    <el-dialog :title="t('bsbackup.importConfigFile')" v-model="importDialogVisible" width="480px">
       <div v-if="importTargetDevice" style="margin-bottom: 16px;">
         <el-descriptions :column="1" size="small" border>
-          <el-descriptions-item label="设备名称">{{ importTargetDevice.deviceName }}</el-descriptions-item>
-          <el-descriptions-item label="序列号">{{ importTargetDevice.serialNumber }}</el-descriptions-item>
+          <el-descriptions-item :label="t('bsbackup.deviceName')">{{ importTargetDevice.deviceName }}</el-descriptions-item>
+          <el-descriptions-item :label="t('bsbackup.serialNumber')">{{ importTargetDevice.serialNumber }}</el-descriptions-item>
         </el-descriptions>
       </div>
       <el-upload
@@ -674,51 +678,51 @@ onMounted(() => {
         <div style="padding: 20px 0;">
           <el-icon style="font-size: 40px; color: var(--el-text-color-placeholder);"><Upload /></el-icon>
           <div style="margin-top: 8px; color: var(--el-text-color-secondary);">
-            拖拽文件到此处，或点击选择配置文件
+            {{ t('bsbackup.dragDropFile') }}
           </div>
         </div>
       </el-upload>
       <template #footer>
-        <el-button @click="importDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="importLoading" @click="handleImportConfig">导入</el-button>
+        <el-button @click="importDialogVisible = false">{{ t('bsbackup.cancel') }}</el-button>
+        <el-button type="primary" :loading="importLoading" @click="handleImportConfig">{{ t('bsbackup.import') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- ========== 创建备份/恢复任务对话框 ========== -->
     <el-dialog
-      :title="taskCreateType === 'backup' ? '创建备份任务' : '创建恢复任务'"
+      :title="taskCreateType === 'backup' ? t('bsbackup.createBackupTask') : t('bsbackup.createRestoreTask')"
       v-model="taskCreateDialogVisible"
       width="600px"
     >
       <el-form :model="taskForm" label-width="120px">
-        <el-form-item label="任务名称" required>
-          <el-input v-model="taskForm.name" placeholder="请输入任务名称" />
+        <el-form-item :label="t('bsbackup.taskName')" required>
+          <el-input v-model="taskForm.name" :placeholder="t('bsbackup.enterTaskName')" />
         </el-form-item>
-        <el-form-item label="执行方式">
+        <el-form-item :label="t('bsbackup.executeMode')">
           <el-radio-group v-model="taskForm.executeMode">
-            <el-radio :value="1">立即执行</el-radio>
-            <el-radio :value="2">等待执行</el-radio>
-            <el-radio :value="3">定时执行</el-radio>
+            <el-radio :value="1">{{ t('bsbackup.executeModeImmediate') }}</el-radio>
+            <el-radio :value="2">{{ t('bsbackup.executeModeWait') }}</el-radio>
+            <el-radio :value="3">{{ t('bsbackup.executeModeScheduled') }}</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item v-if="taskForm.executeMode === 3" label="执行时间">
+        <el-form-item v-if="taskForm.executeMode === 3" :label="t('bsbackup.executionTime')">
           <el-date-picker
             v-model="taskForm.triggerTime"
             type="datetime"
-            placeholder="选择执行时间"
+            :placeholder="t('bsbackup.selectScheduleTime')"
             value-format="YYYY-MM-DD HH:mm:ss"
             style="width: 100%;"
           />
         </el-form-item>
-        <el-form-item label="全部设备">
-          <el-checkbox v-model="taskForm.executeOnAllDevice">对所有设备执行</el-checkbox>
+        <el-form-item :label="t('bsbackup.allDevices')">
+          <el-checkbox v-model="taskForm.executeOnAllDevice">{{ t('bsbackup.executeOnAllDevice') }}</el-checkbox>
         </el-form-item>
-        <el-form-item v-if="!taskForm.executeOnAllDevice" label="选择设备">
+        <el-form-item v-if="!taskForm.executeOnAllDevice" :label="t('bsbackup.selectDevices')">
           <el-select
             v-model="taskForm.elementIds"
             multiple
             filterable
-            placeholder="请选择目标设备"
+            :placeholder="t('bsbackup.selectDevicesPlaceholder')"
             style="width: 100%;"
           >
             <el-option
@@ -731,8 +735,8 @@ onMounted(() => {
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="taskCreateDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="taskCreateLoading" @click="handleCreateTask">确定</el-button>
+        <el-button @click="taskCreateDialogVisible = false">{{ t('bsbackup.cancel') }}</el-button>
+        <el-button type="primary" :loading="taskCreateLoading" @click="handleCreateTask">{{ t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
   </div>

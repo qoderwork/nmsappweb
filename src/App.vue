@@ -17,13 +17,11 @@ const elementLocale = computed(() => elementLocales[settings.locale]);
 </script>
 
 <template>
-  <el-config-provider :locale="elementLocale">
+  <el-config-provider :locale="elementLocale" :key="settings.locale">
     <router-view v-slot="{ Component, route }">
-      <transition name="fade-transform" mode="out-in">
-        <keep-alive :include="cachedViews">
-          <component :is="Component" :key="route.fullPath" />
-        </keep-alive>
-      </transition>
+      <keep-alive :include="cachedViews">
+        <component :is="Component" :key="route.fullPath + settings.locale" />
+      </keep-alive>
     </router-view>
   </el-config-provider>
 </template>

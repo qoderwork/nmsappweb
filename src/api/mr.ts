@@ -29,7 +29,7 @@ export function downloadMRReportExcel(params?: { startTime?: string; endTime?: s
 
 /** 获取 MR 日志列表 */
 export function getMRLogs(params: MRLogQueryParams = {}) {
-  return http.getPage<MRFileLog>('/listMRLogs', params);
+  return http.post<{ list: MRFileLog[]; total: number; page: number; pageSize: number }>('/listMRLogs', params);
 }
 
 /** 下载 MR 原始文件 */

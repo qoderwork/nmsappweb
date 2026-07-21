@@ -140,6 +140,12 @@ export function useGlobalWebSocketHandler() {
         case WsTopics.DEVICE_STATUS:
           handleDeviceStatus(msg.data as DeviceStatusMessage);
           break;
+        case WsTopics.MML_RESULT:
+          handleMmlResult(msg.data as MmlResultMessage);
+          break;
+        case WsTopics.DIAGNOSTICS_RESULT:
+          handleDiagnosticsResult(msg.data as DiagnosticsResultMessage);
+          break;
         case WsTopics.SYSTEM_NOTICE:
           handleSystemNotice(msg.data as { title: string; content: string; type: string });
           break;
@@ -208,6 +214,26 @@ function handleDeviceStatus(data: DeviceStatusMessage) {
     message: `${data.deviceName} ${data.previousStatus === 'online' ? '离线' : '恢复在线'}`,
     type: data.status === 'online' ? 'success' : 'warning',
     duration: 3000,
+  });
+}
+
+/** 处理 MML 命令结果 */
+function handleMmlResult(data: MmlResultMessage) {
+  ElNotification({
+    title: 'MML 命令执行完成',
+    message: `设备 ${data.deviceName} - 命令: ${data.command} - ${data.success ? '成功' : '失败'}`,
+    type: data.success ? 'success' : 'error',
+    duration: 5000,
+  });
+}
+
+/** 处理诊断结果 */
+function handleDiagnosticsResult(data: DiagnosticsResultMessage) {
+  ElNotification({
+    title: '诊断任务完成',
+    message: `设备 ${data.deviceName} - 类型: ${data.taskType} - ${data.success ? '成功' : '失败'}`,
+    type: data.success ? 'success' : 'warning',
+    duration: 5000,
   });
 }
 

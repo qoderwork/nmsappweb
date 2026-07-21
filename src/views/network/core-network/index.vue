@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { ElMessage, ElMessageBox, ElPagination, ElDialog, ElForm, ElFormItem, ElInput, ElSelect, ElInputNumber, ElButton, ElTable, ElTableColumn, ElTabs, ElTabPane, ElTag } from 'element-plus';
 import { Search, Refresh, Plus, Edit, Delete, Switch, Monitor, Setting, List } from '@element-plus/icons-vue';
+
+const { t } = useI18n();
 
 import {
   listCoreNetworks,
@@ -86,13 +89,13 @@ function getSeverityClass(severity?: string): 'info' | 'danger' | 'warning' | 'p
 
 function getSeverityText(severity?: string): string {
   const map: Record<string, string> = {
-    'critical': '严重',
-    'major': '重要',
-    'minor': '次要',
-    'warning': '警告',
-    'info': '信息',
+    'critical': t('coreNetwork.critical'),
+    'major': t('coreNetwork.major'),
+    'minor': t('coreNetwork.minor'),
+    'warning': t('coreNetwork.warning'),
+    'info': t('coreNetwork.info'),
   };
-  return map[severity?.toLowerCase() || ''] || severity || '未知';
+  return map[severity?.toLowerCase() || ''] || severity || t('coreNetwork.unknown');
 }
 
 function formatTime(time?: string): string {
@@ -138,16 +141,16 @@ function openEditNetwork(row: CoreNetwork) {
 
 async function saveNetwork() {
   if (!networkForm.name) {
-    ElMessage.warning('请输入核心网名称');
+    ElMessage.warning(t('coreNetwork.namePlaceholder'));
     return;
   }
   try {
     if (isEditNetwork.value && networkForm.id !== undefined) {
       await updateCoreNetwork(networkForm.id, networkForm);
-      ElMessage.success('修改成功');
+      ElMessage.success(t('common.editSuccess'));
     } else {
       await createCoreNetwork(networkForm);
-      ElMessage.success('添加成功');
+      ElMessage.success(t('common.addSuccess'));
     }
     networkDialogVisible.value = false;
     loadNetworks();
@@ -158,9 +161,10 @@ async function saveNetwork() {
 
 async function handleDeleteNetwork(row: CoreNetwork) {
   try {
-    await ElMessageBox.confirm(`确定要删除核心网 "${row.name}" 吗？`, '删除确认', { type: 'warning' });
+    const confirmMsg = t('coreNetwork.confirmDelete').replace('{name}', row.name || '');
+    await ElMessageBox.confirm(confirmMsg, t('coreNetwork.deleteConfirm'), { type: 'warning' });
     await deleteCoreNetwork(row.id);
-    ElMessage.success('删除成功');
+    ElMessage.success(t('common.deleteSuccess'));
     loadNetworks();
   } catch (e) {
     if (e !== 'cancel') console.error('[CoreNetwork] delete network failed:', e);
@@ -171,7 +175,7 @@ async function handleToggleSwitch(row: CoreNetwork) {
   try {
     const enable = !(row.deleted || false);
     await changeCoreNetworkSwitch({ coreNetworkId: row.id, enable });
-    ElMessage.success(enable ? '已启用' : '已禁用');
+    ElMessage.success(enable ? t('coreNetwork.enabled') : t('coreNetwork.disabled'));
     loadNetworks();
   } catch (e) {
     console.error('[CoreNetwork] toggle switch failed:', e);
@@ -253,24 +257,24 @@ onMounted(() => {
   <div class="core-network-page">
     <el-row :gutter="20">
       <el-col :span="6">
-        <el-card shadow="never" title="核心网列表">
+        <el-card shadow="never" :title="t('coreNetwork.networkList')">
           <div class="network-list-header">
-            <el-button type="primary" size="small" :icon="Plus" @click="openAddNetwork">新增</el-button>
-            <el-button size="small" :icon="Refresh" @click="loadNetworks">刷新</el-button>
+            <el-button type="primary" size="small" :icon="Plus" @click="openAddNetwork">{{ t('common.add') }}</el-button>
+            <el-button size="small" :icon="Refresh" @click="loadNetworks">{{ t('common.refresh') }}</el-button>
           </div>
           <el-table :data="networkList" :loading="networkLoading" border size="small" highlight-current-row @current-change="(row) => selectedCoreNetworkId = (row as CoreNetwork)?.id ?? null">
-            <el-table-column prop="name" label="名称" />
-            <el-table-column prop="ip" label="IP" />
-            <el-table-column prop="port" label="端口" />
-            <el-table-column label="状态" width="80">
+            <el-table-column prop="name" :label="t('coreNetwork.name')" />
+            <el-table-column prop="ip" :label="t('coreNetwork.ip')" />
+            <el-table-column prop="port" :label="t('coreNetwork.port')" />
+            <el-table-column :label="t('coreNetwork.status')" width="80">
               <template #default="{ row }">
                 <el-switch :value="!((row as CoreNetwork).deleted || false)" @change="handleToggleSwitch(row as CoreNetwork)" />
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="100">
+            <el-table-column :label="t('common.actions')" width="100">
               <template #default="{ row }">
-                <el-button size="small" :icon="Edit" @click="openEditNetwork(row as CoreNetwork)">编辑</el-button>
-                <el-button size="small" type="danger" :icon="Delete" @click="handleDeleteNetwork(row as CoreNetwork)">删除</el-button>
+                <el-button size="small" :icon="Edit" @click="openEditNetwork(row as CoreNetwork)">{{ t('common.edit') }}</el-button>
+                <el-button size="small" type="danger" :icon="Delete" @click="handleDeleteNetwork(row as CoreNetwork)">{{ t('common.delete') }}</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -281,25 +285,25 @@ onMounted(() => {
         <el-card shadow="never">
           <el-tabs v-model="activeTab" type="border-card" v-if="selectedCoreNetworkId">
             <!-- UE管理 -->
-            <el-tab-pane label="UE管理" name="ue">
+            <el-tab-pane :label="t('coreNetwork.ueManagement')" name="ue">
               <div class="stat-row">
-                <el-statistic title="UE总数" :value="ueStatistics?.total || 0" />
+                <el-statistic :title="t('coreNetwork.ueTotal')" :value="ueStatistics?.total || 0" />
               </div>
               <el-tabs type="border-card">
-                <el-tab-pane label="UE列表">
+                <el-tab-pane :label="t('coreNetwork.ueList')">
                   <el-table :data="ueList" :loading="ueLoading" border size="small">
                     <el-table-column prop="imsi" label="IMSI" />
                     <el-table-column prop="msisdn" label="MSISDN" />
-                    <el-table-column prop="category" label="类别" />
+                    <el-table-column prop="category" :label="t('coreNetwork.name')" />
                   </el-table>
                 </el-tab-pane>
-                <el-tab-pane label="UE详情">
+                <el-tab-pane :label="t('coreNetwork.ueDetail')">
                   <el-table :data="ueInfoList" :loading="ueLoading" border size="small">
                     <el-table-column prop="imsi" label="IMSI" />
                     <el-table-column prop="imei" label="IMEI" />
                     <el-table-column prop="msisdn" label="MSISDN" />
-                    <el-table-column prop="state" label="状态" />
-                    <el-table-column prop="startTime" label="开始时间">
+                    <el-table-column prop="state" :label="t('coreNetwork.status')" />
+                    <el-table-column prop="startTime" :label="t('coreNetwork.eventTime')">
                       <template #default="{ row }">{{ formatTime(row.startTime) }}</template>
                     </el-table-column>
                   </el-table>
@@ -308,41 +312,41 @@ onMounted(() => {
             </el-tab-pane>
 
             <!-- KPI管理 -->
-            <el-tab-pane label="KPI管理" name="kpi">
+            <el-tab-pane :label="t('coreNetwork.kpis')" name="kpi">
               <div class="stat-row">
-                <el-statistic title="总用户数" :value="userInfo?.totalUsers || 0" />
-                <el-statistic title="活跃用户" :value="userInfo?.activeUsers || 0" />
-                <el-statistic title="上行流量(bps)" :value="upfTraffic?.uplinkBps || 0" />
-                <el-statistic title="下行流量(bps)" :value="upfTraffic?.downlinkBps || 0" />
+                <el-statistic :title="t('coreNetwork.totalUsers')" :value="userInfo?.totalUsers || 0" />
+                <el-statistic :title="t('coreNetwork.activeUsers')" :value="userInfo?.activeUsers || 0" />
+                <el-statistic :title="t('coreNetwork.uplinkTraffic')" :value="upfTraffic?.uplinkBps || 0" />
+                <el-statistic :title="t('coreNetwork.downlinkTraffic')" :value="upfTraffic?.downlinkBps || 0" />
               </div>
               <el-table :data="alarms" :loading="kpiLoading" border size="small">
-                <el-table-column prop="severity" label="级别" width="80">
+                <el-table-column prop="severity" :label="t('coreNetwork.severity')" width="80">
                   <template #default="{ row }">
                     <el-tag :type="getSeverityClass(row.severity)">{{ getSeverityText(row.severity) }}</el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column prop="alarmIdentifier" label="告警标识" />
-                <el-table-column prop="probableCause" label="原因" />
-                <el-table-column prop="eventTime" label="时间">
+                <el-table-column prop="alarmIdentifier" :label="t('coreNetwork.alarmIdentifier')" />
+                <el-table-column prop="probableCause" :label="t('coreNetwork.probableCause')" />
+                <el-table-column prop="eventTime" :label="t('coreNetwork.eventTime')">
                   <template #default="{ row }">{{ formatTime(row.eventTime) }}</template>
                 </el-table-column>
               </el-table>
             </el-tab-pane>
 
             <!-- 操作日志 -->
-            <el-tab-pane label="操作日志" name="log">
+            <el-tab-pane :label="t('coreNetwork.statistics')" name="log">
               <el-table :data="logList" :loading="logLoading" border size="small">
-                <el-table-column prop="log_type" label="类型" />
-                <el-table-column prop="user" label="操作人" />
-                <el-table-column prop="operation_time" label="操作时间">
+                <el-table-column prop="log_type" :label="t('coreNetwork.logType')" />
+                <el-table-column prop="user" :label="t('coreNetwork.operator')" />
+                <el-table-column prop="operation_time" :label="t('coreNetwork.operationTime')">
                   <template #default="{ row }">{{ formatTime(row.operation_time) }}</template>
                 </el-table-column>
-                <el-table-column prop="result" label="结果" width="80">
+                <el-table-column prop="result" :label="t('coreNetwork.result')" width="80">
                   <template #default="{ row }">
-                    <el-tag :type="row.result === 0 ? 'success' : 'danger'">{{ row.result === 0 ? '成功' : '失败' }}</el-tag>
+                    <el-tag :type="row.result === 0 ? 'success' : 'danger'">{{ row.result === 0 ? t('coreNetwork.success') : t('coreNetwork.failed') }}</el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column prop="info" label="详情" show-overflow-tooltip />
+                <el-table-column prop="info" :label="t('coreNetwork.detail')" show-overflow-tooltip />
               </el-table>
               <div class="pagination-container">
                 <el-pagination
@@ -358,31 +362,31 @@ onMounted(() => {
             </el-tab-pane>
           </el-tabs>
           <div v-else class="empty-tip">
-            请从左侧选择一个核心网
+            {{ t('coreNetwork.pleaseSelectCoreNetwork') }}
           </div>
         </el-card>
       </el-col>
     </el-row>
 
     <!-- 核心网编辑对话框 -->
-    <el-dialog :title="isEditNetwork ? '编辑核心网' : '新增核心网'" v-model="networkDialogVisible" width="400px">
+    <el-dialog :title="isEditNetwork ? t('coreNetwork.editCoreNetwork') : t('coreNetwork.addCoreNetwork')" v-model="networkDialogVisible" width="400px">
       <el-form :model="networkForm" label-width="100px">
-        <el-form-item label="名称" required>
-          <el-input v-model="networkForm.name" placeholder="请输入名称" />
+        <el-form-item :label="t('coreNetwork.name')" required>
+          <el-input v-model="networkForm.name" :placeholder="t('coreNetwork.namePlaceholder')" />
         </el-form-item>
-        <el-form-item label="安装位置">
-          <el-input v-model="networkForm.install_location" placeholder="请输入安装位置" />
+        <el-form-item :label="t('coreNetwork.installLocation')">
+          <el-input v-model="networkForm.install_location" :placeholder="t('coreNetwork.installLocationPlaceholder')" />
         </el-form-item>
-        <el-form-item label="IP地址">
-          <el-input v-model="networkForm.ip" placeholder="请输入IP地址" />
+        <el-form-item :label="t('coreNetwork.ipAddress')">
+          <el-input v-model="networkForm.ip" :placeholder="t('coreNetwork.ipPlaceholder')" />
         </el-form-item>
-        <el-form-item label="端口">
+        <el-form-item :label="t('coreNetwork.port')">
           <el-input-number v-model="networkForm.port" :min="1" :max="65535" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="networkDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveNetwork">确定</el-button>
+        <el-button @click="networkDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="saveNetwork">{{ t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
   </div>

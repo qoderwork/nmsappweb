@@ -34,7 +34,7 @@
       <el-tab-pane :label="t('monitor.dataQuery')" name="data">
         <el-form :inline="true" :model="dataForm" class="query-form">
           <el-form-item :label="t('monitor.elementId')">
-            <DeviceSelector v-model="dataForm.elementId" placeholder="请选择设备" />
+            <DeviceSelector v-model="dataForm.elementId" :placeholder="t('monitor.selectDevice')" />
           </el-form-item>
           <el-form-item :label="t('monitor.parameterId')">
             <el-input v-model="dataForm.parameterId" placeholder="e.g. InternetGatewayDevice.DeviceInfo.X_..." clearable style="width: 360px" />

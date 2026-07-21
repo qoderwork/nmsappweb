@@ -77,11 +77,9 @@ onUnmounted(() => {
 
       <main class="app-layout__content">
         <router-view v-slot="{ Component }">
-          <transition name="fade-transform" mode="out-in">
-            <keep-alive :include="appStore.cachedViews">
-              <component :is="Component" />
-            </keep-alive>
-          </transition>
+          <keep-alive :include="appStore.cachedViews">
+            <component :is="Component" />
+          </keep-alive>
         </router-view>
       </main>
     </div>

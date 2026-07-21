@@ -37,7 +37,7 @@ const queryParams = reactive<QueryParams>({
 
 // 弹窗状态
 const dialogVisible = ref(false);
-const dialogTitle = ref('新增站点');
+const dialogTitle = ref(t('site.addSite'));
 const isEdit = ref(false);
 
 // 表单数据
@@ -111,7 +111,7 @@ function handleSizeChange(size: number) {
 
 /** 打开新增弹窗 */
 function handleAdd() {
-  dialogTitle.value = '新增站点';
+  dialogTitle.value = t('site.addSite');
   isEdit.value = false;
   formData.id = '';
   formData.site_name = '';
@@ -124,7 +124,7 @@ function handleAdd() {
 
 /** 打开编辑弹窗 */
 function handleEdit(row: SiteInfoVo) {
-  dialogTitle.value = '编辑站点';
+  dialogTitle.value = t('site.editSite');
   isEdit.value = true;
   formData.id = row.id;
   formData.site_name = row.site_name ?? '';
@@ -138,7 +138,7 @@ function handleEdit(row: SiteInfoVo) {
 /** 保存站点 */
 async function handleSave() {
   if (!formData.site_name) {
-    ElMessage.warning('请输入站点名称');
+    ElMessage.warning(t('site.siteNamePlaceholder'));
     return;
   }
   try {
@@ -171,13 +171,10 @@ async function handleSave() {
 /** 删除站点 */
 async function handleDelete(row: SiteInfoVo) {
   try {
-    await ElMessageBox.confirm(
-      `确定要删除站点 "${row.site_name || row.id}" 吗？`,
-      '删除确认',
-      { type: 'warning' }
-    );
+    const confirmMsg = t('site.confirmDelete').replace('{name}', row.site_name || row.id);
+    await ElMessageBox.confirm(confirmMsg, t('site.deleteConfirm'), { type: 'warning' });
     await deleteSite(row.id);
-    ElMessage.success('删除成功');
+    ElMessage.success(t('common.deleteSuccess'));
     loadData();
   } catch (e) {
     if (e !== 'cancel') {
@@ -211,19 +208,19 @@ onMounted(() => {
     <!-- 搜索栏 -->
     <el-card shadow="never" :body-style="{ padding: '16px' }">
       <el-form :inline="true" @submit.prevent="handleSearch">
-        <el-form-item label="关键字">
+        <el-form-item :label="t('site.keyword')">
           <el-input
             v-model="queryParams.search"
-            placeholder="站点名称/描述"
+            :placeholder="t('site.siteNamePlaceholder')"
             clearable
             style="width: 200px"
             @keyup.enter="handleSearch"
           />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :icon="Search" @click="handleSearch">搜索</el-button>
-          <el-button :icon="Refresh" @click="handleReset">重置</el-button>
-          <el-button v-permission="'site.create'" type="success" :icon="Plus" @click="handleAdd">新增站点</el-button>
+          <el-button type="primary" :icon="Search" @click="handleSearch">{{ t('common.search') }}</el-button>
+          <el-button :icon="Refresh" @click="handleReset">{{ t('common.reset') }}</el-button>
+          <el-button v-permission="'site.create'" type="success" :icon="Plus" @click="handleAdd">{{ t('site.addSite') }}</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -239,29 +236,29 @@ onMounted(() => {
         row-key="id"
       >
         <el-table-column type="index" label="#" width="60" />
-        <el-table-column prop="site_name" label="站点名称" min-width="160" />
-        <el-table-column prop="description" label="描述" min-width="200" />
-        <el-table-column prop="area_path" label="区域路径" min-width="180">
+        <el-table-column prop="site_name" :label="t('site.siteName')" min-width="160" />
+        <el-table-column prop="description" :label="t('site.description')" min-width="200" />
+        <el-table-column prop="area_path" :label="t('site.areaPath')" min-width="180">
           <template #default="{ row }">
             {{ row.area_path || getAreaName(row.area_id) }}
           </template>
         </el-table-column>
-        <el-table-column prop="latitude" label="纬度" width="120" />
-        <el-table-column prop="longitude" label="经度" width="120" />
-        <el-table-column prop="creation_time" label="创建时间" min-width="160">
+        <el-table-column prop="latitude" :label="t('site.latitude')" width="120" />
+        <el-table-column prop="longitude" :label="t('site.longitude')" width="120" />
+        <el-table-column prop="creation_time" :label="t('site.createTime')" min-width="160">
           <template #default="{ row }">
             {{ formatTime(row.creation_time) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right">
+        <el-table-column :label="t('common.actions')" width="180" fixed="right">
           <template #default="{ row }">
             <el-button v-permission="'site.edit'" link type="primary" size="small" @click="handleEdit(row as SiteInfoVo)">
               <Edit />
-              编辑
+              {{ t('common.edit') }}
             </el-button>
             <el-button v-permission="'site.delete'" link type="danger" size="small" @click="handleDelete(row as SiteInfoVo)">
               <Delete />
-              删除
+              {{ t('common.delete') }}
             </el-button>
           </template>
         </el-table-column>
@@ -285,14 +282,14 @@ onMounted(() => {
     <!-- 站点表单弹窗 -->
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px" @close="dialogVisible = false">
       <el-form :model="formData" label-width="100px">
-        <el-form-item label="站点名称" prop="site_name">
-          <el-input v-model="formData.site_name" placeholder="请输入站点名称" />
+        <el-form-item :label="t('site.siteName')" prop="site_name">
+          <el-input v-model="formData.site_name" :placeholder="t('site.siteNamePlaceholder')" />
         </el-form-item>
-        <el-form-item label="描述">
-          <el-input v-model="formData.description" type="textarea" :rows="3" placeholder="请输入描述" />
+        <el-form-item :label="t('site.description')">
+          <el-input v-model="formData.description" type="textarea" :rows="3" :placeholder="t('site.descriptionPlaceholder')" />
         </el-form-item>
-        <el-form-item label="区域">
-          <el-select v-model="formData.area_id" placeholder="请选择区域" clearable style="width: 100%">
+        <el-form-item :label="t('site.area')">
+          <el-select v-model="formData.area_id" :placeholder="t('site.areaPlaceholder')" clearable style="width: 100%">
             <el-option
               v-for="area in areaList"
               :key="area.id"
@@ -301,16 +298,16 @@ onMounted(() => {
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="纬度">
-          <el-input v-model="formData.latitude" placeholder="请输入纬度" />
+        <el-form-item :label="t('site.latitude')">
+          <el-input v-model="formData.latitude" :placeholder="t('site.latitudePlaceholder')" />
         </el-form-item>
-        <el-form-item label="经度">
-          <el-input v-model="formData.longitude" placeholder="请输入经度" />
+        <el-form-item :label="t('site.longitude')">
+          <el-input v-model="formData.longitude" :placeholder="t('site.longitudePlaceholder')" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSave">确定</el-button>
+        <el-button @click="dialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleSave">{{ t('common.confirm') }}</el-button>
       </template>
     </el-dialog>
   </div>

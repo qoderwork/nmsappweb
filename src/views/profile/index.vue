@@ -36,15 +36,15 @@ const userInfoItems = computed(() => {
       value: user?.username ?? '-',
     },
     {
-      label: '真实姓名',
+      label: t('profile.realName'),
       value: user?.realName ?? '-',
     },
     {
-      label: '角色',
+      label: t('profile.roles'),
       value: user?.roles?.length ? user.roles.join('、') : '-',
     },
     {
-      label: '租户 ID',
+      label: t('profile.tenantId'),
       value: user?.licenseId != null ? String(user.licenseId) : '-',
     },
   ];
@@ -63,24 +63,24 @@ const pwdForm = reactive({
 /** 确认密码校验器：与 new_password 一致 */
 const confirmPwdValidator: FormItemRule['validator'] = (_rule, value, callback) => {
   if (!value) {
-    callback(new Error('请再次输入新密码'));
+    callback(new Error(t('profile.confirmPasswordPlaceholder')));
     return;
   }
   if (value !== pwdForm.newPassword) {
-    callback(new Error('两次输入的密码不一致'));
+    callback(new Error(t('profile.passwordMismatch')));
     return;
   }
   callback();
 };
 
 const pwdRules = computed<FormRules>(() => ({
-  oldPassword: [FormRulePresets.required('请输入旧密码')],
+  oldPassword: [FormRulePresets.required(t('profile.passwordPlaceholder'))],
   newPassword: [
-    FormRulePresets.required('请输入新密码'),
+    FormRulePresets.required(t('profile.newPasswordPlaceholder')),
     FormRulePresets.password(),
   ],
   confirmPassword: [
-    FormRulePresets.required('请再次输入新密码'),
+    FormRulePresets.required(t('profile.confirmPasswordPlaceholder')),
     { validator: confirmPwdValidator, trigger: 'blur' },
   ],
 }));
@@ -105,15 +105,14 @@ async function handleChangePassword() {
   pwdLoading.value = true;
   try {
     await modifyPassword({ oldPassword: pwdForm.oldPassword, newPassword: pwdForm.newPassword });
-    showSuccessMessage('密码修改成功，请重新登录');
+    showSuccessMessage(t('profile.passwordSuccess'));
     resetPwdForm();
-    // 修改密码成功后退出登录，并跳转登录页强制使用新密码重新登录
     setTimeout(async () => {
       await authStore.logout();
       router.replace('/login');
     }, 1500);
   } catch (e) {
-    showErrorMessage(e, '密码修改失败');
+    showErrorMessage(e, t('profile.passwordFailed'));
   } finally {
     pwdLoading.value = false;
   }
@@ -127,7 +126,7 @@ async function handleChangePassword() {
       <template #header>
         <div class="profile-card__header">
           <el-icon><User /></el-icon>
-          <span>基本信息</span>
+          <span>{{ t('profile.basicInfo') }}</span>
         </div>
       </template>
 
@@ -174,34 +173,34 @@ async function handleChangePassword() {
         label-position="right"
         class="profile-pwd-form"
       >
-        <el-form-item :label="'旧密码'" prop="oldPassword">
+        <el-form-item :label="t('profile.oldPassword')" prop="oldPassword">
           <el-input
             v-model="pwdForm.oldPassword"
             type="password"
             show-password
-            placeholder="请输入旧密码"
+            :placeholder="t('profile.passwordPlaceholder')"
             autocomplete="current-password"
             style="max-width: 360px"
           />
         </el-form-item>
 
-        <el-form-item :label="'新密码'" prop="newPassword">
+        <el-form-item :label="t('profile.newPassword')" prop="newPassword">
           <el-input
             v-model="pwdForm.newPassword"
             type="password"
             show-password
-            placeholder="至少 8 位，需包含大小写字母和数字"
+            :placeholder="t('profile.newPasswordPlaceholder')"
             autocomplete="new-password"
             style="max-width: 360px"
           />
         </el-form-item>
 
-        <el-form-item :label="'确认密码'" prop="confirmPassword">
+        <el-form-item :label="t('profile.confirmPassword')" prop="confirmPassword">
           <el-input
             v-model="pwdForm.confirmPassword"
             type="password"
             show-password
-            placeholder="请再次输入新密码"
+            :placeholder="t('profile.confirmPasswordPlaceholder')"
             autocomplete="new-password"
             style="max-width: 360px"
           />

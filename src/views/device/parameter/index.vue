@@ -336,6 +336,7 @@ async function loadBackups() {
     const res = await getParameterBackupLogs({
       page: backupQuery.page,
       pageSize: backupQuery.pageSize,
+      elementId: backupElementId.value || undefined,
       keyword: backupQuery.keyword || undefined,
     });
     backupList.value = res.list;

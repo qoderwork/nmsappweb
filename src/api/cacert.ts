@@ -12,7 +12,7 @@ import type {
   DeviceCaLogQuery,
 } from '@/types/cacert';
 
-const BASE = '/api/v1';
+const BASE = '';
 
 interface PagedResult<T> {
   list: T[];

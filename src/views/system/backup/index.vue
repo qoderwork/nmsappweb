@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { ElMessage, ElMessageBox, ElPagination, ElDialog, ElForm, ElFormItem, ElInput, ElSelect, ElDatePicker, ElButton, ElTable, ElTableColumn, ElTabs, ElTabPane } from 'element-plus';
 import { Search, Refresh, Plus, Edit, Delete, VideoPlay, RefreshRight, Setting } from '@element-plus/icons-vue';
 
@@ -22,6 +23,7 @@ import type {
   ModifyNMSBackupTaskRequest,
 } from '@/types/backup';
 
+const { t } = useI18n();
 const activeTab = ref('task');
 
 // --- 备份任务管理 ---
@@ -64,12 +66,12 @@ const logDetail = ref<NMSBackupLog | null>(null);
 
 function getStatusText(status: number): string {
   const map: Record<number, string> = {
-    0: '就绪',
-    1: '运行中',
-    2: '已完成',
-    3: '失败',
+    0: t('backup.statusReady'),
+    1: t('backup.statusRunning'),
+    2: t('backup.statusCompleted'),
+    3: t('backup.statusFailed'),
   };
-  return map[status] || '未知';
+  return map[status] || t('backup.statusUnknown');
 }
 
 function getStatusClass(status: number): 'primary' | 'success' | 'warning' | 'info' | 'danger' | undefined {
@@ -83,11 +85,11 @@ function getStatusClass(status: number): 'primary' | 'success' | 'warning' | 'in
 }
 
 function getBackupTypeText(type: number): string {
-  return type === 0 ? '单次' : '定时';
+  return type === 0 ? t('backup.backupTypeOnce') : t('backup.backupTypeScheduled');
 }
 
 function getResultText(result: number): string {
-  return result === 0 ? '成功' : '失败';
+  return result === 0 ? t('backup.resultSuccess') : t('backup.resultFailed');
 }
 
 // --- 任务管理方法 ---
@@ -143,7 +145,7 @@ function openEditTask(row: NMSBackupTask) {
 
 async function saveTask() {
   if (!taskForm.backupName) {
-    ElMessage.warning('请输入备份名称');
+    ElMessage.warning(t('backup.enterBackupName'));
     return;
   }
   try {
@@ -159,10 +161,10 @@ async function saveTask() {
         xlogInterval: taskForm.xlogInterval,
       };
       await modifyNMSBackupTask(req);
-      ElMessage.success('修改成功');
+      ElMessage.success(t('backup.editSuccess'));
     } else {
       await addNMSBackupTask(taskForm);
-      ElMessage.success('添加成功');
+      ElMessage.success(t('backup.addSuccess'));
     }
     taskDialogVisible.value = false;
     loadTasks();
@@ -173,9 +175,9 @@ async function saveTask() {
 
 async function handleDeleteTask(row: NMSBackupTask) {
   try {
-    await ElMessageBox.confirm(`确定要删除备份任务 "${row.backupName}" 吗？`, '删除确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('backup.deleteConfirm').replace('{name}', row.backupName), t('backup.deleteConfirmTitle'), { type: 'warning' });
     await deleteNMSBackupTask({ id: row.id });
-    ElMessage.success('删除成功');
+    ElMessage.success(t('backup.deleteSuccess'));
     loadTasks();
   } catch (e) {
     if (e !== 'cancel') console.error('[Backup] delete task failed:', e);
@@ -184,9 +186,9 @@ async function handleDeleteTask(row: NMSBackupTask) {
 
 async function handleRunBackup(row: NMSBackupTask) {
   try {
-    await ElMessageBox.confirm(`确定要立即执行备份任务 "${row.backupName}" 吗？`, '执行确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('backup.runConfirm').replace('{name}', row.backupName), t('backup.runConfirmTitle'), { type: 'warning' });
     await runNMSBackupTask({ id: row.id });
-    ElMessage.success('备份任务已触发');
+    ElMessage.success(t('backup.backupTriggered'));
     loadTasks();
   } catch (e) {
     if (e !== 'cancel') console.error('[Backup] run backup failed:', e);
@@ -195,9 +197,9 @@ async function handleRunBackup(row: NMSBackupTask) {
 
 async function handleRevertBackup(row: NMSBackupTask) {
   try {
-    await ElMessageBox.confirm(`确定要从备份 "${row.backupName}" 恢复吗？此操作将覆盖当前配置！`, '恢复确认', { type: 'warning' });
+    await ElMessageBox.confirm(t('backup.revertConfirm').replace('{name}', row.backupName), t('backup.revertConfirmTitle'), { type: 'warning' });
     await revertNMSBackupTask({ id: row.id });
-    ElMessage.success('恢复任务已触发');
+    ElMessage.success(t('backup.restoreTriggered'));
     loadTasks();
   } catch (e) {
     if (e !== 'cancel') console.error('[Backup] revert backup failed:', e);
@@ -220,7 +222,7 @@ async function loadConfig() {
 async function saveConfig() {
   try {
     await updateBackupAndRestoreConfig({ backupFileSavedDays: configForm.backupFileSavedDays });
-    ElMessage.success('配置保存成功');
+    ElMessage.success(t('backup.configSaved'));
   } catch (e) {
     console.error('[Backup] save config failed:', e);
   }
@@ -277,44 +279,44 @@ onMounted(() => {
   <div class="backup-management-page">
     <el-tabs v-model="activeTab" type="border-card">
       <!-- 备份任务管理 -->
-      <el-tab-pane label="备份任务" name="task">
+      <el-tab-pane :label="t('backup.backupTask')" name="task">
         <div class="page-header">
-          <el-button type="primary" :icon="Plus" @click="openAddTask">新增备份任务</el-button>
-          <el-button :icon="Refresh" @click="loadTasks">刷新</el-button>
+          <el-button type="primary" :icon="Plus" @click="openAddTask">{{ t('backup.addBackupTask') }}</el-button>
+          <el-button :icon="Refresh" @click="loadTasks">{{ t('backup.refresh') }}</el-button>
         </div>
 
         <el-table :data="taskList" :loading="taskLoading" border stripe>
-          <el-table-column prop="id" label="ID" width="80" />
-          <el-table-column prop="backupName" label="备份名称" />
-          <el-table-column prop="backupType" label="备份类型" width="100">
+          <el-table-column prop="id" :label="t('common.id')" width="80" />
+          <el-table-column prop="backupName" :label="t('backup.backupName')" />
+          <el-table-column prop="backupType" :label="t('backup.backupType')" width="100">
             <template #default="{ row }">
               <span>{{ getBackupTypeText(row.backupType) }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="backupInterval" label="备份间隔(天)" width="120" />
-          <el-table-column prop="backupBeginTime" label="开始时间" width="180">
+          <el-table-column prop="backupInterval" :label="t('backup.backupInterval')" width="120" />
+          <el-table-column prop="backupBeginTime" :label="t('backup.backupBeginTime')" width="180">
             <template #default="{ row }">
               {{ formatTime(row.backupBeginTime) }}
             </template>
           </el-table-column>
-          <el-table-column prop="backupStatus" label="状态" width="100">
+          <el-table-column prop="backupStatus" :label="t('backup.status')" width="100">
             <template #default="{ row }">
               <el-tag :type="getStatusClass(row.backupStatus)">
                 {{ getStatusText(row.backupStatus) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="createTime" label="创建时间" width="180">
+          <el-table-column prop="createTime" :label="t('backup.createTime')" width="180">
             <template #default="{ row }">
               {{ formatTime(row.createTime) }}
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="280" fixed="right">
+          <el-table-column :label="t('backup.operation')" width="280" fixed="right">
             <template #default="{ row }">
-              <el-button size="small" :icon="Edit" @click="openEditTask(row as NMSBackupTask)">编辑</el-button>
-              <el-button size="small" type="primary" :icon="VideoPlay" @click="handleRunBackup(row as NMSBackupTask)">立即备份</el-button>
-              <el-button size="small" type="success" :icon="RefreshRight" @click="handleRevertBackup(row as NMSBackupTask)">恢复</el-button>
-              <el-button size="small" type="danger" :icon="Delete" @click="handleDeleteTask(row as NMSBackupTask)">删除</el-button>
+              <el-button size="small" :icon="Edit" @click="openEditTask(row as NMSBackupTask)">{{ t('backup.edit') }}</el-button>
+              <el-button size="small" type="primary" :icon="VideoPlay" @click="handleRunBackup(row as NMSBackupTask)">{{ t('backup.runBackup') }}</el-button>
+              <el-button size="small" type="success" :icon="RefreshRight" @click="handleRevertBackup(row as NMSBackupTask)">{{ t('backup.revert') }}</el-button>
+              <el-button size="small" type="danger" :icon="Delete" @click="handleDeleteTask(row as NMSBackupTask)">{{ t('backup.delete') }}</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -333,45 +335,45 @@ onMounted(() => {
       </el-tab-pane>
 
       <!-- 备份配置 -->
-      <el-tab-pane label="备份配置" name="config">
+      <el-tab-pane :label="t('backup.backupConfig')" name="config">
         <el-card shadow="never">
           <el-form :model="configForm" label-width="200px">
-            <el-form-item label="备份文件保留天数">
+            <el-form-item :label="t('backup.backupFileSavedDays')">
               <el-input-number v-model="configForm.backupFileSavedDays" :min="1" :max="365" />
-              <span style="margin-left: 8px;">天</span>
+              <span style="margin-left: 8px;">{{ t('backup.days') }}</span>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :icon="Setting" @click="saveConfig">保存配置</el-button>
+              <el-button type="primary" :icon="Setting" @click="saveConfig">{{ t('backup.saveConfig') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
       </el-tab-pane>
 
       <!-- 备份日志 -->
-      <el-tab-pane label="备份日志" name="log">
+      <el-tab-pane :label="t('backup.backupLogs')" name="log">
         <div class="page-header">
-          <el-button :icon="Refresh" @click="loadLogs">刷新</el-button>
+          <el-button :icon="Refresh" @click="loadLogs">{{ t('backup.refresh') }}</el-button>
         </div>
 
         <el-table :data="logList" :loading="logLoading" border stripe>
-          <el-table-column prop="id" label="ID" width="80" />
-          <el-table-column prop="fileName" label="备份文件" />
-          <el-table-column prop="time" label="操作时间" width="180">
+          <el-table-column prop="id" :label="t('common.id')" width="80" />
+          <el-table-column prop="fileName" :label="t('backup.fileName')" />
+          <el-table-column prop="time" :label="t('backup.operationTime')" width="180">
             <template #default="{ row }">
               {{ formatTime(row.time) }}
             </template>
           </el-table-column>
-          <el-table-column prop="operationUser" label="操作人" width="120" />
-          <el-table-column prop="result" label="结果" width="100">
+          <el-table-column prop="operationUser" :label="t('backup.operationUser')" width="120" />
+          <el-table-column prop="result" :label="t('backup.result')" width="100">
             <template #default="{ row }">
               <el-tag :type="row.result === 0 ? 'success' : 'danger'">
                 {{ getResultText(row.result) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="100">
+          <el-table-column :label="t('backup.operation')" width="100">
             <template #default="{ row }">
-              <el-button size="small" :icon="Search" @click="viewLogDetail(row as NMSBackupLog)">详情</el-button>
+              <el-button size="small" :icon="Search" @click="viewLogDetail(row as NMSBackupLog)">{{ t('backup.detail') }}</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -391,58 +393,58 @@ onMounted(() => {
     </el-tabs>
 
     <!-- 任务编辑对话框 -->
-    <el-dialog :title="isEditTask ? '编辑备份任务' : '新增备份任务'" v-model="taskDialogVisible" width="500px">
+    <el-dialog :title="isEditTask ? t('backup.edit') + ' ' + t('backup.backupTask') : t('backup.addBackupTask')" v-model="taskDialogVisible" width="500px">
       <el-form :model="taskForm" label-width="120px">
-        <el-form-item label="备份名称" required>
-          <el-input v-model="taskForm.backupName" placeholder="请输入备份名称" />
+        <el-form-item :label="t('backup.backupName')" required>
+          <el-input v-model="taskForm.backupName" :placeholder="t('backup.enterBackupName')" />
         </el-form-item>
-        <el-form-item label="备份类型">
+        <el-form-item :label="t('backup.backupType')">
           <el-select v-model="taskForm.backupType">
-            <el-option label="单次" :value="0" />
-            <el-option label="定时" :value="1" />
+            <el-option :label="t('backup.backupTypeOnce')" :value="0" />
+            <el-option :label="t('backup.backupTypeScheduled')" :value="1" />
           </el-select>
         </el-form-item>
-        <el-form-item label="备份间隔(天)" v-if="taskForm.backupType === 1">
+        <el-form-item :label="t('backup.backupInterval')" v-if="taskForm.backupType === 1">
           <el-input-number v-model="taskForm.backupInterval" :min="1" :max="365" />
         </el-form-item>
-        <el-form-item label="开始时间">
+        <el-form-item :label="t('backup.backupBeginTime')">
           <el-date-picker
             v-model="taskForm.backupBeginTime"
             type="datetime"
-            placeholder="选择开始时间"
+            :placeholder="t('backup.selectBeginTime')"
             value-format="YYYY-MM-DD HH:mm:ss"
           />
         </el-form-item>
-        <el-form-item label="PM文件保留(天)">
+        <el-form-item :label="t('backup.pmFileRetention')">
           <el-input-number v-model="taskForm.pmInterval" :min="0" />
         </el-form-item>
-        <el-form-item label="MR文件保留(天)">
+        <el-form-item :label="t('backup.mrFileRetention')">
           <el-input-number v-model="taskForm.mrInterval" :min="0" />
         </el-form-item>
-        <el-form-item label="Xlog文件保留(天)">
+        <el-form-item :label="t('backup.xlogFileRetention')">
           <el-input-number v-model="taskForm.xlogInterval" :min="0" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="taskDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveTask">确定</el-button>
+        <el-button @click="taskDialogVisible = false">{{ t('backup.cancel') }}</el-button>
+        <el-button type="primary" @click="saveTask">{{ t('backup.confirm') }}</el-button>
       </template>
     </el-dialog>
 
     <!-- 日志详情对话框 -->
-    <el-dialog title="日志详情" v-model="logDetailDialogVisible" width="500px">
+    <el-dialog :title="t('backup.logDetail')" v-model="logDetailDialogVisible" width="500px">
       <div v-if="logDetail">
         <el-descriptions :column="1">
-          <el-descriptions-item label="日志ID">{{ logDetail.id }}</el-descriptions-item>
-          <el-descriptions-item label="备份文件">{{ logDetail.fileName || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="操作时间">{{ formatTime(logDetail.time) }}</el-descriptions-item>
-          <el-descriptions-item label="操作人">{{ logDetail.operationUser || '-' }}</el-descriptions-item>
-          <el-descriptions-item label="结果">
+          <el-descriptions-item :label="t('backup.logId')">{{ logDetail.id }}</el-descriptions-item>
+          <el-descriptions-item :label="t('backup.fileName')">{{ logDetail.fileName || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('backup.operationTime')">{{ formatTime(logDetail.time) }}</el-descriptions-item>
+          <el-descriptions-item :label="t('backup.operationUser')">{{ logDetail.operationUser || '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('backup.result')">
             <el-tag :type="logDetail.result === 0 ? 'success' : 'danger'">
               {{ getResultText(logDetail.result) }}
             </el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="原因">
+          <el-descriptions-item :label="t('backup.reason')">
             <pre style="max-height: 200px; overflow-y: auto; white-space: pre-wrap;">{{ logDetail.reason || '-' }}</pre>
           </el-descriptions-item>
         </el-descriptions>

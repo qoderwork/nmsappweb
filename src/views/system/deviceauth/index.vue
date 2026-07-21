@@ -1,44 +1,44 @@
 <template>
   <div class="deviceauth-container">
     <el-tabs v-model="activeTab" type="border-card">
-      <el-tab-pane label="认证配置" name="config">
+      <el-tab-pane :label="t('deviceauth.authConfig')" name="config">
         <el-card>
           <el-form :model="authConfig" label-width="120px">
-            <el-form-item label="认证类型" required>
+            <el-form-item :label="t('deviceauth.authType')" required>
               <el-select v-model="authConfig.authType">
                 <el-option label="OAuth" value="OAUTH" />
-                <el-option label="本地" value="LOCAL" />
+                <el-option :label="t('deviceauth.local')" value="LOCAL" />
               </el-select>
             </el-form-item>
-            <el-form-item label="认证URL">
+            <el-form-item :label="t('deviceauth.authUrl')">
               <el-input v-model="authConfig.authUrl" />
             </el-form-item>
-            <el-form-item label="认证用户名">
+            <el-form-item :label="t('deviceauth.authUsername')">
               <el-input v-model="authConfig.authUsername" />
             </el-form-item>
-            <el-form-item label="认证密码">
+            <el-form-item :label="t('deviceauth.authPassword')">
               <el-input v-model="authConfig.authPassword" type="password" />
             </el-form-item>
-            <el-form-item label="验证SSL">
+            <el-form-item :label="t('deviceauth.verifySSL')">
               <el-switch v-model="authConfig.verifySSL" />
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" @click="handleSave" :loading="saving">保存配置</el-button>
+              <el-button type="primary" @click="handleSave" :loading="saving">{{ t('deviceauth.saveConfig') }}</el-button>
             </el-form-item>
           </el-form>
         </el-card>
       </el-tab-pane>
-      <el-tab-pane label="认证信息" name="info">
+      <el-tab-pane :label="t('deviceauth.authInfo')" name="info">
         <el-table :data="authInfoList" v-loading="loading" border>
-          <el-table-column prop="sn" label="设备SN" min-width="150" />
-          <el-table-column prop="status" label="认证状态" width="100">
+          <el-table-column prop="sn" :label="t('deviceauth.deviceSN')" min-width="150" />
+          <el-table-column prop="status" :label="t('deviceauth.authStatus')" width="100">
             <template #default="{ row }">
               <el-tag :type="(row as DeviceAuthInfo).status === 'SUCCESS' ? 'success' : 'danger'">
                 {{ (row as DeviceAuthInfo).status }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="lastAuthTime" label="最后认证时间" width="180" />
+          <el-table-column prop="lastAuthTime" :label="t('deviceauth.lastAuthTime')" width="180" />
         </el-table>
         <el-pagination
           :current-page="page"
@@ -57,8 +57,11 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
+import { useI18n } from 'vue-i18n';
 import type { DeviceAuthConfig, DeviceAuthInfo } from '@/types/deviceauth';
 import { getDeviceAuthConfig, saveDeviceAuthConfig, getDeviceAuthInfo } from '@/api/deviceauth';
+
+const { t } = useI18n();
 
 const activeTab = ref('config');
 const loading = ref(false);
@@ -102,9 +105,9 @@ async function handleSave() {
   saving.value = true;
   try {
     await saveDeviceAuthConfig(authConfig);
-    ElMessage.success('配置保存成功');
+    ElMessage.success(t('deviceauth.saveSuccess'));
   } catch (e: unknown) {
-    ElMessage.error('保存失败');
+    ElMessage.error(t('deviceauth.saveFailed'));
   } finally {
     saving.value = false;
   }

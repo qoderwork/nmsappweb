@@ -9,7 +9,7 @@ import type {
   SaveMonitorParametersRequest,
 } from '@/types/monitor';
 
-const BASE = '/api/v1';
+const BASE = '';
 
 // Monitor tasks
 export function listMonitorTasks() {

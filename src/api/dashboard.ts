@@ -73,37 +73,37 @@ export interface KPIStatistic {
 
 /** 获取设备在线信息 */
 export function getDeviceOnlineInfo() {
-  return http.post<DeviceOnlineInfo>('/listDeviceOnlineInfo', {});
+  return http.post<DeviceOnlineInfo>('/dashboard/device-online-info', {});
 }
 
 /** 获取产品类型与设备数量 */
 export function getProductTypeAndDeviceCount(mode: string = 'CPE') {
-  return http.post<ProductTypeAndCount[]>('/listProductTypeAndDeviceCount', { mode });
+  return http.post<ProductTypeAndCount[]>('/dashboard/product-type-device-count', { mode });
 }
 
 /** 获取 CPE 在线统计 */
 export function getCpeOnlineStatistics(params?: { elementIds?: number[]; startTime?: string; endTime?: string }) {
-  return http.post<TimeAndDataVO[]>('/listCpeOnlineStatistics', params || {});
+  return http.post<TimeAndDataVO[]>('/dashboard/cpe-online-stats', params || {});
 }
 
 /** 获取 GNB 在线统计 */
 export function getGNBOnlineStatistics(params?: { elementIds?: number[]; startTime?: string; endTime?: string }) {
-  return http.post<TimeAndDataVO[]>('/listGNBOnlineStatistics', params || {});
+  return http.post<TimeAndDataVO[]>('/dashboard/gnb-online-stats', params || {});
 }
 
 /** 获取基站统计 */
 export function getBaseStationStatistics(params: { elementIds?: number[]; startTime: string; endTime: string }) {
-  return http.post<BaseStationStatistics>('/listBaseStationStatistics', params);
+  return http.post<BaseStationStatistics>('/dashboard/base-station-stats', params);
 }
 
 /** 获取 PDCP 流量统计 */
 export function getPDCPTrafficStatistic(params: { startTime: string; endTime: string }) {
-  return http.post<PDCPTrafficStatistic[]>('/listPDCPTrafficStatistic', params);
+  return http.post<PDCPTrafficStatistic[]>('/dashboard/pdcp-traffic', params);
 }
 
 /** 获取 KPI 统计 */
 export function getKPIStatistic(params: { deviceGroupId: string[]; granularity: string; gmt: string; timestamp?: number }) {
-  return http.post<KPIStatistic>('/statisticKPIForDevicelop', params);
+  return http.post<KPIStatistic>('/dashboard/kpi-device-loop', params);
 }
 
 /** 获取 CPU 和内存使用率 */
