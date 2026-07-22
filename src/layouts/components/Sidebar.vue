@@ -52,7 +52,7 @@ function handleSelect(index: string) {
 </script>
 
 <template>
-  <div class="nms-sidebar" :class="{ 'is-collapsed': collapsed }">
+  <div v-if="permissionStore.loaded" class="nms-sidebar" :class="{ 'is-collapsed': collapsed }">
     <Logo />
     <el-scrollbar class="nms-sidebar__scroll">
       <el-menu
