@@ -286,7 +286,7 @@ async function handleDelete(row: ShutdownTaskVo) {
     return;
   }
   try {
-    await deleteShutdownTask(row.id, { taskId: row.id });
+    await deleteShutdownTask(row.id);
     ElMessage.success(t('common.deleteSuccess'));
     await loadTasks();
   } catch (e: unknown) {
@@ -297,7 +297,7 @@ async function handleDelete(row: ShutdownTaskVo) {
 
 async function handleView(row: ShutdownTaskVo) {
   try {
-    viewData.value = await viewShutdownTask(row.id, { taskId: row.id });
+    viewData.value = await viewShutdownTask(row.id);
     viewDialogVisible.value = true;
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -317,7 +317,6 @@ async function loadResults() {
   resultLoading.value = true;
   try {
     const page = await listShutdownResults(currentTaskId.value, {
-      taskId: currentTaskId.value,
       page: resultQuery.page,
       pageSize: resultQuery.pageSize,
     });

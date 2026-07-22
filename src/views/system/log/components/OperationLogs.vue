@@ -25,7 +25,7 @@ const queryParams = reactive({
   username: '',
   ipAddress: '',
   logName: '',
-  results: '',
+  results: undefined as number | undefined,
 });
 
 async function loadData() {
@@ -57,7 +57,7 @@ function handleReset() {
   queryParams.username = '';
   queryParams.ipAddress = '';
   queryParams.logName = '';
-  queryParams.results = '';
+  queryParams.results = undefined;
   queryParams.page = 1;
   loadData();
 }

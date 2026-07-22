@@ -68,6 +68,32 @@ export const staticMenuConfigs: MenuConfig[] = [
     icon: 'Monitor',
     sort: 2,
     visible: 'visible',
+    permissionsOr: [
+      'GNB.Monitor.ListGNB',
+      'ENB.Monitor.ListENB',
+      'MML.BatchExecuteMML',
+      'MML.ImportMMLAndParameter',
+      'MML.Script.ListBatchProcessFileLog',
+      'MML.Script.ListBatchProcessFile',
+      'MML.Script.ListExecuteResultFileLog',
+      'Device.Upgrade.ListUpgradeTask',
+      'Device.Upgrade.ListUpgradeResult',
+      'Device.Upgrade.ListRollbackTask',
+      'Device.Upgrade.ListUpgradeFile',
+      'Device.Reboot.ListRebootTask',
+      'Device.Reset.ListResetTask',
+      'ShutDown.ListShutdownTask',
+      'Maintenance.BackupAndRestore.ListBaseStationBackupLatestFileInfo',
+      'Device.Log.ListGNBDeviceLogCollectionResult',
+      'GNB.Logs.ListGNBEventLog',
+      'GNB.Logs.ListBaseStationValueChangeLog',
+      'CBSDCertFile.ListDeviceCBSDCertFile',
+      'BaseStation.License.ListLicense',
+      'DeviceMNormalFile.List',
+      'CaTask.List',
+      'CaFile.List',
+      'SSH.Access.ListTimer',
+    ],
     children: [
       {
         id: 201,
@@ -82,6 +108,7 @@ export const staticMenuConfigs: MenuConfig[] = [
         sort: 1,
         visible: 'visible',
         keepAlive: true,
+        permissionsAnd: ['GNB.Monitor.ListGNB'],
       },
       {
         id: 202,
@@ -95,6 +122,7 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'Monitor',
         sort: 2,
         visible: 'visible',
+        permissionsAnd: ['ENB.Monitor.ListENB'],
       },
       // Maintenance 维护
       {
@@ -108,6 +136,29 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'Tools',
         sort: 3,
         visible: 'visible',
+        permissionsOr: [
+          'MML.BatchExecuteMML',
+          'MML.ImportMMLAndParameter',
+          'MML.Script.ListBatchProcessFileLog',
+          'MML.Script.ListBatchProcessFile',
+          'MML.Script.ListExecuteResultFileLog',
+          'Device.Upgrade.ListUpgradeTask',
+          'Device.Upgrade.ListUpgradeResult',
+          'Device.Upgrade.ListRollbackTask',
+          'Device.Upgrade.ListUpgradeFile',
+          'Device.Reboot.ListRebootTask',
+          'Device.Reset.ListResetTask',
+          'ShutDown.ListShutdownTask',
+          'Maintenance.BackupAndRestore.ListBaseStationBackupLatestFileInfo',
+          'Device.Log.ListGNBDeviceLogCollectionResult',
+          'GNB.Logs.ListGNBEventLog',
+          'GNB.Logs.ListBaseStationValueChangeLog',
+          'BaseStation.License.ListLicense',
+          'DeviceMNormalFile.List',
+          'CaTask.List',
+          'CaFile.List',
+          'SSH.Access.ListTimer',
+        ],
         children: [
           {
             id: 211,
@@ -121,6 +172,13 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'List',
             sort: 1,
             visible: 'visible',
+            permissionsOr: [
+              'MML.BatchExecuteMML',
+              'MML.ImportMMLAndParameter',
+              'MML.Script.ListBatchProcessFileLog',
+              'MML.Script.ListBatchProcessFile',
+              'MML.Script.ListExecuteResultFileLog',
+            ],
           },
           {
             id: 212,
@@ -134,6 +192,7 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'Timer',
             sort: 2,
             visible: 'visible',
+            permissionsOr: ['SSH.Access.ListTimer'],
           },
           {
             id: 213,
@@ -142,11 +201,17 @@ export const staticMenuConfigs: MenuConfig[] = [
             fallbackName: '升级',
             code: 'bs-upgrade',
             type: 'menu',
-            path: '/system/upgrade',
-            component: 'system/upgrade',
+            path: '/base-station/upgrade',
+            component: 'placeholder/index',
             icon: 'UploadFilled',
             sort: 3,
             visible: 'visible',
+            permissionsOr: [
+              'Device.Upgrade.ListUpgradeTask',
+              'Device.Upgrade.ListUpgradeResult',
+              'Device.Upgrade.ListRollbackTask',
+              'Device.Upgrade.ListUpgradeFile',
+            ],
           },
           {
             id: 214,
@@ -160,6 +225,7 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'Key',
             sort: 4,
             visible: 'visible',
+            permissionsAnd: ['BaseStation.License.ListLicense'],
           },
           {
             id: 215,
@@ -173,6 +239,7 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'Key',
             sort: 5,
             visible: 'visible',
+            permissionsOr: ['CaTask.List', 'CaFile.List'],
           },
           {
             id: 216,
@@ -186,6 +253,7 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'Folder',
             sort: 6,
             visible: 'visible',
+            permissionsOr: ['DeviceMNormalFile.List'],
           },
           {
             id: 217,
@@ -199,6 +267,7 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'RefreshRight',
             sort: 7,
             visible: 'visible',
+            permissionsOr: ['Device.Reboot.ListRebootTask'],
           },
           {
             id: 218,
@@ -212,6 +281,7 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'RefreshLeft',
             sort: 8,
             visible: 'visible',
+            permissionsOr: ['Device.Reset.ListResetTask'],
           },
           {
             id: 219,
@@ -225,6 +295,7 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'SwitchButton',
             sort: 9,
             visible: 'visible',
+            permissionsOr: ['ShutDown.ListShutdownTask'],
           },
           {
             id: 220,
@@ -238,6 +309,7 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'DataBackup',
             sort: 10,
             visible: 'visible',
+            permissionsOr: ['Maintenance.BackupAndRestore.ListBaseStationBackupLatestFileInfo'],
           },
           {
             id: 221,
@@ -251,6 +323,7 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'Connection',
             sort: 11,
             visible: 'visible',
+            permissionsOr: ['ModelTree.ExportNeighbourCellInfo'],
           },
           {
             id: 222,
@@ -264,6 +337,11 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'Files',
             sort: 12,
             visible: 'visible',
+            permissionsOr: [
+              'Device.Log.ListGNBDeviceLogCollectionResult',
+              'GNB.Logs.ListGNBEventLog',
+              'GNB.Logs.ListBaseStationValueChangeLog',
+            ],
           },
         ],
       },
@@ -279,6 +357,7 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'Connection',
         sort: 4,
         visible: 'visible',
+        permissionsAnd: ['CBSDCertFile.ListDeviceCBSDCertFile'],
       },
     ],
   },
@@ -296,6 +375,17 @@ export const staticMenuConfigs: MenuConfig[] = [
     icon: 'Cellphone',
     sort: 3,
     visible: 'visible',
+    permissionsOr: [
+      'CPE.Monitor.ListCPE',
+      'CPE.Upgrade.ListUpgradeTask',
+      'CPE.Upgrade.ListUpgradeResult',
+      'CPE.Upgrade.ListUpgradeFile',
+      'CPE.Reboot.ListRebootTask',
+      'Device.Log.ListCPEDeviceLogCollectionResult',
+      'CPE.Log.ListCpeEventLog',
+      'CPE.Log.ListCPEValueChangeLog',
+      'CBSDCertFile.ListDeviceCBSDCertFile',
+    ],
     children: [
       {
         id: 301,
@@ -309,6 +399,7 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'Monitor',
         sort: 1,
         visible: 'visible',
+        permissionsOr: ['CPE.Monitor.ListCPE'],
       },
       {
         id: 310,
@@ -321,6 +412,15 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'Tools',
         sort: 2,
         visible: 'visible',
+        permissionsOr: [
+          'CPE.Upgrade.ListUpgradeTask',
+          'CPE.Upgrade.ListUpgradeResult',
+          'CPE.Upgrade.ListUpgradeFile',
+          'CPE.Reboot.ListRebootTask',
+          'Device.Log.ListCPEDeviceLogCollectionResult',
+          'CPE.Log.ListCpeEventLog',
+          'CPE.Log.ListCPEValueChangeLog',
+        ],
         children: [
           {
             id: 311,
@@ -334,6 +434,11 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'UploadFilled',
             sort: 1,
             visible: 'visible',
+            permissionsOr: [
+              'CPE.Upgrade.ListUpgradeTask',
+              'CPE.Upgrade.ListUpgradeResult',
+              'CPE.Upgrade.ListUpgradeFile',
+            ],
           },
           {
             id: 312,
@@ -347,6 +452,7 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'RefreshRight',
             sort: 2,
             visible: 'visible',
+            permissionsOr: ['CPE.Reboot.ListRebootTask'],
           },
           {
             id: 313,
@@ -360,6 +466,11 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'Files',
             sort: 3,
             visible: 'visible',
+            permissionsOr: [
+              'Device.Log.ListCPEDeviceLogCollectionResult',
+              'CPE.Log.ListCpeEventLog',
+              'CPE.Log.ListCPEValueChangeLog',
+            ],
           },
         ],
       },
@@ -375,6 +486,7 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'Connection',
         sort: 3,
         visible: 'visible',
+        permissionsAnd: ['CBSDCertFile.ListDeviceCBSDCertFile'],
       },
     ],
   },
@@ -393,6 +505,7 @@ export const staticMenuConfigs: MenuConfig[] = [
     sort: 4,
     visible: 'visible',
     keepAlive: true,
+    permissionsAnd: ['DeviceGroup.ListDeviceGroup'],
   },
 
   // 5. Cluster 群组
@@ -408,6 +521,7 @@ export const staticMenuConfigs: MenuConfig[] = [
     icon: 'Collection',
     sort: 5,
     visible: 'visible',
+    permissionsAnd: ['Cluster.ListCluster'],
   },
 
   // 6. Core Network 核心网
@@ -423,6 +537,7 @@ export const staticMenuConfigs: MenuConfig[] = [
     icon: 'OfficeBuilding',
     sort: 6,
     visible: 'visible',
+    permissionsAnd: ['CoreNetwork.ListCoreNetwork'],
   },
 
   // 7. GIS
@@ -438,6 +553,7 @@ export const staticMenuConfigs: MenuConfig[] = [
     icon: 'MapLocation',
     sort: 7,
     visible: 'visible',
+    permissionsAnd: ['Map.ListDeviceWithLocationInfoInDeviceGroup'],
   },
 
   // 8. Site 站点
@@ -453,6 +569,7 @@ export const staticMenuConfigs: MenuConfig[] = [
     icon: 'Place',
     sort: 8,
     visible: 'visible',
+    permissionsAnd: ['Site.ListSites'],
   },
 
   // 9. ZTP
@@ -468,6 +585,7 @@ export const staticMenuConfigs: MenuConfig[] = [
     icon: 'MagicStick',
     sort: 9,
     visible: 'visible',
+    permissionsOr: ['ZTP.ListZTPResults', 'ZTP.ListTBG'],
   },
 
   // 10. Alarm 告警
@@ -499,6 +617,13 @@ export const staticMenuConfigs: MenuConfig[] = [
     icon: 'DataAnalysis',
     sort: 11,
     visible: 'visible',
+    permissionsOr: [
+      'Performance.KPITemplate.ListKPITemplate',
+      'Performance.KPIMeas.ListKPIMeas',
+      'Performance.ListKPIAlarmTemplate',
+      'Performance.KPISet.ListKPISet',
+      'Performance.Replenish.List',
+    ],
   },
 
   // 12. Advance 高级
@@ -514,6 +639,7 @@ export const staticMenuConfigs: MenuConfig[] = [
     icon: 'SetUp',
     sort: 12,
     visible: 'visible',
+    permissionsOr: ['SAS.ListCBSD'],
     children: [
       {
         id: 1201,
@@ -527,6 +653,7 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'Connection',
         sort: 1,
         visible: 'visible',
+        permissionsAnd: ['SAS.ListCBSD'],
       },
     ],
   },
@@ -544,6 +671,14 @@ export const staticMenuConfigs: MenuConfig[] = [
     icon: 'Tickets',
     sort: 13,
     visible: 'visible',
+    permissionsOr: [
+      'ValueMonitor.ListMonitorTask',
+      'Configuration.ListBatchConfiguration',
+      'ParameterTemplate.List',
+      'ParameterMonitor.List',
+      'BatchTask.ParameterDeploy.List',
+      'Configuration.ListBatchAddObjectTask',
+    ],
     children: [
       {
         id: 1301,
@@ -558,6 +693,7 @@ export const staticMenuConfigs: MenuConfig[] = [
         sort: 1,
         visible: 'visible',
         keepAlive: true,
+        permissionsAnd: ['ValueMonitor.ListMonitorTask'],
       },
       {
         id: 1302,
@@ -572,6 +708,12 @@ export const staticMenuConfigs: MenuConfig[] = [
         sort: 2,
         visible: 'visible',
         keepAlive: true,
+        permissionsOr: [
+          'Configuration.ListBatchConfiguration',
+          'ParameterTemplate.List',
+          'ParameterMonitor.List',
+          'BatchTask.ParameterDeploy.List',
+        ],
       },
       {
         id: 1303,
@@ -585,6 +727,7 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'Plus',
         sort: 3,
         visible: 'visible',
+        permissionsAnd: ['Configuration.ListBatchAddObjectTask'],
       },
     ],
   },
@@ -602,6 +745,7 @@ export const staticMenuConfigs: MenuConfig[] = [
     icon: 'TrendCharts',
     sort: 14,
     visible: 'visible',
+    permissionsOr: ['MR.ListMRUploadTask', 'MR.ListMRUploadLatestTime'],
   },
 
   // 15. Device Blocklist 设备黑名单
@@ -617,6 +761,7 @@ export const staticMenuConfigs: MenuConfig[] = [
     icon: 'CircleClose',
     sort: 15,
     visible: 'visible',
+    permissionsOr: ['DeviceBlackList.ListDeviceBlackList', 'DeviceBlackList.ListBlackListOperationLog'],
   },
 
   // 16. System 系统
@@ -633,6 +778,29 @@ export const staticMenuConfigs: MenuConfig[] = [
     sort: 16,
     visible: 'visible',
     isAdmin: true,
+    permissionsOr: [
+      'System.Settings.ListDeviceSettings',
+      'System.Settings.ListACSSettings',
+      'System.Settings.GetMailSetting',
+      'System.Resource.GetCPUAndMemUsage',
+      'System.Log.ListOperationLog',
+      'System.Upgrade.ListUpgradeFile',
+      'System.License.GetLicenseInfo',
+      'System.Authority.SecurityRule.GetSecurityRule',
+      'System.Authority.User.ListUser',
+      'System.Authority.Role.GetRolePermissions',
+      'System.Tenant.ListTenancy',
+      'System.SSO.AddRadius',
+      'System.SSO.AddEntraEndPoint',
+      'System.NorthReport.ListNorthReport',
+      'System.Maintenance.ListNTPConfig',
+      'NMSBacupAndRevert.ListNMSBackupTask',
+      'SSHLabel.ListSSHLabels',
+      'Tcpdump.ListTcpdumpFiles',
+      'Area.ListArea',
+      'TR069.Parameter.ListTR069Parameter',
+      'TR069.ParameterSet.GetParameterSet',
+    ],
     children: [
       {
         id: 1601,
@@ -646,6 +814,11 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'Setting',
         sort: 1,
         visible: 'visible',
+        permissionsOr: [
+          'System.Settings.ListDeviceSettings',
+          'System.Settings.ListACSSettings',
+          'System.Settings.GetMailSetting',
+        ],
       },
       // Maintenance 维护
       {
@@ -659,6 +832,12 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'Tools',
         sort: 2,
         visible: 'visible',
+        permissionsOr: [
+          'SSHLabel.ListSSHLabels',
+          'Tcpdump.ListTcpdumpFiles',
+          'System.Maintenance.PING',
+          'System.Maintenance.ListNTPConfig',
+        ],
         children: [
           {
             id: 1611,
@@ -672,6 +851,7 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'Terminal',
             sort: 1,
             visible: 'visible',
+            permissionsAnd: ['SSHLabel.ListSSHLabels'],
           },
           {
             id: 1612,
@@ -685,6 +865,7 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'Aim',
             sort: 2,
             visible: 'visible',
+            permissionsAnd: ['System.Maintenance.PING'],
           },
           {
             id: 1613,
@@ -698,6 +879,7 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'Monitor',
             sort: 3,
             visible: 'visible',
+            permissionsAnd: ['Tcpdump.ListTcpdumpFiles'],
           },
           {
             id: 1614,
@@ -711,6 +893,7 @@ export const staticMenuConfigs: MenuConfig[] = [
             icon: 'Timer',
             sort: 4,
             visible: 'visible',
+            permissionsAnd: ['System.Maintenance.ListNTPConfig'],
           },
         ],
       },
@@ -726,6 +909,7 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'Cpu',
         sort: 3,
         visible: 'visible',
+        permissionsAnd: ['System.Resource.GetCPUAndMemUsage'],
       },
       {
         id: 1621,
@@ -739,6 +923,7 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'Promotion',
         sort: 4,
         visible: 'visible',
+        permissionsOr: ['System.NorthReport.ListNorthReport'],
       },
       {
         id: 1622,
@@ -752,6 +937,11 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'Document',
         sort: 5,
         visible: 'visible',
+        permissionsOr: [
+          'System.Log.ListLoginLog',
+          'System.Log.ListOperationLog',
+          'System.Log.UpdateLogConfig',
+        ],
       },
       {
         id: 1623,
@@ -765,6 +955,7 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'Files',
         sort: 6,
         visible: 'visible',
+        permissionsOr: ['TR069.Parameter.ListTR069Parameter', 'TR069.ParameterSet.GetParameterSet'],
       },
       {
         id: 1624,
@@ -778,6 +969,7 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'UploadFilled',
         sort: 7,
         visible: 'visible',
+        permissionsAnd: ['System.Upgrade.ListUpgradeFile'],
       },
       {
         id: 1625,
@@ -791,6 +983,7 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'DataBackup',
         sort: 8,
         visible: 'visible',
+        permissionsAnd: ['NMSBacupAndRevert.ListNMSBackupTask'],
       },
       {
         id: 1626,
@@ -804,6 +997,7 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'Key',
         sort: 9,
         visible: 'visible',
+        permissionsAnd: ['System.License.GetLicenseInfo'],
       },
       {
         id: 1627,
@@ -817,6 +1011,14 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'User',
         sort: 10,
         visible: 'visible',
+        permissionsOr: [
+          'System.Authority.User.ListUser',
+          'System.Authority.Role.GetRolePermissions',
+          'System.Tenant.ListTenancy',
+          'System.Authority.SecurityRule.GetSecurityRule',
+          'System.SSO.AddRadius',
+          'System.SSO.AddEntraEndPoint',
+        ],
       },
       {
         id: 1628,
@@ -830,6 +1032,7 @@ export const staticMenuConfigs: MenuConfig[] = [
         icon: 'MapLocation',
         sort: 11,
         visible: 'visible',
+        permissionsAnd: ['Area.ListArea'],
       },
     ],
   },

@@ -6,34 +6,40 @@
         <div class="toolbar">
           <el-button :icon="Refresh" @click="loadCpuMem">{{ t('common.refresh') }}</el-button>
         </div>
-        <el-row :gutter="16" v-loading="cpuMemLoading">
-          <el-col :span="12">
+        <div class="metrics-row" v-loading="cpuMemLoading">
+          <div class="metric-card-wrap">
             <el-card shadow="hover">
               <template #header>
                 <span>{{ t('resources.cpuUsage') }}</span>
               </template>
-              <el-progress
-                type="dashboard"
-                :percentage="cpuPercent"
-                :color="getCpuColor(cpuPercent)"
-              />
-              <div class="metric-value">{{ cpuPercent.toFixed(2) }}%</div>
+              <div class="metric-card-content">
+                <el-progress
+                  type="dashboard"
+                  :percentage="cpuPercent"
+                  :color="getCpuColor(cpuPercent)"
+                  :width="160"
+                />
+                <div class="metric-value">{{ cpuPercent.toFixed(1) }}%</div>
+              </div>
             </el-card>
-          </el-col>
-          <el-col :span="12">
+          </div>
+          <div class="metric-card-wrap">
             <el-card shadow="hover">
               <template #header>
                 <span>{{ t('resources.memUsage') }}</span>
               </template>
-              <el-progress
-                type="dashboard"
-                :percentage="memPercent"
-                :color="getCpuColor(memPercent)"
-              />
-              <div class="metric-value">{{ memPercent.toFixed(2) }}%</div>
+              <div class="metric-card-content">
+                <el-progress
+                  type="dashboard"
+                  :percentage="memPercent"
+                  :color="getCpuColor(memPercent)"
+                  :width="160"
+                />
+                <div class="metric-value">{{ memPercent.toFixed(1) }}%</div>
+              </div>
             </el-card>
-          </el-col>
-        </el-row>
+          </div>
+        </div>
         <el-card v-if="cpuMem?.timestamp" shadow="never" class="metric-card">
           <span>{{ t('resources.timestamp') }}: {{ formatTime(cpuMem.timestamp) }}</span>
         </el-card>
@@ -274,7 +280,7 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .resources-page {
   padding: 12px;
 }
@@ -283,11 +289,33 @@ onMounted(() => {
   display: flex;
   gap: 8px;
 }
+.metrics-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+.metric-card-wrap {
+  flex: 1;
+  min-width: 0;
+}
+.metric-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+}
 .metric-value {
   text-align: center;
-  font-size: 18px;
-  font-weight: 600;
-  margin-top: 12px;
+  font-size: 22px;
+  font-weight: 700;
+  margin-top: -20px;
+  position: relative;
+  z-index: 1;
+  color: #303133;
+}
+.dark .metric-value {
+  color: #e5e7eb;
 }
 .metric-card {
   margin-top: 12px;

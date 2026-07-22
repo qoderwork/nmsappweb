@@ -1,141 +1,163 @@
 /**
  * ZTP (Zero Touch Provisioning) API
  *
- * 对齐 nmsappsrv 后端：
- * - ZTP 开通、日志、配置、结果查询、重试、历史文件、状态管理、批量重开
- * - TBG 管理（CRUD + 导入 + 模板下载）
- * - PSAP-ID 管理（列表 + 同步 + 同步日志）
- * - Spatial File（市场列表 + 坐标查询）
- * - 北向报告（CRUD）
- * - RADIUS（CRUD）
+ * 对齐 nmsappsrv 后端（重写自 Java nms-serv AOSManagementController）：
+ *   - ZTP 结果查询 / 日志 / 配置 / 重试日志 / 历史文件 / 状态 / 批量重开 / 删除文件
+ *   - TBG 管理（CRUD + 导入 + 模板下载）
+ *   - PSAP-ID 管理（列表 + 同步 + 同步日志）
+ *   - Spatial File（市场列表 + 市场坐标）
+ *
+ * 说明（与老前端/Java 的差异，以 Go 后端为准）：
+ *   - 进度 progress 为整数枚举 0-7（参考 Java ZTP 进度）
+ *   - 结果 result 为字符串（SUCCESS / FAILED ...），筛选时传整数 1=成功 2=失败
+ *   - 状态 status 为字符串 enable / disable
+ *   - serialNumbers 以逗号拼接的字符串传递
+ *   - 分页响应体为 { list, total, page, pageSize }
  */
 
 import { http } from '@/utils/request';
 
-/* ============ ZTP 类型定义 ============ */
-
-/** ZTP 开通请求 */
-export interface ZTPProvisionRequest {
-  elementIds: number[];
-  operationUser?: string;
-}
-
-/** ZTP 开通响应 */
-export interface ZTPProvisionResponse {
-  enqueued: number;
+/* ============ 通用分页响应 ============ */
+export interface PageData<T> {
+  list: T[];
   total: number;
-}
-
-/** ZTP 日志 */
-export interface ZTPLog {
-  id: number;
-  elementId: number;
-  step: string;
-  status: string;
-  message: string;
-  timestamp: string;
-}
-
-/** ZTP 配置 */
-export interface ZTPSetting {
-  id?: number;
-  enable: boolean;
-  tbgServerId?: number;
-  provisionTimeout?: number;
-  retryCount?: number;
-  retryInterval?: number;
-  [key: string]: unknown;
-}
-
-/** ZTP 结果查询请求 */
-export interface ZTPResultQuery {
-  searchText?: string;
-  progress?: string;
-  result?: string;
-  serialNumbers?: string[];
-  succeed?: boolean;
-  deviceGroupId?: number;
   page: number;
   pageSize: number;
 }
 
-/** ZTP 结果 VO */
+/* ============ ZTP 配置 ============ */
+/** ZTP 配置（GET /ztp/setting / POST /ztp/setting），对齐 Go ZTPSetting */
+export interface ZTPSetting {
+  gnbIdStart?: number | null;
+  gnbIdEnd?: number | null;
+  tacStart?: number | null;
+  tacEnd?: number | null;
+  googleAPIKey?: string | null;
+  radiusThreshold?: number | null;
+  ztpTimeoutTime?: number | null;
+  ptpEnable?: boolean | null;
+  spectrumSpatialUrl?: string | null;
+  msagUrl?: string | null;
+  bmcUrl?: string | null;
+  bmcNewApi?: boolean | null;
+  lmfUrls?: string[] | null;
+  gmlcUrl?: string | null;
+  tPlatformUrl?: string | null;
+  wifiPositioning?: boolean | null;
+  sftpUsername?: string | null;
+  sftpPassword?: string | null;
+  [key: string]: unknown;
+}
+
+/* ============ ZTP 结果 ============ */
+/** 查询请求（POST /ztp/results） */
+export interface ZTPResultQuery {
+  searchText?: string;
+  /** 整数枚举 0-7，传 undefined 表示全部 */
+  progress?: number;
+  /** 1=成功 2=失败，传 undefined 表示全部 */
+  result?: number;
+  /** 逗号拼接的序列号 */
+  serialNumbers?: string;
+  /** null=全部, false=进行中, true=成功 */
+  succeed?: boolean | null;
+  deviceGroupId?: string;
+  page: number;
+  pageSize: number;
+}
+
+/** 结果行（Go ZTPResultVo） */
 export interface ZTPResultVo {
-  id: number;
   elementId: number;
-  elementName: string;
+  deviceName: string;
   serialNumber: string;
-  progress: string;
+  /** 整数枚举 0-7 */
+  progress: number | null;
+  info: string;
+  /** 字符串：SUCCESS / FAILED ... */
   result: string;
-  succeed: boolean;
-  deviceGroupId?: number;
-  deviceGroupName?: string;
+  ztpFileName: string;
+  tenancyName: string;
   startTime: string;
-  endTime?: string;
-  message?: string;
-}
-
-/** ZTP 重试日志 VO */
-export interface ZTPRetryLogVo {
-  id: number;
-  elementId: number;
-  retryCount: number;
+  endTime: string;
+  /** 字符串：enable / disable */
   status: string;
-  message: string;
-  timestamp: string;
+  currentProgress: number;
+  mode: string;
+  mac: string;
 }
 
-/** ZTP 历史文件 VO */
+/** ZTP 日志（GET /ztp/logs） */
+export interface ZTPLog {
+  id: number;
+  elementId: number | null;
+  progress: number | null;
+  done: boolean | null;
+  info: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  has_fault: boolean | null;
+}
+
+/** ZTP 重试日志（POST /ztp/retry-logs） */
+export interface ZTPRetryLogVo {
+  operationDate: string;
+  message: string;
+}
+
+/** ZTP 历史文件（POST /ztp/history-files） */
 export interface HistoryZTPFileVo {
   id: number;
   elementId: number;
+  neName: string;
   fileName: string;
-  fileType: string;
-  fileSize: number;
-  uploadTime: string;
+  generateTime: string;
 }
 
-/** ZTP 状态请求 */
+/* ============ ZTP 操作 ============ */
+/** 设置状态（POST /ztp/status） */
 export interface ZTPStatusRequest {
   elementIds: number[];
-  status: 'enable' | 'disable';
+  /** enable / disable */
+  status: string;
 }
 
-/** ZTP 批量重开请求 */
+/** 批量重开（POST /ztp/batch-reztp） */
 export interface ZTPBatchReztpRequest {
   scope: 'element' | 'deviceGroup' | 'market';
   elementIds?: number[];
-  deviceGroupIds?: number[];
+  deviceGroupIds?: string[];
   markets?: string[];
 }
 
-/* ============ TBG 类型定义 ============ */
-
-/** TBG 服务器 */
-export interface TBG {
-  id: number;
-  name: string;
-  ip: string;
-  port: number;
-  createTime?: string;
-  updateTime?: string;
+/** 删除文件（POST /ztp/delete-files） */
+export interface DeleteZTPFileRequest {
+  elementIds: number[];
 }
 
-/** TBG 列表查询 */
+/* ============ TBG ============ */
+export interface TBG {
+  id: number;
+  name: string | null;
+  ip: string | null;
+  port: number | null;
+  tenantId?: number | null;
+  createTime?: string | null;
+  updateTime?: string | null;
+}
+
 export interface TBGListQuery {
   name?: string;
   page: number;
   pageSize: number;
 }
 
-/** TBG 新增请求 */
 export interface TBGAddRequest {
   name: string;
   ip: string;
   port: number;
 }
 
-/** TBG 修改请求 */
 export interface TBGModifyRequest {
   id: number;
   name?: string;
@@ -143,231 +165,175 @@ export interface TBGModifyRequest {
   port?: number;
 }
 
-/* ============ PSAP-ID 类型定义 ============ */
-
-/** PSAP-ID */
-export interface PSAPID {
-  id: number;
-  psapId: string;
-  latitude?: number;
-  longitude?: number;
-  marketId?: number;
-  [key: string]: unknown;
+export interface TBGDeleteRequest {
+  ids: number[];
 }
 
-/** PSAP-ID 列表查询 */
+/* ============ PSAP-ID ============ */
+export interface PSAPID {
+  id: number;
+  psap_id: string | null;
+  name: string | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  tenantId?: number | null;
+  createTime?: string | null;
+}
+
 export interface PSAPIDListQuery {
   psapId?: string;
   page: number;
   pageSize: number;
 }
 
-/** PSAP-ID 同步请求 */
 export interface PSAPIDSyncRequest {
   tenantId: number;
 }
 
-/** PSAP-ID 同步日志 */
 export interface PSAPIDSyncLog {
   id: number;
-  tenantId: number;
-  count: number;
-  status: string;
-  message?: string;
-  syncTime: string;
+  operator: string | null;
+  status: number | null;
+  detail: string | null;
+  createTime: string | null;
 }
 
-/* ============ Spatial File 类型定义 ============ */
-
-/** Spatial File 市场 */
+/* ============ Spatial File ============ */
 export interface SpatialFileMarket {
   id: number;
-  name: string;
-  region?: string;
-  [key: string]: unknown;
+  name: string | null;
+  code: string | null;
+  tenantId?: number | null;
 }
 
-/* ============ 北向报告类型定义 ============ */
-
-/** 北向报告 */
-export interface NorthReport {
-  id?: number;
-  name: string;
-  type?: string;
-  schedule?: string;
-  enabled?: boolean;
-  description?: string;
-  [key: string]: unknown;
+/* ============ ZTP 结果 API ============ */
+export function getZTPResults(data: ZTPResultQuery) {
+  return http.post<PageData<ZTPResultVo>, ZTPResultQuery>('/ztp/results', data);
 }
 
-/* ============ RADIUS 类型定义 ============ */
-
-/** RADIUS 服务器 */
-export interface Radius {
-  id?: number;
-  name: string;
-  ip: string;
-  port: number;
-  secret: string;
-  [key: string]: unknown;
-}
-
-/* ============ 通用分页响应 ============ */
-
-/** POST 分页响应（data 部分） */
-export interface PostPageData<T> {
-  total: number;
-  list: T[];
-}
-
-/* ============ ZTP API ============ */
-
-/** ZTP 开通 */
-export function provisionZTP(data: ZTPProvisionRequest) {
-  return http.post<ZTPProvisionResponse, ZTPProvisionRequest>('/ztp/provision', data);
-}
-
-/** 获取 ZTP 日志 */
 export function getZTPLogs(elementId: number) {
   return http.get<ZTPLog[]>('/ztp/logs', { params: { element_id: elementId } });
 }
 
-/** 获取 ZTP 配置 */
-export function getZTPSetting() {
-  return http.get<ZTPSetting>('/ztp/setting');
-}
-
-/** 保存 ZTP 配置 */
-export function saveZTPSetting(data: ZTPSetting) {
-  return http.post<ZTPSetting, ZTPSetting>('/ztp/setting', data);
-}
-
-/** 查询 ZTP 结果（分页） */
-export function getZTPResults(data: ZTPResultQuery) {
-  return http.post<PostPageData<ZTPResultVo>, ZTPResultQuery>('/ztp/results', data);
-}
-
-/** 获取 ZTP 重试日志 */
 export function getZTPRetryLogs(elementId: number) {
   return http.post<ZTPRetryLogVo[], { elementId: number }>('/ztp/retry-logs', { elementId });
 }
 
-/** 获取 ZTP 历史文件（分页） */
 export function getZTPHistoryFiles(data: { elementId: number; page: number; pageSize: number }) {
-  return http.post<PostPageData<HistoryZTPFileVo>, typeof data>('/ztp/history-files', data);
+  return http.post<PageData<HistoryZTPFileVo>, typeof data>('/ztp/history-files', data);
 }
 
-/** 设置 ZTP 状态 */
+export function getZTPSetting() {
+  return http.get<ZTPSetting>('/ztp/setting');
+}
+
+export function saveZTPSetting(data: ZTPSetting) {
+  return http.post<ZTPSetting, ZTPSetting>('/ztp/setting', data);
+}
+
 export function setZTPStatus(data: ZTPStatusRequest) {
   return http.post<void, ZTPStatusRequest>('/ztp/status', data);
 }
 
-/** 批量重开 ZTP */
 export function batchReztp(data: ZTPBatchReztpRequest) {
   return http.post<void, ZTPBatchReztpRequest>('/ztp/batch-reztp', data);
 }
 
-/** 删除 ZTP 文件 */
 export function deleteZTPFiles(elementIds: number[]) {
-  return http.post<void, { elementIds: number[] }>('/ztp/delete-files', { elementIds });
+  return http.post<void, DeleteZTPFileRequest>('/ztp/delete-files', { elementIds });
 }
 
 /* ============ TBG API ============ */
-
-/** 获取 TBG 列表（分页） */
 export function getTBGList(data: TBGListQuery) {
-  return http.post<PostPageData<TBG>, TBGListQuery>('/tbg/list', data);
+  return http.post<PageData<TBG>, TBGListQuery>('/tbg/list', data);
 }
 
-/** 新增 TBG */
 export function addTBG(data: TBGAddRequest) {
   return http.post<TBG, TBGAddRequest>('/tbg/add', data);
 }
 
-/** 修改 TBG */
 export function modifyTBG(data: TBGModifyRequest) {
   return http.post<void, TBGModifyRequest>('/tbg/modify', data);
 }
 
-/** 删除 TBG */
 export function deleteTBG(ids: number[]) {
-  return http.post<void, { ids: number[] }>('/tbg/delete', { ids });
+  return http.post<void, TBGDeleteRequest>('/tbg/delete', { ids });
 }
 
-/** 导入 TBG */
 export function importTBG(file: File) {
-  return http.upload<{ count: number }>('/tbg/import', file);
+  return http.upload<{ count?: number }>('/tbg/import', file);
 }
 
-/** 下载 TBG 模板 */
 export function downloadTBGTemplate() {
-  return http.download('/tbg/template', { filename: 'tbg_template.xlsx' });
+  return http.download('/tbg/template', { filename: 'TBGTemplate.xlsx' });
 }
 
 /* ============ PSAP-ID API ============ */
-
-/** 获取 PSAP-ID 列表（分页） */
 export function getPSAPIDList(data: PSAPIDListQuery) {
-  return http.post<PostPageData<PSAPID>, PSAPIDListQuery>('/psap-id/list', data);
+  return http.post<PageData<PSAPID>, PSAPIDListQuery>('/psap-id/list', data);
 }
 
-/** 同步 PSAP-ID */
 export function syncPSAPID(data: PSAPIDSyncRequest) {
-  return http.post<{ count: number }, PSAPIDSyncRequest>('/psap-id/sync', data);
+  return http.post<{ count?: number }, PSAPIDSyncRequest>('/psap-id/sync', data);
 }
 
-/** 获取 PSAP-ID 同步日志（分页） */
 export function getPSAPIDSyncLogs(data: { page: number; pageSize: number }) {
-  return http.post<PostPageData<PSAPIDSyncLog>, typeof data>('/psap-id/sync-logs', data);
+  return http.post<PageData<PSAPIDSyncLog>, typeof data>('/psap-id/sync-logs', data);
 }
 
 /* ============ Spatial File API ============ */
-
-/** 获取 Spatial File 市场列表 */
 export function getSpatialFileMarkets() {
   return http.get<SpatialFileMarket[]>('/spatial-file/markets');
 }
 
-/** 获取市场坐标 */
 export function getMarketCoordinates(marketId: number) {
-  return http.post<PSAPID[], { marketId: number }>('/spatial-file/market-coordinates', { marketId });
+  return http.post<unknown[], { marketId: number }>('/spatial-file/market-coordinates', { marketId });
 }
 
-/* ============ 北向报告 API ============ */
+/* ============ AOS Operations (nr aos import / download / geofence / progress) ============ */
 
-/** 获取北向报告列表 */
-export function getNorthReports() {
-  return http.get<NorthReport[]>('/north-reports');
+/** AOS 任务进度 VO */
+export interface AOSTaskProgressVO {
+  complete: boolean;
+  currentProgress: number;
+  totalProgress: number;
+  message: string;
+  hasFault: boolean;
 }
 
-/** 创建北向报告 */
-export function createNorthReport(data: NorthReport) {
-  return http.post<NorthReport, NorthReport>('/north-reports', data);
+/** AOS import 返回 */
+export interface AOSImportResult {
+  taskId: string;
+  count: number;
 }
 
-/** 更新北向报告 */
-export function updateNorthReport(id: number, data: NorthReport) {
-  return http.put<NorthReport, NorthReport>(`/north-reports/${id}`, data);
+/** 下载 ZTP 模板（GET /aos/template） */
+export function downloadZTPTemplate() {
+  return http.download('/aos/template', { filename: 'ZTP_Template.xlsm' });
 }
 
-/** 删除北向报告 */
-export function deleteNorthReport(id: number) {
-  return http.delete<void>(`/north-reports/${id}`);
+/** 导入 NR AOS 文件（POST /aos/import, multipart） */
+export function importNrAOSFile(file: File) {
+  return http.upload<AOSImportResult>('/aos/import', file);
 }
 
-/* ============ RADIUS API ============ */
-
-/** 获取 RADIUS 列表 */
-export function getRadiusList() {
-  return http.get<Radius[]>('/radius');
+/** 下载设备 AOS 文件（POST /aos/download, blob 响应） */
+export function downloadAOSFile(elementId: number) {
+  return http.post<Blob, { elementId: number }>('/aos/download', { elementId }, { responseType: 'blob' });
 }
 
-/** 创建 RADIUS */
-export function createRadius(data: Radius) {
-  return http.post<Radius, Radius>('/radius', data);
+/** 下载历史 ZTP 文件（POST /aos/download-history, blob 响应） */
+export function downloadHistoryZTPFile(id: number) {
+  return http.post<Blob, { id: number }>('/aos/download-history', { id }, { responseType: 'blob' });
 }
 
-/** 删除 RADIUS */
-export function deleteRadius(id: number) {
-  return http.delete<void>(`/radius/${id}`);
+/** 查询 AOS 任务进度（POST /aos/generate-progress） */
+export function getAOSTaskProgress(taskId: string) {
+  return http.post<AOSTaskProgressVO, { id: string }>('/aos/generate-progress', { id: taskId });
+}
+
+/** 更新 TBG geofence 开关（POST /aos/update-geofence） */
+export function updateEnableGeofence(tbgId: number, enableGeofence: number) {
+  return http.post<void, { id: number; enableGeofence: number }>('/aos/update-geofence', { id: tbgId, enableGeofence });
 }

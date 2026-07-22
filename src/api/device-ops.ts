@@ -77,23 +77,23 @@ export function listResetTaskResults(id: number, params: { serialNumber?: string
   return http.get<PagedResult<ResetTaskResultVO>>(`${BASE}/reset-tasks/${id}/results`, { params });
 }
 
-// ---------- Shutdown (note: GET/DELETE use JSON body) ----------
+// ---------- Shutdown ----------
 export function addShutdownTask(data: AddShutdownTaskRequest) {
   return http.post<{ taskId: number }>(`${BASE}/shutdown-tasks`, data);
 }
 
-export function listShutdownTasks(data: ListShutdownTaskRequest) {
-  return http.get<PagedResult<ShutdownTaskVo>>(`${BASE}/shutdown-tasks`, { data });
+export function listShutdownTasks(data: { page: number; pageSize: number }) {
+  return http.get<PagedResult<ShutdownTaskVo>>(`${BASE}/shutdown-tasks`, { params: data });
 }
 
-export function viewShutdownTask(id: number, data: ViewShutdownTaskRequest) {
-  return http.get<ViewShutdownTaskVo>(`${BASE}/shutdown-tasks/${id}`, { data });
+export function viewShutdownTask(id: number) {
+  return http.get<ViewShutdownTaskVo>(`${BASE}/shutdown-tasks/${id}`);
 }
 
-export function deleteShutdownTask(id: number, data: DeleteShutdownTaskRequest) {
-  return http.delete<void>(`${BASE}/shutdown-tasks/${id}`, { data });
+export function deleteShutdownTask(id: number) {
+  return http.delete<void>(`${BASE}/shutdown-tasks/${id}`);
 }
 
-export function listShutdownResults(id: number, data: ListShutdownResultRequest) {
-  return http.get<PagedResult<ShutdownResultVo>>(`${BASE}/shutdown-tasks/${id}/results`, { data });
+export function listShutdownResults(id: number, data: { page: number; pageSize: number }) {
+  return http.get<PagedResult<ShutdownResultVo>>(`${BASE}/shutdown-tasks/${id}/results`, { params: data });
 }

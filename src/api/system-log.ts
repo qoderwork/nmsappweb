@@ -1,10 +1,9 @@
 /**
  * 系统日志 API（操作日志）
  *
- * 注意：后端端点待最终确认，此处按 REST 风格约定 /operation-logs。
- * 登录日志请复用 api/auth.ts 的 getLoginLogs。
+ * 对齐 nmsappsrv 后端 misc/routes.go
+ * - GET/POST /system/operator-logs   操作日志列表（分页+过滤）
  */
-
 import { http } from '@/utils/request';
 import type { OperationLog, OperationLogQuery } from '@/types/system-log';
 
@@ -12,10 +11,10 @@ interface PagedResult<T> {
   list: T[];
   total: number;
   page: number;
-  page_size: number;
+  pageSize: number;
 }
 
-/** 查询操作日志 */
+/** 查询操作日志（支持 GET 和 POST） */
 export function listOperationLogs(query: OperationLogQuery) {
-  return http.post<PagedResult<OperationLog>>('/operation-logs', query);
+  return http.post<PagedResult<OperationLog>>('/system/operator-logs', query);
 }
