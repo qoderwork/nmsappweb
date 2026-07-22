@@ -117,6 +117,10 @@ export default {
     breadcrumb: '面包屑',
     lockScreen: '锁屏',
     autoRefresh: '自动刷新',
+    sessionTimeout: '会话已过期，请重新登录',
+    idleWarning: '检测到您长时间未操作，系统将在 {minutes} 分钟后自动退出',
+    idleTimeout: '长时间未操作，已自动退出登录',
+    stayLoggedIn: '继续操作',
   },
 
   // 仪表盘

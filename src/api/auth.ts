@@ -28,6 +28,11 @@ export function logout() {
   return http.post<void>('/logout');
 }
 
+/** 刷新 Token（滑动会话续期） */
+export function renewToken() {
+  return http.get<LoginResult>('/renewToken', { silent: true });
+}
+
 /** 获取验证码 */
 export function getCaptcha() {
   return http.get<CaptchaResult>('/captchaImage', { silent: true });

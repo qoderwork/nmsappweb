@@ -114,6 +114,10 @@ export default {
     breadcrumb: 'Breadcrumb',
     lockScreen: 'Lock screen',
     autoRefresh: 'Auto Refresh',
+    sessionTimeout: 'Session expired, please log in again',
+    idleWarning: 'Inactivity detected. You will be automatically logged out in {minutes} minutes',
+    idleTimeout: 'You have been logged out due to inactivity',
+    stayLoggedIn: 'Stay logged in',
   },
 
   dashboard: {

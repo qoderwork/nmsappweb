@@ -14,13 +14,14 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
 import type { LoginParams, UserInfo } from '@/types';
-import { login as loginApi, logout as logoutApi } from '@/api/auth';
+import { login as loginApi, logout as logoutApi, renewToken as renewTokenApi } from '@/api/auth';
 import {
   getToken,
   setToken,
   clearToken,
   isAuthenticated,
   parseTokenPayload,
+  getTokenRefreshDelay,
 } from '@/utils/auth';
 import { localStorage, sessionStorage, StorageKeys } from '@/utils/storage';
 import { isMockMode, mockUser, disableMockMode } from '@/mock';
@@ -178,6 +179,32 @@ export const useAuthStore = defineStore('auth', () => {
     return loadUserInfo();
   }
 
+  /**
+   * 刷新 Token（滑动会话续期）
+   * 调用后端 /renewToken 获取新 JWT，更新本地存储
+   * @returns 新的刷新延迟（毫秒），失败返回 null
+   */
+  async function refreshToken(): Promise<number | null> {
+    if (isMockMode() || !token.value) return null;
+    try {
+      const result = await renewTokenApi();
+      if (result.token) {
+        token.value = result.token;
+        setToken(result.token, 3600);
+        // 重新解析用户信息（JWT claims 可能变化）
+        const info = parseUserFromToken();
+        if (info) {
+          user.value = info;
+          localStorage.set(StorageKeys.USER_INFO, info);
+        }
+        return getTokenRefreshDelay();
+      }
+    } catch {
+      // 刷新失败，Token 可能即将过期，由 401 拦截器处理
+    }
+    return null;
+  }
+
   return {
     // state
     token,
@@ -200,5 +227,6 @@ export const useAuthStore = defineStore('auth', () => {
     reset,
     updateUser,
     refresh,
+    refreshToken,
   };
 });
