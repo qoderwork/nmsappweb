@@ -7,7 +7,7 @@
 export interface License {
   id: number;
   licenseName?: string | null;
-  licenseId?: string | null;
+  tenantCode?: string | null;
   licenseType?: string | null;
   expiryDate?: number | null;
   enbQuantity?: number | null;
@@ -35,17 +35,17 @@ export interface License {
 /** SAS 配置 */
 export interface SASConfig {
   id?: number | null;
-  licenseId?: string | null;
+  tenantCode?: string | null;
   autoRegister?: boolean | undefined;
 }
 
 /** Entra 端点 */
 export interface EntraEndpoint {
   id: number;
-  tenancyId?: string | null;
+  tenantId?: string | null;
   clientId?: string | null;
   secretKey?: string | null;
-  tenancyIdInNms?: string | null;
+  tenantIdInNms?: string | null;
   endpointName?: string | null;
   nmsFqdn?: string | null;
 }
@@ -53,7 +53,7 @@ export interface EntraEndpoint {
 /** License 信息 */
 export interface LicenseInfo {
   licenseName?: string | null;
-  licenseId?: string | null;
+  tenantCode?: string | null;
   licenseType?: string | null;
   expiryDate?: number | null;
   status?: string | null;

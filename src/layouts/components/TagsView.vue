@@ -15,19 +15,14 @@ import { Close, RefreshRight } from '@element-plus/icons-vue';
 import { useI18n } from 'vue-i18n';
 
 import { useAppStore, type TagView } from '@/stores/app';
-import { useSettingsStore } from '@/stores/settings';
 
 const appStore = useAppStore();
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
-const settingsStore = useSettingsStore();
 
 /** 标签列表 */
 const tags = computed(() => appStore.tagsView);
-
-/** 强制重渲染 key（语言切换时递增，触发 v-for 全部重渲染） */
-const forceRenderKey = ref(0);
 
 /** 右键菜单状态 */
 const contextMenu = ref<{
@@ -64,6 +59,7 @@ function routeToTagView(): TagView | null {
     fullPath: route.fullPath,
     name: route.name,
     title: t(title),
+    titleKey: title,
     query: Object.keys(query).length ? query : undefined,
     affix: route.meta?.affix,
     keepAlive: route.meta?.keepAlive,
@@ -90,30 +86,11 @@ function initAffixTags() {
       fullPath: r.path,
       name,
       title: t(title),
+      titleKey: title,
       affix: true,
       keepAlive: r.meta?.keepAlive,
     });
   });
-}
-
-/** 更新所有标签页标题（语言切换时调用） */
-function updateAllTagTitles() {
-  const routesMap = new Map<string, any>();
-  router.getRoutes().forEach((r) => {
-    if (r.meta?.title) {
-      routesMap.set(r.path, r.meta.title);
-    }
-  });
-
-  const titleMap = new Map<string, string>();
-  appStore.tagsView.forEach((tag) => {
-    const titleKey = routesMap.get(tag.path);
-    if (titleKey) {
-      titleMap.set(tag.path, t(titleKey));
-    }
-  });
-
-  appStore.refreshTagTitles(titleMap);
 }
 
 /** 跳转到最后一个标签或首页 */
@@ -257,15 +234,6 @@ watch(
   }
 );
 
-// 监听语言变化，更新所有标签页标题
-watch(
-  () => settingsStore.locale,
-  () => {
-    updateAllTagTitles();
-    forceRenderKey.value++;
-  }
-);
-
 onMounted(() => {
   initAffixTags();
   addCurrentTag();
@@ -285,14 +253,16 @@ onBeforeUnmount(() => {
       <div class="nms-tagsview__list">
         <div
           v-for="tag in tags"
-          :key="forceRenderKey + '-' + tag.path"
+          :key="tag.path"
           class="nms-tagsview__item"
           :class="{ 'is-active': isActive(tag) }"
           @click="handleClick(tag)"
           @contextmenu="onContextMenu($event, tag)"
         >
           <span class="nms-tagsview__dot" />
-          <span class="nms-tagsview__label">{{ tag.title }}</span>
+          <span class="nms-tagsview__label">{{
+            tag.titleKey ? t(tag.titleKey) : tag.title
+          }}</span>
           <el-icon
             v-if="!tag.affix"
             class="nms-tagsview__close"

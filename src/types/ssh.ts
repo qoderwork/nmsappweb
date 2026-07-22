@@ -8,7 +8,7 @@ export interface SSHLabel {
   id: number;
   name: string | null;
   content: string | null;
-  license_id: number | null;
+  tenant_id: number | null;
 }
 
 /** 添加 SSH 标签请求 */
@@ -33,7 +33,7 @@ export interface DeleteSSHLabelRequest {
 export interface SSHAccessTimerTask {
   id: number;
   tenancy_name: string | null;
-  tenancy_id: number | null;
+  tenant_id: number | null;
   element_id: number | null;
   ssh_status: string | null;
   device_name: string | null;

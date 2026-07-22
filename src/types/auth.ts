@@ -43,8 +43,8 @@ export interface UserInfo {
   roles: string[];
   /** 权限编码列表（点号分隔：Module.Sub.Action） */
   permissions: string[];
-  /** 租户 ID（License ID，从 JWT license_id 解析） */
-  licenseId?: string | number;
+  /** 租户 ID（从 JWT tenant_id 解析） */
+  tenantId?: string | number;
   /** 是否为管理员（后端 getPermissionIdsForUser 返回 admin=true） */
   isAdmin?: boolean;
 }

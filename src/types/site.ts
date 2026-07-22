@@ -9,7 +9,7 @@ export interface SiteInfo {
   site_name?: string | null;
   description?: string | null;
   area_id?: number | null;
-  license_id?: number | null;
+  tenant_id?: number | null;
   latitude?: string | null;
   longitude?: string | null;
   creation_time?: string | null;
@@ -35,7 +35,7 @@ export interface SysArea {
   level?: number | null;
   abbreviation?: string | null;
   code?: string | null;
-  tenancy_id?: number | null;
+  tenant_id?: number | null;
 }
 
 /** 系统配置 */

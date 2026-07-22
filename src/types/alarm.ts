@@ -37,7 +37,7 @@ export interface Alarm {
   specificProblem?: string | null;
   alarmId?: string | null;
   elementId?: number | null;
-  licenseId?: number | null;
+  tenantId?: number | null;
   createTime?: string | null;
   additionalInformation?: string | null;
   alarmTemplateId?: number | null;
@@ -95,14 +95,14 @@ export interface AlarmLibrary {
   eventType?: string | null;
   explanation?: string | null;
   specificProblem?: string | null;
-  tenancyId?: number | null;
+  tenantId?: number | null;
   alarmSource?: string | null;
 }
 
 /** 告警模板 */
 export interface AlarmTemplate {
   id: number;
-  tenancyId?: number | null;
+  tenantId?: number | null;
   name?: string | null;
   description?: string | null;
   executeOnAllBaseStation?: boolean | null;
@@ -134,7 +134,7 @@ export interface AlarmFilter {
   executionOnAllAlarm?: boolean | null;
   startTime?: string | null;
   endTime?: string | null;
-  licenseId?: number | null;
+  tenantId?: number | null;
   user?: string | null;
   updateTime?: string | null;
   baseStationIds?: string | null;

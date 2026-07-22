@@ -1171,7 +1171,7 @@ watch(activeTab, (val) => {
           <el-descriptions-item :label="t('alarm.specificProblem')">{{ detailAlarm.specificProblem || '-' }}</el-descriptions-item>
           <el-descriptions-item :label="t('alarm.alarmIdentifier')">{{ detailAlarm.alarmId || '-' }}</el-descriptions-item>
           <el-descriptions-item :label="t('device.neId')">{{ detailAlarm.elementId ?? '-' }}</el-descriptions-item>
-          <el-descriptions-item :label="t('device.licenseId')">{{ detailAlarm.licenseId ?? '-' }}</el-descriptions-item>
+          <el-descriptions-item :label="t('device.licenseId')">{{ detailAlarm.tenantId ?? '-' }}</el-descriptions-item>
           <el-descriptions-item :label="t('alarm.isSuppressed')">{{ detailAlarm.isSuppressed ? t('common.yes') : t('common.no') }}</el-descriptions-item>
           <el-descriptions-item :label="t('alarm.suppressionReason')">{{ detailAlarm.suppressionReason || '-' }}</el-descriptions-item>
           <el-descriptions-item :label="t('alarm.handleSuggestion')" :span="2">{{ detailAlarm.handleSuggestion || '-' }}</el-descriptions-item>

@@ -7,14 +7,18 @@
  */
 import { reactive, ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ElMessage, ElMessageBox, ElDialog, ElForm, ElFormItem, ElInput, ElSwitch, ElButton, ElTable, ElTableColumn, ElTag, ElPagination } from 'element-plus';
+import { ElMessage, ElMessageBox, ElDialog, ElForm, ElFormItem, ElInput, ElSwitch, ElButton, ElTable, ElTableColumn, ElTag, ElPagination, ElSelect, ElOption } from 'element-plus';
 import { Search, Refresh, Plus, Edit, Delete, Lock, Unlock, Key, CopyDocument } from '@element-plus/icons-vue';
 
 import { getUsers, createUser, updateUser, deleteUser, enableUser, disableUser, resetPassword, unlockUser, kickOutUser, setTenancyForUser, getRoles } from '@/api/user';
+import { getTenancies } from '@/api/tenancy';
 import type { UserDTO } from '@/types/user';
 import type { Role } from '@/types/user';
+import type { TenancyVO } from '@/types/tenancy';
+import { usePermission } from '@/composables/usePermission';
 
 const { t } = useI18n();
+const { isAdmin } = usePermission();
 
 // ============ 状态 ============
 const loading = ref(false);
@@ -48,7 +52,11 @@ const formData = reactive({
   username: '',
   email: '',
   enable: true,
+  tenantId: null as number | null,
 });
+
+// 租户下拉选项
+const tenantOptions = ref<TenancyVO[]>([]);
 
 // 表单规则
 const formRules = {
@@ -101,6 +109,16 @@ function handleSizeChange(size: number) {
   loadData();
 }
 
+/** 加载租户下拉选项（admin 创建用户时使用） */
+async function loadTenantOptions() {
+  try {
+    const result = await getTenancies({ page: 1, pageSize: 500 });
+    tenantOptions.value = result.list;
+  } catch (e) {
+    console.error('[UserManagement] load tenants failed:', e);
+  }
+}
+
 /** 打开新增弹窗 */
 function handleAdd() {
   dialogTitle.value = t('user.add');
@@ -109,6 +127,10 @@ function handleAdd() {
   formData.username = '';
   formData.email = '';
   formData.enable = true;
+  formData.tenantId = null;
+  if (isAdmin.value) {
+    loadTenantOptions();
+  }
   dialogVisible.value = true;
 }
 
@@ -140,11 +162,16 @@ async function handleSave() {
       dialogVisible.value = false;
     } else {
       // 创建用户成功后显示生成的密码
-      const result = await createUser({
+      const payload: Record<string, unknown> = {
         username: formData.username,
         email: formData.email,
         enable: formData.enable,
-      });
+      };
+      // admin 可在创建时指定所属租户
+      if (isAdmin.value && formData.tenantId != null && formData.tenantId > 0) {
+        payload.tenantId = formData.tenantId;
+      }
+      const result = await createUser(payload);
       dialogVisible.value = false;
 
       // 显示密码弹窗
@@ -275,17 +302,18 @@ async function handleSaveRole() {
 
 /** 分配租户 */
 const tenancyDialogVisible = ref(false);
-const tenancyForm = reactive({ userId: 0, tenancyId: 0 });
+const tenancyForm = reactive({ userId: 0, tenantId: 0 });
 
 function handleAssignTenancy(row: UserDTO) {
   tenancyForm.userId = row.id;
-  tenancyForm.tenancyId = (row as any).tenancyId || 0;
+  tenancyForm.tenantId = (row as any).tenantId || 0;
+  loadTenantOptions();
   tenancyDialogVisible.value = true;
 }
 
 async function handleSaveTenancy() {
   try {
-    await setTenancyForUser({ userId: tenancyForm.userId, licenseId: tenancyForm.tenancyId });
+    await setTenancyForUser({ userId: tenancyForm.userId, tenantId: tenancyForm.tenantId });
     ElMessage.success(t('user.tenancyAssignSuccess'));
     tenancyDialogVisible.value = false;
     loadData();
@@ -482,6 +510,22 @@ onMounted(() => {
         <ElFormItem :label="t('user.email')">
           <ElInput v-model="formData.email" type="email" />
         </ElFormItem>
+        <ElFormItem v-if="isAdmin && !isEdit" :label="t('user.belongTenant')">
+          <ElSelect
+            v-model="formData.tenantId"
+            :placeholder="t('user.belongTenantPlaceholder')"
+            clearable
+            filterable
+            style="width: 100%"
+          >
+            <ElOption
+              v-for="tenant in tenantOptions"
+              :key="tenant.id"
+              :label="tenant.omcName || tenant.licenseName || `#${tenant.id}`"
+              :value="tenant.id"
+            />
+          </ElSelect>
+        </ElFormItem>
         <ElFormItem :label="t('common.enabled')">
           <ElSwitch v-model="formData.enable" />
         </ElFormItem>
@@ -544,15 +588,28 @@ onMounted(() => {
     </ElDialog>
 
     <!-- 分配租户弹窗 -->
-    <ElDialog v-model="tenancyDialogVisible" title="分配租户" width="400px">
+    <ElDialog v-model="tenancyDialogVisible" :title="t('user.assignTenancy')" width="400px">
       <ElForm label-width="80px">
-        <ElFormItem label="租户 ID">
-          <ElInput v-model.number="tenancyForm.tenancyId" type="number" placeholder="请输入租户 ID" />
+        <ElFormItem :label="t('user.belongTenant')">
+          <ElSelect
+            v-model="tenancyForm.tenantId"
+            :placeholder="t('user.belongTenantPlaceholder')"
+            clearable
+            filterable
+            style="width: 100%"
+          >
+            <ElOption
+              v-for="tenant in tenantOptions"
+              :key="tenant.id"
+              :label="tenant.omcName || tenant.licenseName || `#${tenant.id}`"
+              :value="tenant.id"
+            />
+          </ElSelect>
         </ElFormItem>
       </ElForm>
       <template #footer>
-        <el-button @click="tenancyDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="handleSaveTenancy">确定</el-button>
+        <el-button @click="tenancyDialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleSaveTenancy">{{ t('common.confirm') }}</el-button>
       </template>
     </ElDialog>
   </div>

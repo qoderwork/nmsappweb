@@ -17,7 +17,7 @@ export interface CaTask {
   create_time?: string | null;
   update_by?: string | null;
   update_time?: string | null;
-  tenancy_id?: number | null;
+  tenant_id?: number | null;
 }
 
 export interface DeviceSendCaLog {

@@ -11,7 +11,7 @@ export interface RebootTask {
   endTime?: string;
   executeMode: number; // 1=immediate 2=wait 3=scheduled
   triggerTime?: string;
-  tenancyId?: number;
+  tenantId?: number;
   elementIds: string;
   deviceType: string;
   scope: string; // element / deviceGroup
@@ -73,7 +73,7 @@ export interface ResetTask {
   endTime?: string;
   executeMode: number;
   triggerTime?: string;
-  tenancyId?: number;
+  tenantId?: number;
   elementIds: string;
   deviceType: string;
   scope: string;

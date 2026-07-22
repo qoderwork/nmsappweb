@@ -164,13 +164,13 @@ export interface PSAPIDListQuery {
 
 /** PSAP-ID 同步请求 */
 export interface PSAPIDSyncRequest {
-  licenseId: number;
+  tenantId: number;
 }
 
 /** PSAP-ID 同步日志 */
 export interface PSAPIDSyncLog {
   id: number;
-  licenseId: number;
+  tenantId: number;
   count: number;
   status: string;
   message?: string;

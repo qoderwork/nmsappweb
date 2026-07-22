@@ -27,7 +27,7 @@ export interface MmlSet {
   id: number;
   name?: string;
   parent_id?: number;
-  license_id?: number;
+  tenant_id?: number;
   version?: string;
 }
 

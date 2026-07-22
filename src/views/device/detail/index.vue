@@ -336,7 +336,7 @@ onMounted(() => {
             <el-descriptions-item :label="t('device.market')">{{ device.market || '-' }}</el-descriptions-item>
             <el-descriptions-item :label="t('ztp.psapId')">{{ device.psap_id || '-' }}</el-descriptions-item>
             <el-descriptions-item :label="t('device.rootNode')">{{ device.root_node || '-' }}</el-descriptions-item>
-            <el-descriptions-item :label="t('device.licenseId')">{{ device.license_id || '-' }}</el-descriptions-item>
+            <el-descriptions-item :label="t('device.licenseId')">{{ device.tenant_id || '-' }}</el-descriptions-item>
           </el-descriptions>
         </el-tab-pane>
       </el-tabs>

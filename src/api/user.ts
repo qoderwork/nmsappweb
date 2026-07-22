@@ -105,8 +105,8 @@ export function needChangePassword() {
 /* ============ 角色管理 ============ */
 
 /** 获取角色列表 */
-export function getRoles(licenseId?: number) {
-  return http.get<Role[]>('/roles', { params: licenseId ? { licenseId } : undefined });
+export function getRoles(tenantId?: number) {
+  return http.get<Role[]>('/roles', { params: tenantId ? { tenantId } : undefined });
 }
 
 /** 获取角色详情 */

@@ -13,7 +13,7 @@
  * - 响应格式：{ code: 0|非0, message: string, data: T }
  * - 分页响应：{ code, message, data: { total, page, page_size, list: T[] } }
  * - 鉴权 Header：Authorization: Bearer <token>
- * - 租户 Header：X-License-Id: <licenseId>（可从 JWT 中提取）
+ * - 租户 Header：X-License-Id: <tenantId>（可从 JWT 中提取）
  */
 
 import axios, {
@@ -28,7 +28,7 @@ import { ElMessage } from 'element-plus';
 
 import type { ApiResponse, PageQuery, PageResponse } from '@/types';
 import { ApiCode } from '@/types';
-import { getToken, clearToken, getLicenseIdFromToken } from './auth';
+import { getToken, clearToken, getTenantIdFromToken } from './auth';
 import {
   BusinessError,
   NetworkError,
@@ -95,9 +95,9 @@ class HttpClient {
         }
 
         // 注入租户 ID（X-License-Id）
-        const licenseId = getLicenseIdFromToken();
-        if (licenseId && config.headers && !config.headers['X-License-Id']) {
-          config.headers['X-License-Id'] = licenseId;
+        const tenantId = getTenantIdFromToken();
+        if (tenantId && config.headers && !config.headers['X-License-Id']) {
+          config.headers['X-License-Id'] = tenantId;
         }
 
         return config;
@@ -174,13 +174,13 @@ class HttpClient {
             if (!cfg.silent) {
               ElMessage.error(data?.message || '服务器异常，请稍后重试');
             }
-            return Promise.reject(new BusinessError(500, data?.message ?? '服务器异常', data));
+            return Promise.reject(new BusinessError(500, data?.message ?? '服务器异常', data?.data));
           default:
             if (!cfg.silent) {
               ElMessage.error(data?.message || `请求失败 (${status})`);
             }
             return Promise.reject(
-              new BusinessError(status, data?.message ?? `请求失败 (${status})`, data)
+              new BusinessError(status, data?.message ?? `请求失败 (${status})`, data?.data)
             );
         }
       }
@@ -266,12 +266,22 @@ class HttpClient {
     });
 
     const res = await this.instance.get<PageResponse<T>>(url, { ...config, params });
-    const data = res.data.data;
+    const raw = res.data.data as unknown;
+
+    // 兼容两种后端返回格式：
+    //  1) utils.Paginated 包裹：{ list, total, page, page_size }
+    //  2) utils.Success 裸数组：monitor/network/report/system 等模块直接返回 []（无 total）
+    // 统一归一化，保证 list 恒为数组、total 恒为数字，
+    // 避免 ElPagination 因 total 为 undefined 触发 "Deprecated usages" 告警并渲染空分页。
+    const data = Array.isArray(raw)
+      ? { list: raw as T[], total: (raw as T[]).length, page: undefined, page_size: undefined }
+      : (raw as PageResponse<T>['data']);
+
     return {
-      list: data.list,
-      total: data.total,
-      page: data.page,
-      pageSize: data.page_size,
+      list: Array.isArray(data?.list) ? data.list : [],
+      total: Number(data?.total) || 0,
+      page: Number(data?.page) || (params.page as number),
+      pageSize: Number(data?.page_size) || (params.pageSize as number),
     };
   }
 

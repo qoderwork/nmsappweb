@@ -39,7 +39,7 @@ const licenseLoading = ref(false);
 // Tab2: SAS 配置
 const sasForm = reactive<SASConfig>({
   id: null,
-  licenseId: null,
+  tenantCode: null,
   autoRegister: undefined,
 });
 const sasSaving = ref(false);
@@ -52,16 +52,16 @@ const entraDialogTitle = ref(t('license.addEntraEndpoint'));
 const isEntraEdit = ref(false);
 const entraForm = reactive<Partial<EntraEndpoint>>({
   id: undefined,
-  tenancyId: '',
+  tenantId: '',
   clientId: '',
   secretKey: '',
-  tenancyIdInNms: '',
+  tenantIdInNms: '',
   endpointName: '',
   nmsFqdn: '',
 });
 const entraFormRules = {
   endpointName: [{ required: true, message: t('license.enterEndpointName'), trigger: 'blur' }],
-  tenancyId: [{ required: true, message: t('license.enterTenancyId'), trigger: 'blur' }],
+  tenantId: [{ required: true, message: t('license.enterTenancyId'), trigger: 'blur' }],
   clientId: [{ required: true, message: t('license.enterClientId'), trigger: 'blur' }],
   secretKey: [{ required: true, message: t('license.enterSecretKey'), trigger: 'blur' }],
 };
@@ -130,10 +130,10 @@ function handleAddEntra() {
   entraDialogTitle.value = t('license.addEntraEndpoint');
   isEntraEdit.value = false;
   entraForm.id = undefined;
-  entraForm.tenancyId = '';
+  entraForm.tenantId = '';
   entraForm.clientId = '';
   entraForm.secretKey = '';
-  entraForm.tenancyIdInNms = '';
+  entraForm.tenantIdInNms = '';
   entraForm.endpointName = '';
   entraForm.nmsFqdn = '';
   entraDialogVisible.value = true;
@@ -144,10 +144,10 @@ function handleEditEntra(row: EntraEndpoint) {
   entraDialogTitle.value = t('license.editEntraEndpoint');
   isEntraEdit.value = true;
   entraForm.id = row.id;
-  entraForm.tenancyId = row.tenancyId ?? '';
+  entraForm.tenantId = row.tenantId ?? '';
   entraForm.clientId = row.clientId ?? '';
   entraForm.secretKey = row.secretKey ?? '';
-  entraForm.tenancyIdInNms = row.tenancyIdInNms ?? '';
+  entraForm.tenantIdInNms = row.tenantIdInNms ?? '';
   entraForm.endpointName = row.endpointName ?? '';
   entraForm.nmsFqdn = row.nmsFqdn ?? '';
   entraDialogVisible.value = true;
@@ -159,7 +159,7 @@ async function handleSaveEntra() {
     ElMessage.warning(t('license.enterEndpointName'));
     return;
   }
-  if (!entraForm.tenancyId) {
+  if (!entraForm.tenantId) {
     ElMessage.warning(t('license.enterTenancyId'));
     return;
   }
@@ -310,7 +310,7 @@ onMounted(() => {
           >
             <el-table-column type="index" :label="t('license.index')" width="60" />
             <el-table-column prop="licenseName" :label="t('license.licenseName')" min-width="160" />
-            <el-table-column prop="licenseId" :label="t('license.licenseId')" min-width="160" show-overflow-tooltip />
+            <el-table-column prop="tenantCode" :label="t('license.licenseId')" min-width="160" show-overflow-tooltip />
             <el-table-column prop="licenseType" :label="t('license.licenseType')" width="120" />
             <el-table-column prop="status" :label="t('common.status')" width="100" align="center">
               <template #default="{ row }">
@@ -375,9 +375,9 @@ onMounted(() => {
           >
             <el-table-column type="index" :label="t('license.index')" width="60" />
             <el-table-column prop="endpointName" :label="t('license.endpointName')" min-width="140" />
-            <el-table-column prop="tenancyId" :label="t('license.tenancyId')" min-width="160" show-overflow-tooltip />
+            <el-table-column prop="tenantId" :label="t('license.tenancyId')" min-width="160" show-overflow-tooltip />
             <el-table-column prop="clientId" :label="t('license.clientId')" min-width="160" show-overflow-tooltip />
-            <el-table-column prop="tenancyIdInNms" :label="t('license.nmsTenancyId')" min-width="160" show-overflow-tooltip />
+            <el-table-column prop="tenantIdInNms" :label="t('license.nmsTenancyId')" min-width="160" show-overflow-tooltip />
             <el-table-column prop="nmsFqdn" :label="t('license.nmsFqdn')" min-width="160" show-overflow-tooltip />
             <el-table-column :label="t('common.actions')" width="180" fixed="right">
               <template #default="{ row }">
@@ -411,8 +411,8 @@ onMounted(() => {
         <el-form-item :label="t('license.endpointName')" prop="endpointName">
           <el-input v-model="entraForm.endpointName" :placeholder="t('license.enterEndpointName')" />
         </el-form-item>
-        <el-form-item :label="t('license.tenancyId')" prop="tenancyId">
-          <el-input v-model="entraForm.tenancyId" :placeholder="t('license.enterTenancyId')" />
+        <el-form-item :label="t('license.tenancyId')" prop="tenantId">
+          <el-input v-model="entraForm.tenantId" :placeholder="t('license.enterTenancyId')" />
         </el-form-item>
         <el-form-item :label="t('license.clientId')" prop="clientId">
           <el-input v-model="entraForm.clientId" :placeholder="t('license.enterClientId')" />
@@ -421,7 +421,7 @@ onMounted(() => {
           <el-input v-model="entraForm.secretKey" type="password" show-password :placeholder="t('license.enterSecretKey')" />
         </el-form-item>
         <el-form-item :label="t('license.nmsTenancyId')">
-          <el-input v-model="entraForm.tenancyIdInNms" :placeholder="t('license.enterNmsTenancyId')" />
+          <el-input v-model="entraForm.tenantIdInNms" :placeholder="t('license.enterNmsTenancyId')" />
         </el-form-item>
         <el-form-item :label="t('license.nmsFqdn')">
           <el-input v-model="entraForm.nmsFqdn" :placeholder="t('license.enterNmsFqdn')" />
@@ -437,7 +437,7 @@ onMounted(() => {
     <el-dialog v-model="detailDialogVisible" :title="t('license.licenseDetail')" width="700px">
       <el-descriptions v-loading="detailLoading" :column="2" border>
         <el-descriptions-item :label="t('license.licenseName')">{{ detailData?.licenseName || '-' }}</el-descriptions-item>
-        <el-descriptions-item :label="t('license.licenseId')">{{ detailData?.licenseId || '-' }}</el-descriptions-item>
+        <el-descriptions-item :label="t('license.licenseId')">{{ detailData?.tenantCode || '-' }}</el-descriptions-item>
         <el-descriptions-item :label="t('license.licenseType')">{{ detailData?.licenseType || '-' }}</el-descriptions-item>
         <el-descriptions-item :label="t('common.status')">
           <el-tag :type="getLicenseStatusType(detailData?.status)" size="small">

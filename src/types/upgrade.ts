@@ -17,7 +17,7 @@ export interface UpgradeTask {
   end_time?: string | null;
   execute_mode?: number | null;
   trigger_time?: string | null;
-  tenancy_id?: number | null;
+  tenant_id?: number | null;
   element_ids?: string | null;
   device_type?: string | null;
   upgrade_type?: string | null;
@@ -62,7 +62,7 @@ export interface UpgradeFile {
   device_type?: string | null;
   file_size?: number | null;
   file_type?: string | null;
-  tenancy_id?: number | null;
+  tenant_id?: number | null;
   upload_time?: string | null;
   user?: string | null;
   product_type?: string | null;
@@ -99,7 +99,7 @@ export interface RollbackTask {
   end_time?: string | null;
   execute_mode?: number | null;
   trigger_time?: string | null;
-  tenancy_id?: number | null;
+  tenant_id?: number | null;
   element_ids?: string | null;
   scope?: string | null;
   device_group_ids?: string | null;

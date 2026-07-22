@@ -3,7 +3,7 @@
 export interface MonitorTask {
   id?: number;
   task_name?: string;
-  license_id?: number;
+  tenant_id?: number;
   enable?: boolean;
   execution_scope?: number;
   scope_data?: string;

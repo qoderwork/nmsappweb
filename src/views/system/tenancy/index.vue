@@ -354,7 +354,7 @@ onMounted(() => {
       >
         <el-table-column type="index" label="#" width="60" />
         <el-table-column prop="licenseName" label="License 名称" min-width="160" />
-        <el-table-column prop="licenseId" label="License ID" min-width="160" show-overflow-tooltip />
+        <el-table-column prop="tenantCode" label="Tenant Code" min-width="160" show-overflow-tooltip />
         <el-table-column prop="expiryDate" label="过期时间" min-width="160">
           <template #default="{ row }">
             {{ formatTimestamp(row.expiryDate) }}
@@ -465,7 +465,7 @@ onMounted(() => {
       <el-descriptions v-loading="detailLoading" :column="2" border>
         <el-descriptions-item label="ID">{{ detailData?.id ?? '-' }}</el-descriptions-item>
         <el-descriptions-item label="License 名称">{{ detailData?.licenseName || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="License ID">{{ detailData?.licenseId || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="Tenant Code">{{ detailData?.tenantCode || '-' }}</el-descriptions-item>
         <el-descriptions-item label="过期时间">{{ formatTimestamp(detailData?.expiryDate) }}</el-descriptions-item>
         <el-descriptions-item label="eNB 数量">{{ detailData?.enbQuantity ?? '-' }}</el-descriptions-item>
         <el-descriptions-item label="gNB 数量">{{ detailData?.gnbQuantity ?? '-' }}</el-descriptions-item>

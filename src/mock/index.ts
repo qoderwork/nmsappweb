@@ -35,7 +35,7 @@ export const mockUser: UserInfo = {
   username: 'admin',
   roles: ['admin'],
   permissions: ['*'],
-  licenseId: '1',
+  tenantId: '1',
   isAdmin: true,
 };
 

@@ -45,7 +45,7 @@ const userInfoItems = computed(() => {
     },
     {
       label: t('profile.tenantId'),
-      value: user?.licenseId != null ? String(user.licenseId) : '-',
+      value: user?.tenantId != null ? String(user.tenantId) : '-',
     },
   ];
 });

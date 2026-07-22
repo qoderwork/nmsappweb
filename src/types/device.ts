@@ -55,7 +55,7 @@ export interface Device {
   psap_id?: string | null;
   firmware_version?: string | null;
   root_node?: string | null;
-  license_id?: number | null;
+  tenant_id?: number | null;
   device_type?: DeviceType | null;
   deleted?: boolean;
   model_name?: string | null;
@@ -72,7 +72,7 @@ export interface DeviceGroup {
   group_name?: string | null;
   description?: string | null;
   creation_time?: string | null;
-  license_id?: number | null;
+  tenant_id?: number | null;
   default_group?: boolean;
 }
 

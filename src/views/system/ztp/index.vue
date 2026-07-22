@@ -448,8 +448,8 @@ function handlePsapSizeChange(size: number) {
 async function handleSyncPSAPID() {
   syncLoading.value = true;
   try {
-    const licenseId = Number(authStore.licenseId) || 1;
-    const res = await syncPSAPID({ licenseId });
+    const tenantId = Number(authStore.tenantId) || 1;
+    const res = await syncPSAPID({ tenantId });
     ElMessage.success(`同步完成，共 ${res?.count ?? 0} 条`);
     loadPSAPIDList();
   } catch (e) {
@@ -930,7 +930,7 @@ onMounted(() => {
     <el-dialog title="PSAP-ID 同步日志" v-model="syncLogDialogVisible" width="700px">
       <el-table :data="syncLogList" v-loading="syncLogLoading" border stripe max-height="400">
         <el-table-column prop="id" label="ID" width="70" />
-        <el-table-column prop="licenseId" label="License ID" width="110" />
+        <el-table-column prop="tenantId" label="Tenant ID" width="110" />
         <el-table-column prop="count" label="同步数量" width="100" />
         <el-table-column prop="status" label="状态" width="110">
           <template #default="{ row }">

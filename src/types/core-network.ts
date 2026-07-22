@@ -2,7 +2,7 @@ export interface CoreNetwork {
   id: number;
   name?: string;
   element_id?: number;
-  tenancy_id?: number;
+  tenant_id?: number;
   deleted?: boolean;
   install_location?: string;
   ip?: string;

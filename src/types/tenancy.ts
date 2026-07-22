@@ -7,7 +7,7 @@
 export interface TenancyVO {
   id: number;
   licenseName?: string | null;
-  licenseId?: string | null;
+  tenantCode?: string | null;
   expiryDate?: number | null;
   enbQuantity?: number | null;
   userQuantity?: number | null;
@@ -65,7 +65,7 @@ export interface ViewTenancyRequest {
 export interface ViewTenancyResponse {
   id: number;
   licenseName?: string | null;
-  licenseId?: string | null;
+  tenantCode?: string | null;
   expiryDate?: number | null;
   enbQuantity?: number | null;
   userQuantity?: number | null;

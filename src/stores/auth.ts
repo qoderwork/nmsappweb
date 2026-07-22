@@ -6,7 +6,7 @@
  * 对齐原 Java nms-web 登录流程：
  *  1. 登录成功仅保存 token（后端只返回 token）
  *  2. 用户名保存到 sessionStorage（前端自己存，不调用 /user/info）
- *  3. 用户 ID、角色、licenseId 从 JWT claims 解析
+ *  3. 用户 ID、角色、tenantId 从 JWT claims 解析
  *  4. 权限码由 permission store 调用 getPermissionIdsForUser 获取
  */
 
@@ -31,7 +31,7 @@ import { isMockMode, mockUser, disableMockMode } from '@/mock';
 interface JwtPayload {
   user_id: number;
   username: string;
-  license_id: number;
+  tenant_id: number;
   role_names: string[];
   sso_type?: string;
 }
@@ -50,7 +50,7 @@ export const useAuthStore = defineStore('auth', () => {
   const isLoggedIn = computed(() => !!token.value && isAuthenticated());
   const roles = computed<string[]>(() => user.value?.roles ?? []);
   const permissions = computed<string[]>(() => user.value?.permissions ?? []);
-  const licenseId = computed<string | number | undefined>(() => user.value?.licenseId);
+  const tenantId = computed<string | number | undefined>(() => user.value?.tenantId);
   const username = computed(() => user.value?.username || '');
   const avatar = computed(() => '');
   const isAdminRole = computed(() => user.value?.isAdmin === true || roles.value.includes('admin'));
@@ -59,7 +59,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   /**
    * 从 JWT 解析用户基本信息
-   * JWT claims: user_id, username, license_id, role_names (string[])
+   * JWT claims: user_id, username, tenant_id, role_names (string[])
    */
   function parseUserFromToken(): UserInfo | null {
     const payload = parseTokenPayload<JwtPayload>();
@@ -71,7 +71,7 @@ export const useAuthStore = defineStore('auth', () => {
       username: payload.username,
       roles: roleNames,
       permissions: [],
-      licenseId: payload.license_id,
+      tenantId: payload.tenant_id,
     };
   }
 
@@ -157,7 +157,7 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.remove(StorageKeys.USER_INFO);
     localStorage.remove(StorageKeys.PERMISSIONS);
     localStorage.remove(StorageKeys.ROLES);
-    localStorage.remove(StorageKeys.LICENSE_ID);
+    localStorage.remove(StorageKeys.TENANT_ID);
     localStorage.remove(StorageKeys.TAGS_VIEW);
     sessionStorage.remove(StorageKeys.USER_INFO);
     disableMockMode();
@@ -188,7 +188,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoggedIn,
     roles,
     permissions,
-    licenseId,
+    tenantId,
     username,
     avatar,
     isAdminRole,

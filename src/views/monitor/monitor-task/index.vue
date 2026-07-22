@@ -275,7 +275,7 @@ function resetTaskForm() {
   taskForm.execution_scope = 3;
   taskForm.scope_data = '';
   taskForm.enable = true;
-  taskForm.license_id = undefined;
+  taskForm.tenant_id = undefined;
   taskFormRef.value?.clearValidate();
 }
 

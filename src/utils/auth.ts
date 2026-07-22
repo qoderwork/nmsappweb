@@ -76,11 +76,11 @@ export function parseTokenPayload<T = Record<string, unknown>>(token?: string): 
 }
 
 /**
- * 从 Token 中提取 licenseId（X-License-Id Header 用）
+ * 从 Token 中提取 tenantId（X-License-Id Header 用）
  */
-export function getLicenseIdFromToken(): string | null {
-  const payload = parseTokenPayload<{ license_id?: string; licenseId?: string }>();
-  return payload?.license_id ?? payload?.licenseId ?? null;
+export function getTenantIdFromToken(): string | null {
+  const payload = parseTokenPayload<{ tenant_id?: string; tenantId?: string }>();
+  return payload?.tenant_id ?? payload?.tenantId ?? null;
 }
 
 /**

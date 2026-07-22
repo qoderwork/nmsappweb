@@ -28,7 +28,7 @@ export interface MNormalFile {
   chunkCount: number;
   /** 上传状态：0=上传中, 1=已完成, 2=失败 */
   status: number;
-  licenseId: string;
+  tenantId: string;
   createTime: string;
   updateTime: string;
   username: string;

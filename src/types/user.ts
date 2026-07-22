@@ -15,7 +15,7 @@ export interface User {
   phoneNumber?: string | null;
   realName?: string | null;
   status?: UserStatus | null;
-  licenseId?: number | null;
+  tenantId?: number | null;
   createTime?: string | null;
   lastLoginTime?: string | null;
   loginErrorTimes?: number | null;
@@ -48,7 +48,7 @@ export interface Role {
   id: string;
   roleName?: string | null;
   description?: string | null;
-  licenseId?: number | null;
+  tenantId?: number | null;
   useToSSO?: boolean | null;
   defaultRole?: boolean | null;
   user?: string | null;
@@ -92,7 +92,7 @@ export interface ResetPasswordRequest {
 /** 设置用户租户请求 */
 export interface SetTenancyRequest {
   userId: number;
-  licenseId: number;
+  tenantId: number;
 }
 
 /** 登录失败次数响应 */

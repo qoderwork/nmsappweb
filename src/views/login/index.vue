@@ -183,16 +183,17 @@ async function handleLogin() {
     }
 
     router.replace(redirect.value || '/dashboard');
-  } catch (e) {
-    // 后端返回验证码要求（captcha required）-> 展示验证码输入框
-    if (e instanceof BusinessError && e.data && typeof e.data === 'object'
-        && (e.data as Record<string, unknown>).required === true
-        && !captchaRequired.value) {
+  } catch (e: any) {
+    // 后端返回：{code: 400, message: "captcha required", data: {required: true}}
+    // 拦截器传 data.data 给 BusinessError，所以 e.data = {required: true}
+    if (e?.data?.required === true && !captchaRequired.value) {
       captchaRequired.value = true;
       await refreshCaptcha();
       return;
     }
+
     showErrorMessage(e, t('login.loginFailed'));
+
     // 已展示验证码 -> 失败后刷新验证码
     if (captchaRequired.value) {
       await refreshCaptcha();
